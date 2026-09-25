@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root {
+  --g: #4dff91; 
+  --gdim: #1a5c1a; 
+  --red: #ff2020; 
+  --reddim: #5c1a1a;
+  --amb: #ffaa00;
+  --bg: #030303; 
+  --panel: #070a07; 
+  --border: #1a3a1a;
+}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--g);
+  font-family:'Share Tech Mono',monospace;overflow:hidden;user-select:none;}
+
+/* CRT Effects */
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(to bottom,transparent 0px,transparent 2px,rgba(0,0,0,0.15) 2px,rgba(0,0,0,0.15) 4px);pointer-events:none;z-index:900;}
+body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,0.95) 100%);pointer-events:none;z-index:899;}
+
+/* FMV LAYER */
+#fmv-overlay { position:fixed; inset:0; background:#000; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+#intro-video { width:100%; height:100%; object-fit:cover; opacity: 0.8; filter: grayscale(1) contrast(1.5) sepia(0.2); }
+#skip-btn { position:absolute; bottom:40px; background:transparent; border:none; color:var(--gdim); font-family:inherit; font-size:14px; letter-spacing:0.2em; cursor:pointer; animation:blink 2s infinite; }
+#skip-btn:hover { color:var(--g); }
+
+/* EPIC DAMAGE EFFECTS */
+.glitch-anim { animation: glitchTear 0.15s linear infinite; filter: contrast(300%) hue-rotate(90deg) invert(1); }
+.blood-flash { position:fixed; inset:0; background:rgba(255,0,0,0.3); z-index:800; pointer-events:none; mix-blend-mode:overlay; }
+.shake-heavy { animation: screenShakeHeavy 0.3s cubic-bezier(.36,.07,.19,.97) both; }
+.shake-light { animation: screenShakeLight 0.2s cubic-bezier(.36,.07,.19,.97) both; }
+
+#game-wrapper {
+  display: flex; flex-direction: column; height: 100vh; max-width: 900px; margin: 0 auto;
+  border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+  background: var(--panel); position: relative;
+}
+
+/* Header */
+#header { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; font-size: 14px; letter-spacing: 0.15em; background: #000; }
+.alert-text { color: var(--red); animation: blink 1.2s step-end infinite; text-shadow: 0 0 10px var(--red); }
+
+/* Arena (1D Grid) */
+#arena { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; perspective: 800px; }
+#grid { display: flex; gap: 4px; transform: rotateX(25deg); }
+.tile { 
+  width: 78px; height: 78px; border: 1px solid var(--gdim); background: rgba(0,255,0,0.01);
+  display: flex; align-items: center; justify-content: center; position: relative;
+  box-shadow: inset 0 0 15px rgba(51,255,51,0.02); transition: background 0.1s, border-color 0.1s;
+}
+.tile.target { background: rgba(255,32,32,0.15); border-color: var(--red); box-shadow: inset 0 0 20px rgba(255,0,0,0.2); }
+.tile.flash { background: var(--g) !important; box-shadow: 0 0 40px var(--g); transition: none; }
+
+/* Entities */
+.entity { 
+  position: absolute; width: 64px; height: 64px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; font-size: 32px; font-weight: bold;
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 10;
+}
+.player { color: var(--g); text-shadow: 0 0 15px var(--g); border: 2px solid var(--g); background: rgba(0,10,0,0.95); }
+.player.shielded { border-color: var(--amb); box-shadow: 0 0 20px var(--amb); color: var(--amb); }
+.enemy { color: var(--red); text-shadow: 0 0 20px var(--red); border: 1px dashed var(--red); background: rgba(15,0,0,0.95); animation: float 3s ease-in-out infinite; }
+
+.hp-bar { position: absolute; bottom: -22px; font-size: 11px; letter-spacing: 0.1em; white-space: nowrap; background:#000; padding: 2px 6px; border: 1px solid var(--border); }
+.intent-icon { position: absolute; top: -30px; font-size: 13px; color: var(--red); background:#000; padding: 2px 6px; border: 1px solid var(--reddim); letter-spacing: 0.1em; white-space: nowrap; }
+/* HUD Layout */
+#hud { border-top: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; gap: 20px; background: #000; z-index: 50;}
+
+#queue-area { 
+  display: flex; gap: 10px; min-height: 85px; 
+  border: 1px dashed var(--gdim); padding: 15px 10px 10px 10px; 
+  align-items: center; position: relative; background: rgba(0,255,0,0.02);
+}
+.queue-label { 
+  position: absolute; top: -10px; left: 10px; 
+  background: #000; padding: 0 8px; font-size: 11px; color: var(--gdim); letter-spacing: 0.1em; border: 1px solid var(--gdim);
+}
+
+#controls-row { display: flex; justify-content: space-between; align-items: stretch; gap: 20px;}
+#hand { display: flex; gap: 10px; flex: 1; justify-content: flex-start;}
+
+.card {
+  border: 1px solid var(--g); padding: 10px; cursor: pointer; background: rgba(0,15,0,0.8);
+  display: flex; flex-direction: column; gap: 5px; width: 110px; text-align: center;
+  transition: transform 0.1s, background 0.2s, border-color 0.2s; user-select: none; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.card:hover:not(.disabled) { transform: translateY(-4px); background: var(--gdim); box-shadow: 0 5px 15px rgba(0,255,0,0.1); }
+.card .title { font-size: 13px; font-weight: bold; letter-spacing: 0.05em; }
+.card .desc { font-size: 10px; color: #aaa; }
+
+.card.disabled { opacity: 0.4; pointer-events: none; border-color: var(--gdim); filter: grayscale(1); }
+.cd-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; color: var(--amb); letter-spacing: 0.1em; z-index: 5; text-shadow: 0 0 10px var(--amb); }
+
+.btn-exec {
+  background: var(--gdim); color: var(--bg); border: 2px solid var(--g); 
+  padding: 0 35px; font-family: inherit; font-size: 20px; font-weight: bold;
+  cursor: pointer; letter-spacing: 0.2em; text-transform: uppercase; transition: all 0.2s;
+}
+.btn-exec:hover:not(:disabled) { background: var(--g); box-shadow: 0 0 25px var(--g); color: #000; transform: scale(1.02); }
+.btn-exec:disabled { opacity: 0.2; cursor: not-allowed; border-color: var(--gdim); background: transparent; color: var(--gdim); }
+
+/* Draft Screen */
+.draft-card {
+  border: 1px dashed var(--g); padding: 25px 15px; cursor: pointer; background: rgba(0,20,0,0.8);
+  display: flex; flex-direction: column; gap: 12px; width: 160px; text-align: center;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.draft-card:hover { background: var(--gdim); transform: scale(1.1); border-style: solid; box-shadow: 0 0 30px rgba(0,255,0,0.2); }
+
+/* Animations */
+@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
+@keyframes float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-5px);} }
+@keyframes glitchTear { 0%{transform:translate(0)} 20%{transform:translate(-8px,4px)} 40%{transform:translate(8px,-4px)} 60%{transform:translate(-4px,8px)} 80%{transform:translate(4px,-8px)} 100%{transform:translate(0)} }
+@keyframes screenShakeHeavy {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  10%, 50%, 90% { transform: translate3d(-12px, 5px, 0) rotate(-1deg); }
+  30%, 70% { transform: translate3d(12px, -5px, 0) rotate(1deg); }
+}
+@keyframes screenShakeLight {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  25%, 75% { transform: translate3d(-4px, 0, 0); }
+  50% { transform: translate3d(4px, 0, 0); }
+}

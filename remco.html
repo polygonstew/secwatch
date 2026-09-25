@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SECWATCH // REM SEQUENCE</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --g:#4dff91;--gdim:#1a5c1a;--red:#ff2020;--reddim:#5c1a1a;
+  --redglow:rgba(255,32,32,0.15);--amb:#ffaa00;
+  --bg:#010101;--card-bg:#060a06;--card-enemy:#0a0303;
+}
+html,body{background:var(--bg);color:var(--g);font-family:'Share Tech Mono',monospace;
+  height:100vh;overflow:hidden;display:flex;flex-direction:column;user-select:none;}
+body::after{content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse at center,transparent 25%,rgba(0,0,0,0.92) 100%);
+  pointer-events:none;z-index:100;}
+.scanlines{position:fixed;inset:0;pointer-events:none;z-index:99;
+  background:repeating-linear-gradient(to bottom,transparent 0,transparent 2px,rgba(0,0,0,0.18) 2px,rgba(0,0,0,0.18) 4px);}
+
+/* ENCOUNTER SELECT */
+#encounter-select{position:fixed;inset:0;background:#000;z-index:500;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;}
+#encounter-select.hidden{display:none}
+.es-title{font-size:11px;letter-spacing:0.5em;color:var(--reddim);}
+.es-sub{font-size:8px;letter-spacing:0.2em;color:#1a3020;}
+.es-cards{display:flex;gap:18px;align-items:stretch;}
+.es-card{width:186px;padding:16px;border:1px solid #1a2818;background:#030503;
+  cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;gap:8px;}
+.es-card:hover{border-color:var(--gdim);background:#060a06;box-shadow:0 0 20px rgba(77,255,145,0.06);}
+.es-enc-name{font-size:11px;letter-spacing:0.2em;color:var(--g);}
+.es-enc-sub{font-size:8px;color:var(--gdim);line-height:1.6;}
+.es-enc-diff{font-size:8px;color:var(--amb);letter-spacing:0.1em;}
+.es-enc-ehp{font-size:9px;color:var(--reddim);border-top:1px solid #1a2818;padding-top:6px;}
+.es-ew-note{font-size:8px;color:#3a2010;font-style:italic;margin-top:auto;padding-top:4px;}
+
+/* HUD */
+#hud{padding:10px 32px;display:flex;justify-content:space-between;align-items:center;
+  border-bottom:1px solid #0a1a0a;z-index:10;background:#000;flex-shrink:0;}
+.stat{font-size:19px;letter-spacing:0.08em;text-shadow:0 0 10px var(--g);transition:color 0.3s,text-shadow 0.3s;}
+.stat.red{color:var(--red);text-shadow:0 0 10px var(--red);}
+.stat.amber{color:var(--amb);text-shadow:0 0 10px var(--amb);}
+.stat.dim{color:var(--gdim);text-shadow:none;}
+#enc-name-hud{font-size:9px;letter-spacing:0.3em;color:#0e1e0e;text-align:center;}
+#ew-hud{font-size:8px;color:#1a3820;letter-spacing:0.15em;text-align:center;margin-top:2px;}
+
+/* ENTITY VIEWPORT */
+#entity-viewport{width:300px;height:130px;margin:12px auto 0;
+  background:#010101;border:1px solid #2a0808;
+  box-shadow:0 0 30px rgba(180,20,0,0.12),inset 0 0 20px rgba(100,0,0,0.25);
+  border-radius:4px;position:relative;z-index:10;overflow:hidden;flex-shrink:0;}
+#entity-canvas{width:100%;height:100%;display:block;}
+.vp-label{position:absolute;top:5px;left:8px;font-size:8px;color:#3a0a0a;letter-spacing:0.2em;z-index:2;pointer-events:none;}
+.vp-ehp{position:absolute;bottom:5px;right:8px;font-size:8px;color:#5a1a1a;letter-spacing:0.12em;z-index:2;transition:color 0.5s;}
+.vp-ehp.low{color:var(--red);text-shadow:0 0 8px var(--red);}
+#entity-freeze{position:absolute;inset:0;background:#000;opacity:0;z-index:3;
+  display:flex;align-items:center;justify-content:center;font-size:9px;
+  color:#3a0a0a;letter-spacing:0.15em;pointer-events:none;transition:opacity 0.5s;}
+
+/* 3D TABLE */
+#table-container{flex:1;perspective:1200px;display:flex;align-items:center;justify-content:center;
+  position:relative;margin-top:-60px;z-index:5;}
+#table{width:820px;height:480px;transform:rotateX(52deg) translateZ(-40px);
+  transform-style:preserve-3d;display:flex;flex-direction:column;gap:36px;justify-content:center;
+  background:radial-gradient(circle at center,rgba(26,92,26,0.07) 0%,transparent 65%);
+  border:1px dashed rgba(77,255,145,0.07);border-radius:16px;padding:36px;}
+.row{display:flex;justify-content:center;gap:18px;position:relative;}
+
+/* BOARD SLOTS */
+.board-slot{width:136px;height:196px;border:1px dashed #1a3018;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;color:#0e2010;
+  font-size:9px;letter-spacing:0.1em;transition:all 0.12s;position:relative;}
+.board-slot.drag-ok{border-color:var(--amb)!important;background:rgba(255,170,0,0.12)!important;
+  box-shadow:inset 0 0 20px rgba(255,170,0,0.25),0 0 14px rgba(255,170,0,0.2)!important;
+  color:var(--amb)!important;}
+.board-slot.drag-no{border-color:#5a0808!important;background:rgba(255,0,0,0.06)!important;}
+
+/* ENEMY WRAPPERS */
+.ewrap{width:136px;height:196px;position:relative;display:flex;
+  align-items:center;justify-content:center;}
+.ewrap.drag-atk{outline:2px dashed var(--red)!important;border-radius:6px;
+  background:rgba(255,32,32,0.08)!important;
+  box-shadow:0 0 16px rgba(255,32,32,0.2)!important;}
+
+/* GHOST CARD (follows cursor during drag) */
+#drag-ghost{
+  position:fixed;pointer-events:none;z-index:9000;
+  width:148px;height:214px;
+  transform:rotate(-4deg) scale(1.07);
+  filter:brightness(1.15);
+  box-shadow:0 20px 50px rgba(0,0,0,0.9),0 0 30px rgba(77,255,145,0.15);
+  transition:none;
+  border-radius:6px;overflow:hidden;
+}
+
+/* BASE CARD */
+.card{width:136px;height:196px;background:var(--card-bg);border:1px solid #1a3018;
+  border-radius:6px;display:flex;flex-direction:column;position:relative;
+  box-shadow:0 8px 24px rgba(0,0,0,0.9);
+  transition:transform 0.2s cubic-bezier(0.175,0.885,0.32,1.275),box-shadow 0.2s;
+  overflow:hidden;cursor:grab;}
+.card:active{cursor:grabbing;}
+.card.dragging{opacity:0.3;transform:scale(0.93)!important;}
+.card-cost{position:absolute;top:4px;left:4px;background:var(--g);color:#000;
+  width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:bold;border:2px solid #000;z-index:5;}
+.card-cost.zero{background:#1a3018;color:var(--gdim);}
+.card-art{height:72px;border-bottom:1px solid #1a3018;display:flex;
+  align-items:center;justify-content:center;flex-shrink:0;}
+.card-art-sym{font-size:28px;opacity:0.7;text-shadow:0 0 14px currentColor;
+  animation:sympulse 3s ease-in-out infinite;}
+@keyframes sympulse{0%,100%{opacity:0.5;transform:scale(0.95)}50%{opacity:0.9;transform:scale(1.05)}}
+.card-tag{position:absolute;top:4px;right:4px;font-size:6px;letter-spacing:0.1em;
+  padding:1px 3px;border:1px solid currentColor;border-radius:2px;opacity:0.55;}
+.card-title{font-size:10px;font-weight:bold;text-align:center;padding:5px 4px;
+  border-bottom:1px dashed #1a3018;letter-spacing:0.08em;background:rgba(0,0,0,0.4);line-height:1.2;}
+.card-desc{font-size:9px;padding:6px 7px;color:#3a6a3a;flex:1;line-height:1.4;}
+.card-val{font-size:14px;font-weight:bold;text-align:center;padding:5px;
+  border-top:1px solid #1a3018;color:var(--g);text-shadow:0 0 8px var(--g);
+  background:rgba(0,255,0,0.03);flex-shrink:0;}
+/* type accents */
+.card.def{border-color:#1a2a3a;}
+.card.def .card-val{color:var(--amb);text-shadow:0 0 8px var(--amb);border-color:#1a2a3a;}
+.card.skill{border-color:#2a1a3a;}
+.card.skill .card-val{color:#9a60ff;text-shadow:0 0 8px #9a60ff;border-color:#2a1a3a;}
+.card.skill .card-cost{background:#9a60ff;}
+/* hand card hover lift */
+#player-hand .card:hover{transform:translateY(-44px) rotate(0deg) scale(1.06)!important;
+  z-index:200;box-shadow:0 0 28px rgba(77,255,145,0.18);}
+#player-hand .card.dragging-src{opacity:0.28!important;transform:scale(0.94)!important;}
+/* enemy */
+.card.enemy{background:var(--card-enemy);border-color:#2a0808;cursor:default;
+  box-shadow:0 8px 24px rgba(255,0,0,0.06);}
+.card.enemy .card-art{border-color:#2a0808;background:rgba(120,0,0,0.06);}
+.card.enemy .card-art-sym{color:var(--red);animation-name:enmpulse;}
+@keyframes enmpulse{0%,100%{opacity:0.35;transform:scale(0.9)}50%{opacity:0.75;transform:scale(1.1)}}
+.card.enemy .card-title{color:var(--red);border-color:#2a0808;}
+.card.enemy .card-desc{color:#4a1a1a;}
+.card.enemy .card-val{color:var(--red);text-shadow:0 0 8px var(--red);border-color:#2a0808;}
+.intent-badge{position:absolute;top:-30px;left:50%;transform:translateX(-50%);
+  font-size:8px;color:var(--red);background:#020101;padding:3px 8px;
+  border:1px solid #3a0808;border-radius:3px;white-space:nowrap;letter-spacing:0.08em;
+  text-shadow:0 0 8px var(--red);}
+.enemy-stats{position:absolute;bottom:0;left:0;right:0;background:rgba(80,0,0,0.4);
+  border-top:1px solid #2a0808;padding:5px 7px;display:flex;justify-content:space-between;
+  color:var(--red);font-size:9px;}
+
+/* HAND */
+#player-hand{display:flex;gap:0;position:absolute;left:50%;transform:translateX(-50%);
+  bottom:-16px;z-index:20;}
+#player-hand .card{width:148px;height:214px;transform-origin:bottom center;margin:0 -14px;}
+#player-hand .card:nth-child(1){transform:rotate(-10deg) translateY(22px);}
+#player-hand .card:nth-child(2){transform:rotate(-4deg) translateY(6px);}
+#player-hand .card:nth-child(3){transform:rotate(0deg) translateY(2px);}
+#player-hand .card:nth-child(4){transform:rotate(4deg) translateY(6px);}
+#player-hand .card:nth-child(5){transform:rotate(10deg) translateY(22px);}
+#player-hand .card:hover:not(.dragging){
+  transform:translateY(-46px) rotate(0deg) scale(1.06);
+  z-index:200;box-shadow:0 0 28px rgba(77,255,145,0.18);}
+
+/* ANCHOR (placed def card) */
+.anchor{width:100%;height:100%;display:flex;flex-direction:column;
+  border-radius:5px;background:#060a10;border:1px solid #1a2a3a;overflow:hidden;}
+.anchor-sym{height:60px;display:flex;align-items:center;justify-content:center;
+  font-size:24px;color:#60aaff;opacity:0.6;border-bottom:1px solid #1a2a3a;}
+.anchor-name{font-size:9px;font-weight:bold;text-align:center;padding:4px;
+  color:#4a8aaa;letter-spacing:0.08em;border-bottom:1px dashed #1a2a3a;}
+.anchor-hp{flex:1;display:flex;align-items:center;justify-content:center;
+  font-size:16px;color:var(--amb);text-shadow:0 0 8px var(--amb);font-weight:bold;}
+.anchor-bar{height:4px;background:#1a2a3a;margin:0 8px 6px;}
+.anchor-bar-fill{height:100%;background:var(--amb);transition:width 0.4s;}
+
+/* ACTION BAR */
+#action-bar{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+  width:840px;display:flex;justify-content:space-between;align-items:flex-end;z-index:50;}
+.pile{width:88px;height:128px;border:1px solid #1a3018;border-radius:6px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-size:11px;background:rgba(0,14,0,0.8);text-align:center;
+  box-shadow:0 8px 18px rgba(0,0,0,0.8);gap:4px;color:var(--gdim);letter-spacing:0.1em;}
+.pile .pn{font-size:20px;color:var(--g);text-shadow:0 0 8px var(--g);}
+#btn-end{background:transparent;color:var(--red);border:1px solid var(--reddim);
+  padding:12px 28px;font-family:'Share Tech Mono',monospace;font-size:14px;
+  cursor:pointer;letter-spacing:0.2em;border-radius:3px;transition:all 0.2s;
+  text-shadow:0 0 8px var(--red);}
+#btn-end:hover{background:var(--redglow);border-color:var(--red);
+  box-shadow:0 0 24px rgba(255,32,32,0.15);}
+#btn-end:disabled{opacity:0.2;cursor:not-allowed;pointer-events:none;}
+
+/* LOG */
+#log{position:fixed;bottom:158px;left:50%;transform:translateX(-50%);
+  font-size:9px;color:var(--gdim);letter-spacing:0.1em;z-index:50;
+  pointer-events:none;opacity:0;transition:opacity 0.3s;white-space:nowrap;}
+#log.show{opacity:1;}
+
+/* WIN / LOSE */
+#win-ov,#lose-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.97);
+  z-index:600;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+#win-ov.open,#lose-ov.open{display:flex;}
+.end-sys{font-size:9px;letter-spacing:0.4em;color:#0a2010;margin-bottom:12px;}
+.end-title{font-size:18px;letter-spacing:0.3em;margin-bottom:4px;}
+#win-ov .end-title{color:var(--g);text-shadow:0 0 20px rgba(77,255,145,0.5);}
+#lose-ov .end-title{color:var(--red);text-shadow:0 0 20px rgba(255,32,32,0.5);}
+.end-freeze{font-family:'Special Elite',cursive;font-size:13px;color:#3a0a0a;
+  letter-spacing:0.08em;line-height:1.8;border:1px solid #2a0808;padding:12px 20px;
+  max-width:420px;text-align:center;margin-bottom:4px;}
+.end-text{max-width:520px;font-size:11px;line-height:1.9;text-align:center;margin:4px 0 16px;}
+#win-ov .end-text{color:var(--gdim);}
+#lose-ov .end-text{color:#4a1a1a;}
+.ebtn{background:transparent;font-family:'Share Tech Mono',monospace;
+  font-size:11px;letter-spacing:0.2em;padding:10px 26px;cursor:pointer;transition:all 0.2s;}
+.ebtn.pri{border:1px solid var(--gdim);color:var(--g);}
+.ebtn.pri:hover{background:rgba(77,255,145,0.08);border-color:var(--g);}
+.ebtn.dng{border:1px solid var(--reddim);color:var(--red);}
+.ebtn.dng:hover{background:rgba(255,32,32,0.06);border-color:var(--red);}
+
+/* FX */
+.glitch{animation:shake 0.22s both;color:var(--red)!important;text-shadow:0 0 10px var(--red)!important;}
+@keyframes shake{10%,90%{transform:translate3d(-2px,0,0)}20%,80%{transform:translate3d(2px,0,0)}30%,50%,70%{transform:translate3d(-4px,0,0)}40%,60%{transform:translate3d(4px,0,0)}}
+.shake{animation:shake 0.35s both;}
+.phit{animation:phit 0.4s ease-out;}
+@keyframes phit{0%{box-shadow:inset 0 0 0 rgba(255,32,32,0)}50%{box-shadow:inset 0 0 22px rgba(255,32,32,0.38)}100%{box-shadow:inset 0 0 0 rgba(255,32,32,0)}}
+</style>
+</head>
+<body>
+<div class="scanlines"></div>
+
+<!-- ENCOUNTER SELECT -->
+<div id="encounter-select">
+  <div class="es-title">SECWATCH // REM SEQUENCE</div>
+  <div class="es-sub">A NIGHTMARE IS A SYSTEM PROCESS &nbsp;·&nbsp; 01/17/94</div>
+  <div class="es-cards" id="es-row"></div>
+  <div style="font-size:8px;color:#0e1a0e;letter-spacing:0.18em;margin-top:6px">
+    EAST WALL: <span id="es-ew">—</span>
+    &nbsp;·&nbsp; DRAG ATK CARDS ONTO ENEMIES &nbsp;·&nbsp; DRAG DEF CARDS ONTO YOUR SLOTS
+  </div>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="stat" id="s-hp">LUCIDITY: 20/20</div>
+  <div><div id="enc-name-hud">—</div><div id="ew-hud">EAST WALL: <span id="ew-v">—</span></div></div>
+  <div class="stat amber" id="s-en">REM ENERGY: 3/3</div>
+</div>
+
+<!-- ENTITY VIEWPORT -->
+<div id="entity-viewport">
+  <canvas id="entity-canvas"></canvas>
+  <div class="vp-label">SYS.CAM.EAST // FEED ACTIVE</div>
+  <div class="vp-ehp" id="vp-ehp">ENTITY: —</div>
+  <div id="entity-freeze">[ SIGNAL LOST ]</div>
+</div>
+
+<!-- 3D TABLE -->
+<div id="table-container">
+  <div id="table">
+    <div class="row" id="enemy-row"></div>
+    <div class="row" id="board-row"></div>
+  </div>
+</div>
+
+<!-- ACTION BAR -->
+<div id="action-bar">
+  <div class="pile"><span>DRAW</span><span class="pn" id="draw-n">0</span></div>
+  <div id="player-hand"></div>
+  <button id="btn-end">END TURN</button>
+  <div class="pile"><span>DISCARD</span><span class="pn" id="disc-n">0</span></div>
+</div>
+<div id="log"></div>
+
+<!-- WIN -->
+<div id="win-ov">
+  <div class="end-sys">SECWATCH // REM SEQUENCE // TERMINATED</div>
+  <div class="end-title">LUCIDITY MAINTAINED</div>
+  <div class="end-freeze" id="win-freeze"></div>
+  <div class="end-text" id="win-text"></div>
+  <button class="ebtn pri" id="win-btn">[ CONTINUE ]</button>
+</div>
+
+<!-- LOSE -->
+<div id="lose-ov">
+  <div class="end-sys">SECWATCH // REM SEQUENCE // CRITICAL</div>
+  <div class="end-title">LUCIDITY: 0</div>
+  <div class="end-text" id="lose-text"></div>
+  <div style="display:flex;gap:16px">
+    <button class="ebtn dng" id="retry-btn">[ RETRY ]</button>
+    <button class="ebtn pri" id="skip-btn">[ CONTINUE ANYWAY ]</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ── CONSTANTS (must be first) ──
+const C_RED = '#ff2020';
+const C_AMB = '#ffaa00';
+const C_GRN = '#4dff91';
+const C_PUR = '#9a60ff';
+const C_BLU = '#60aaff';
+const sleep  = ms => new Promise(r => setTimeout(r, ms));
+const lerp   = (a,b,t) => a + (b-a) * Math.max(0, Math.min(1,t));
+
+// ── CARD DEFINITIONS ──
+const CARDS = [
+  {id:'deny',  cost:1,type:'atk',title:'DENY',        symbol:'◈',color:C_GRN,val:5,  tag:'DEFENSE', desc:'Refuse the intrusion. Drag onto a Terror to strike it.'},
+  {id:'deny2', cost:1,type:'atk',title:'DENY',        symbol:'◈',color:C_GRN,val:5,  tag:'DEFENSE', desc:'Refuse the intrusion. Drag onto a Terror to strike it.'},
+  {id:'doc',   cost:1,type:'def',title:'DOCUMENT',    symbol:'≡', color:C_BLU,val:5, hp:5,  tag:'ANCHOR',  desc:'Anchor to evidence. Drag onto one of your slots.'},
+  {id:'doc2',  cost:1,type:'def',title:'DOCUMENT',    symbol:'≡', color:C_BLU,val:5, hp:5,  tag:'ANCHOR',  desc:'Anchor to evidence. Drag onto one of your slots.'},
+  {id:'tape',  cost:2,type:'skill',title:"EARL'S TAPE",symbol:'▶',color:C_PUR,heal:3,         tag:'RECOVERY',desc:"Tape 06. His voice is wrong. Recover 3 Lucidity."},
+  {id:'badge', cost:1,type:'atk',title:'DEAD BADGE',  symbol:'◆',color:C_AMB,val:7,  tag:'ANOMALY', desc:"Badge 0047. Shouldn't work. Drag onto a Terror for 7."},
+  {id:'arrng', cost:2,type:'def',title:'ARRANGEMENT', symbol:'▣',color:C_BLU,val:10, hp:10, tag:'ANCHOR',  desc:'Two families. 1887. Deploy a strong anchor (10 HP).'},
+  {id:'wit',   cost:1,type:'atk',title:'WITNESS.TXT', symbol:'⟨⟩',color:C_AMB,val:3, aoe:true,tag:'ANOMALY',desc:'Nobody typed this. Drag anywhere — hits ALL Terrors.'},
+  {id:'gnd',   cost:1,type:'skill',title:'GROUND',    symbol:'▽',color:C_PUR,heal:2, draw:1, tag:'RECOVERY',desc:'Whitesburg KY 01/16/94. Recover 2 Lucidity, draw 1.'},
+  {id:'relay', cost:0,type:'skill',title:'LEAVE IT RUNNING',symbol:'_',color:C_GRN,draw:2,   tag:'SYSTEM',  desc:'Active since 1983. Draw 2 cards.'},
+];
+
+// ── ENCOUNTERS ──
+const ENCS = [
+  {
+    name:'FIRST CONTACT', sub:'02:14 — You went to sleep.', diff:'BASELINE',
+    deckIds:['deny','deny2','doc','doc2','tape','gnd'],
+    enemies:[
+      {name:'THE INTRUSION',symbol:'◇',color:C_RED,atk:3,hp:12,maxHp:12,intent:'PROBE ×3',    desc:'The wall extends toward you. Not malice. Attention.'},
+      null,
+      {name:'THE WARMTH',   symbol:'≋',color:C_AMB,atk:2,hp:8, maxHp:8, intent:'EXTEND ×2',  desc:'The wall is warm. It is January. The wall is warm.'},
+    ],
+    winFreeze:'The relay is still running.',
+    winText:'Your Lucidity holds. The intrusion passes.\n\nWhatever probed at the edges of your sleep has retreated — not gone, not repelled, simply withdrawn the way a very large organism withdraws a limb.\n\nYou wake in a motel room on County Road 15. Gray Kentucky dawn. You kept your head. That is the arrangement.',
+    loseText:"Lucidity: 0. The wall has your full attention now.\n\nYou'll wake up. You always wake up. The question is what comes back with you.",
+    href:'day3.html',
+  },
+  {
+    name:'THE CORRIDOR', sub:'03:41 — Floor 3. All the doors are open.', diff:'ELEVATED',
+    deckIds:['deny','deny2','doc','doc2','tape','badge','arrng','gnd'],
+    enemies:[
+      {name:'THE INTRUSION',symbol:'◇',color:C_RED,atk:3,hp:15,maxHp:15,intent:'PROBE ×3',    desc:'Deeper this time. It knows the shape of you now.'},
+      {name:'THE SHAPE',    symbol:'▮',color:C_RED,atk:5,hp:12,maxHp:12,intent:'APPROACH ×5',  desc:'Work clothes. Facing away from the camera. Not moving.'},
+      {name:'THE WARMTH',   symbol:'≋',color:C_AMB,atk:2,hp:10,maxHp:10,intent:'EXTEND ×2',   desc:'Very warm. Warm in the way a living thing is warm from inside.'},
+    ],
+    winFreeze:"He came up. He just wasn't oriented the same way after.",
+    winText:"The corridor is empty again. Just the open doors and the dead cameras and the thing that uses David Hargrove's badge.\n\nYou held the boundary. Earl would recognize what you did here.",
+    loseText:"The shape at the end of the corridor turns around.\n\nYou don't see its face. You won't remember its face. That's the mercy of it.",
+    href:'day5.html',
+  },
+  {
+    name:'THE BOUNDARY', sub:'04:52 — You went down. You chose.', diff:'MAXIMUM',
+    deckIds:['deny','deny2','doc','doc2','tape','badge','arrng','wit','gnd','relay'],
+    enemies:[
+      {name:'THE SHAPE',    symbol:'▮',color:C_RED,atk:4,hp:18,maxHp:18,intent:'WATCH ×4',    desc:'Earl. Or something that knows the shape of Earl.'},
+      {name:'THE INTRUSION',symbol:'◇',color:C_RED,atk:6,hp:22,maxHp:22,intent:'CONSUME ×6',  desc:'It is not looking at you. Looking requires direction.'},
+      {name:'WITNESS.TXT',  symbol:'⟨⟩',color:C_AMB,atk:4,hp:15,maxHp:15,intent:'TRANSMIT ×4',desc:"leave the system running. don't come back."},
+    ],
+    winFreeze:"I understand now. Same thing they all say.",
+    winText:"You held.\n\nThe entity does not understand defeat. It simply withdraws its awareness back to whatever it was attending to before it noticed you.\n\nYou are at the surface. Cold air. January. The crack is gone.\n\nYou understand something now that you did not understand before.",
+    loseText:"You have been perceived completely. Down to the cellular level. Down to every memory, every fear, every thought you have ever had or will have.\n\nYou understand now.\n\nSame thing they all say.",
+    href:'day6.html',
+  },
+];
+
+// ── GAME STATE ──
+const G = {
+  enc:null, hp:20, maxHp:20, energy:3, maxEnergy:3,
+  drawPile:[], discardPile:[], hand:[],
+  board:[null,null,null],
+  enemies:[null,null,null],
+  entityMaxHp:0,
+  isEnemyTurn:false, gameOver:false,
+};
+
+// ── CANVAS ──
+let ehpPct = 1;
+function initCanvas() {
+  const cv = document.getElementById('entity-canvas');
+  const vp = document.getElementById('entity-viewport');
+  cv.width  = vp.clientWidth;
+  cv.height = vp.clientHeight;
+  const ctx = cv.getContext('2d');
+  (function draw(ts) {
+    const t=ts*0.001, W=cv.width, H=cv.height;
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#010101'; ctx.fillRect(0,0,W,H);
+    // grain
+    const id=ctx.createImageData(W,H);
+    for(let i=0;i<id.data.length;i+=4){
+      const v=Math.random()<0.045?Math.floor(Math.random()*12):0;
+      id.data[i]=v*0.7;id.data[i+1]=0;id.data[i+2]=0;id.data[i+3]=255;
+    }
+    ctx.putImageData(id,0,0);
+    // blobs
+    const rev=1-ehpPct;
+    for(let i=0;i<6;i++){
+      const ph=(i/6)*Math.PI*2;
+      const cx=W*0.5+Math.sin(t*0.28+ph)*W*0.3*(1+rev*0.7);
+      const cy=H*0.5+Math.cos(t*0.19+ph*1.4)*H*0.38*(1+rev*0.7);
+      const r=(16+i*9)*(0.5+rev*0.9)*(0.75+0.25*Math.sin(t*0.7+i));
+      const a=0.018+rev*0.13;
+      const rr=Math.round(lerp(70,210,rev));
+      const g2=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
+      g2.addColorStop(0,`rgba(${rr},0,0,${a*3})`);
+      g2.addColorStop(0.4,`rgba(${rr>>1},0,0,${a*1.4})`);
+      g2.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=g2;
+      ctx.beginPath();
+      ctx.ellipse(cx,cy,r,r*(0.4+0.28*Math.cos(t*0.38+i*0.9)),t*0.07+ph,0,Math.PI*2);
+      ctx.fill();
+    }
+    if(Math.random()<0.018){
+      ctx.fillStyle=`rgba(255,20,0,${0.04+Math.random()*0.06})`;
+      ctx.fillRect(0,Math.random()*H,W,1+Math.random()*2);
+    }
+    requestAnimationFrame(draw);
+  })(0);
+}
+
+// ── INIT ──
+window.addEventListener('load', () => {
+  const ewRaw = parseFloat(localStorage.getItem('sw_east_wall')||'0');
+  const ew    = isNaN(ewRaw)||ewRaw<0 ? 0 : ewRaw;
+  document.getElementById('es-ew').textContent = ewRaw<0?'--':ew.toFixed(1);
+  document.getElementById('ew-v').textContent  = ewRaw<0?'--':ew.toFixed(1);
+
+  ENCS.forEach((enc,i) => {
+    const ewB = Math.floor(ew*2);
+    const totHp = enc.enemies.reduce((s,e)=>s+(e?e.hp:0),0)+ewB;
+    const el = document.createElement('div');
+    el.className = 'es-card';
+    el.innerHTML = `
+      <div class="es-enc-name">${enc.name}</div>
+      <div class="es-enc-sub">${enc.sub}</div>
+      <div class="es-enc-diff">DIFFICULTY: ${enc.diff}</div>
+      <div class="es-enc-ehp">ENTITY HP: ${totHp}${ewB>0?` <span style="color:#3a1000">(+${ewB} East Wall)</span>`:''}</div>
+      <div class="es-ew-note">${['After Day 2','After Day 4','After Day 5'][i]}</div>`;
+    el.addEventListener('click', () => startEnc(i, ew));
+    document.getElementById('es-row').appendChild(el);
+  });
+
+  document.getElementById('btn-end').addEventListener('click', endTurn);
+  document.getElementById('retry-btn').addEventListener('click', () => {
+    document.getElementById('lose-ov').classList.remove('open');
+    const ew2 = parseFloat(localStorage.getItem('sw_east_wall')||'0');
+    setTimeout(() => startEnc(ENCS.indexOf(G.enc), isNaN(ew2)||ew2<0?0:ew2), 200);
+  });
+
+  initCanvas();
+});
+
+// ── START ──
+function startEnc(idx, ew) {
+  const enc = ENCS[idx];
+  G.enc = enc;
+  const ewB = Math.floor(ew*2);
+  const liveCount = enc.enemies.filter(Boolean).length||1;
+
+  G.enemies = enc.enemies.map(e => e ? {
+    ...e,
+    hp:    e.hp    + Math.floor(ewB/liveCount),
+    maxHp: e.maxHp + Math.floor(ewB/liveCount),
+  } : null);
+
+  G.entityMaxHp  = G.enemies.reduce((s,e)=>s+(e?e.maxHp:0),0);
+  G.hp=G.maxHp=20; G.energy=G.maxEnergy=3;
+  G.isEnemyTurn=false; G.gameOver=false;
+  G.board=[null,null,null];
+
+  const deck = enc.deckIds.map(id=>CARDS.find(c=>c.id===id)).filter(Boolean).map(c=>({...c}));
+  G.drawPile   = deck.sort(()=>Math.random()-0.5);
+  G.discardPile=[]; G.hand=[];
+
+  document.getElementById('encounter-select').classList.add('hidden');
+  document.getElementById('enc-name-hud').textContent = enc.name;
+  document.getElementById('win-btn').onclick  = () => { window.location.href=enc.href; };
+  document.getElementById('skip-btn').onclick = () => { window.location.href=enc.href; };
+
+  buildBoard();
+  renderEnemies();
+  updateEhp();
+  startTurn();
+}
+
+// ── BOARD ──
+function buildBoard() {
+  const row = document.getElementById('board-row');
+  row.innerHTML='';
+  for(let i=0;i<3;i++){
+    const s=document.createElement('div');
+    s.className='board-slot'; s.id='slot-'+i; s.textContent='[ HOLD ]';
+    row.appendChild(s);
+  }
+}
+
+// ── TURN ──
+function startTurn() {
+  if(G.gameOver) return;
+  G.isEnemyTurn=false; G.energy=G.maxEnergy;
+  const btn=document.getElementById('btn-end');
+  btn.disabled=false; btn.textContent='END TURN';
+  drawCards(4); updateHUD();
+}
+
+async function endTurn() {
+  if(G.isEnemyTurn||G.gameOver) return;
+  G.isEnemyTurn=true;
+  const btn=document.getElementById('btn-end');
+  btn.disabled=true; btn.textContent='ENEMY TURN…';
+  while(G.hand.length) G.discardPile.push(G.hand.pop());
+  renderHand(); updateHUD();
+  await runEnemyTurn();
+  if(!G.gameOver) startTurn();
+}
+
+async function runEnemyTurn() {
+  for(let i=0;i<G.enemies.length;i++){
+    const e=G.enemies[i];
+    if(!e||e.hp<=0) continue;
+    await sleep(480);
+    const anchor=G.board[i];
+    if(anchor){
+      anchor.hp-=e.atk;
+      const s=document.getElementById('slot-'+i);
+      if(s){s.classList.add('phit');setTimeout(()=>s.classList.remove('phit'),440);}
+      if(anchor.hp<=0) G.board[i]=null;
+      renderSlot(i);
+    } else {
+      G.hp-=e.atk;
+      const el=document.getElementById('s-hp');
+      el.classList.add('glitch');
+      document.body.classList.add('shake');
+      setTimeout(()=>{el.classList.remove('glitch');document.body.classList.remove('shake');},340);
+    }
+    updateHUD();
+    if(G.hp<=0){G.gameOver=true;await sleep(500);showLose();return;}
+  }
+  await sleep(380);
+}
+
+// ── DRAW ──
+function drawCards(n) {
+  for(let i=0;i<n;i++){
+    if(G.drawPile.length===0){
+      if(G.discardPile.length===0) break;
+      G.drawPile=G.discardPile.sort(()=>Math.random()-0.5);
+      G.discardPile=[];
+    }
+    G.hand.push(G.drawPile.pop());
+  }
+  renderHand();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// CUSTOM MOUSE DRAG SYSTEM
+// (replaces HTML5 drag API — works inside 3D CSS transforms)
+// getBoundingClientRect() returns screen-space coords immune to transforms
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const DR = {
+  active:false, cardIdx:null, ghost:null,
+  hoverType:null, hoverIdx:null   // current drop target
+};
+
+// Called on mousedown on a hand card
+function startCardDrag(e, idx) {
+  if(e.button!==0||G.isEnemyTurn||G.gameOver) return;
+  e.preventDefault();
+  DR.active=true; DR.cardIdx=idx;
+  DR.hoverType=null; DR.hoverIdx=null;
+
+  // Dim source card
+  const src=document.getElementById('hcard-'+idx);
+  if(src) src.classList.add('dragging-src');
+
+  // Build ghost card
+  const card=G.hand[idx];
+  const valLine=
+    card.type==='def'  ?`SHIELD: ${card.val} HP`:
+    card.type==='skill'?[card.heal?`+${card.heal} LUC`:'',card.draw?`DRAW ${card.draw}`:''].filter(Boolean).join('  '):
+    card.aoe?`AOE: ${card.val}`:`DMG: ${card.val}`;
+
+  const g=document.createElement('div');
+  g.id='drag-ghost';
+  g.className=`card ${card.type}`;
+  g.innerHTML=`
+    <div class="card-cost ${card.cost===0?'zero':''}">${card.cost}</div>
+    <div class="card-tag" style="color:${card.color}">${card.tag}</div>
+    <div class="card-art"><span class="card-art-sym" style="color:${card.color}">${card.symbol}</span></div>
+    <div class="card-title">${card.title}</div>
+    <div class="card-desc">${card.desc}</div>
+    <div class="card-val">${valLine}</div>`;
+  document.body.appendChild(g);
+  DR.ghost=g;
+  positionGhost(e.clientX, e.clientY);
+}
+
+function positionGhost(cx,cy){
+  if(!DR.ghost) return;
+  DR.ghost.style.left=(cx-74)+'px';
+  DR.ghost.style.top =(cy-107)+'px';
+}
+
+// Document-level mousemove: move ghost + highlight targets
+document.addEventListener('mousemove', e=>{
+  if(!DR.active) return;
+  positionGhost(e.clientX, e.clientY);
+
+  const card=G.hand[DR.cardIdx];
+  if(!card) return;
+
+  let foundType=null, foundIdx=null;
+
+  // Check player board slots first
+  for(let i=0;i<3;i++){
+    const el=document.getElementById('slot-'+i);
+    if(!el) continue;
+    const r=el.getBoundingClientRect();
+    if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom){
+      foundType='slot'; foundIdx=i; break;
+    }
+  }
+
+  // Check enemy wrappers (only ATK/AOE cards)
+  if(!foundType && card.type==='atk'){
+    for(let i=0;i<3;i++){
+      const el=document.getElementById('ew-'+i);
+      if(!el) continue;
+      const r=el.getBoundingClientRect();
+      if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom){
+        foundType='enemy'; foundIdx=i; break;
+      }
+    }
+  }
+
+  // Only update DOM when target changes
+  if(foundType!==DR.hoverType||foundIdx!==DR.hoverIdx){
+    clearHL();
+    DR.hoverType=foundType; DR.hoverIdx=foundIdx;
+
+    if(foundType==='slot'){
+      const ok = canPlay(card) && (
+        card.type==='def'   ? G.board[foundIdx]===null :
+        card.type==='skill' ? true :
+        card.aoe            ? true : false
+      );
+      const sl=document.getElementById('slot-'+foundIdx);
+      if(sl){ sl.classList.toggle('drag-ok',ok); sl.classList.toggle('drag-no',!ok); }
+    } else if(foundType==='enemy'){
+      const enemy=G.enemies[foundIdx];
+      const ok=canPlay(card)&&!!enemy&&enemy.hp>0;
+      const ew=document.getElementById('ew-'+foundIdx);
+      if(ew) ew.classList.toggle('drag-atk',ok);
+    }
+  }
+});
+
+// Document-level mouseup: execute drop + cleanup
+document.addEventListener('mouseup', e=>{
+  if(!DR.active) return;
+  DR.active=false;
+
+  // Remove ghost
+  if(DR.ghost){ DR.ghost.remove(); DR.ghost=null; }
+
+  // Restore source card
+  const src=document.getElementById('hcard-'+DR.cardIdx);
+  if(src) src.classList.remove('dragging-src');
+
+  clearHL();
+
+  // Execute the drop
+  if(DR.hoverType && DR.cardIdx!==null){
+    const idx=DR.cardIdx, card=G.hand[idx];
+    if(card){
+      if(DR.hoverType==='slot')  execSlotDrop(idx,card,DR.hoverIdx);
+      if(DR.hoverType==='enemy') execEnemyDrop(idx,card,DR.hoverIdx);
+    }
+  }
+  DR.cardIdx=null; DR.hoverType=null; DR.hoverIdx=null;
+});
+
+function execSlotDrop(idx,card,slotIdx){
+  if(!canPlay(card)){log('NOT ENOUGH ENERGY');return;}
+  if(card.type==='def'){
+    if(G.board[slotIdx]!==null){log('SLOT OCCUPIED');return;}
+    spend(card.cost); G.board[slotIdx]={...card};
+    remove(idx); renderSlot(slotIdx); renderHand(); updateHUD();
+  } else if(card.type==='skill'){
+    spend(card.cost); applySkill(card); G.discardPile.push(card);
+    remove(idx); renderHand(); updateHUD();
+  } else if(card.aoe){
+    spend(card.cost); applyAoe(card.val); G.discardPile.push(card);
+    remove(idx); renderHand(); renderEnemies(); updateEhp(); updateHUD(); checkWin();
+  } else {
+    log('DROP ATK CARDS ON AN ENEMY');
+  }
+}
+
+function execEnemyDrop(idx,card,laneIdx){
+  if(!canPlay(card)){log('NOT ENOUGH ENERGY');return;}
+  const enemy=G.enemies[laneIdx];
+  if(!enemy||enemy.hp<=0){log('NO TARGET IN THIS LANE');return;}
+  spend(card.cost);
+  if(card.aoe){ applyAoe(card.val); }
+  else {
+    enemy.hp=Math.max(0,enemy.hp-card.val);
+    log(`${card.title} — ${card.val} DAMAGE TO ${enemy.name}`);
+  }
+  G.discardPile.push(card); remove(idx);
+  renderHand(); renderEnemies(); updateEhp(); updateHUD(); checkWin();
+}
+
+function clearHL(){
+  for(let i=0;i<3;i++){
+    const s=document.getElementById('slot-'+i);
+    if(s) s.classList.remove('drag-ok','drag-no');
+    const w=document.getElementById('ew-'+i);
+    if(w) w.classList.remove('drag-atk');
+  }
+}
+
+// ── HELPERS ──
+const canPlay = card => G.energy >= card.cost;
+const spend   = n    => { G.energy = Math.max(0, G.energy-n); };
+const remove  = idx  => { G.hand.splice(idx,1); G.dragIdx=null; };
+
+function applySkill(card){
+  if(card.heal){ G.hp=Math.min(G.maxHp,G.hp+card.heal); log(`+${card.heal} LUCIDITY`); }
+  if(card.draw){ drawCards(card.draw); log(`DRAW ${card.draw}`); }
+}
+function applyAoe(dmg){
+  G.enemies.forEach(e=>{ if(e&&e.hp>0) e.hp=Math.max(0,e.hp-dmg); });
+  log(`WITNESS.TXT — ${dmg} DAMAGE TO ALL TERRORS`);
+}
+
+// ── ENTITY HP ──
+function updateEhp(){
+  const rem=G.enemies.reduce((s,e)=>s+(e?Math.max(0,e.hp):0),0);
+  ehpPct=G.entityMaxHp>0?rem/G.entityMaxHp:0;
+  const el=document.getElementById('vp-ehp');
+  el.textContent=`ENTITY: ${rem}/${G.entityMaxHp}`;
+  el.className='vp-ehp'+(ehpPct<0.35?' low':'');
+}
+function checkWin(){
+  if(G.gameOver) return;
+  if(G.enemies.every(e=>!e||e.hp<=0)){
+    G.gameOver=true; ehpPct=0;
+    document.getElementById('entity-freeze').style.opacity='0.75';
+    setTimeout(showWin,900);
+  }
+}
+
+// ── WIN / LOSE ──
+function showWin(){
+  document.getElementById('win-freeze').textContent=G.enc.winFreeze;
+  document.getElementById('win-text').textContent=G.enc.winText;
+  document.getElementById('win-ov').classList.add('open');
+}
+function showLose(){
+  document.getElementById('lose-text').textContent=G.enc.loseText;
+  document.getElementById('lose-ov').classList.add('open');
+}
+
+// ── RENDER ──
+function updateHUD(){
+  const h=document.getElementById('s-hp');
+  h.textContent=`LUCIDITY: ${G.hp}/${G.maxHp}`;
+  h.className='stat'+(G.hp<=5?' red':G.hp<=10?' amber':'');
+  const en=document.getElementById('s-en');
+  en.textContent=`REM ENERGY: ${G.energy}/${G.maxEnergy}`;
+  en.className='stat'+(G.energy===0?' dim':' amber');
+  document.getElementById('draw-n').textContent=G.drawPile.length;
+  document.getElementById('disc-n').textContent=G.discardPile.length;
+}
+
+function renderEnemies(){
+  const row=document.getElementById('enemy-row');
+  row.innerHTML='';
+  G.enemies.forEach((e,i)=>{
+    const wrap=document.createElement('div');
+    wrap.className='ewrap'; wrap.id='ew-'+i;
+    if(!e){
+      wrap.style.opacity='0';
+    } else if(e.hp<=0){
+      wrap.style.opacity='0.16';
+      const d=document.createElement('div');
+      d.style.cssText='width:136px;height:196px;border:1px dashed #1a0808;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:8px;color:#2a0808;letter-spacing:0.1em;';
+      d.textContent='[ DISSIPATED ]';
+      wrap.appendChild(d);
+    } else {
+      const cd=document.createElement('div');
+      cd.className='card enemy';
+      cd.innerHTML=`
+        <div class="intent-badge">${e.intent}</div>
+        <div class="card-art"><span class="card-art-sym" style="color:${e.color}">${e.symbol}</span></div>
+        <div class="card-title">${e.name}</div>
+        <div class="card-desc">${e.desc}</div>
+        <div class="enemy-stats"><span>ATK: ${e.atk}</span><span>HP: ${e.hp}/${e.maxHp}</span></div>`;
+      wrap.appendChild(cd);
+    }
+    row.appendChild(wrap);
+  });
+}
+
+function renderSlot(i){
+  const slot=document.getElementById('slot-'+i);
+  if(!slot) return;
+  const card=G.board[i];
+  if(card){
+    slot.style.border='none';
+    const pct=Math.max(0,(card.hp/card.val)*100);
+    slot.innerHTML=`
+      <div class="anchor">
+        <div class="anchor-sym">${card.symbol}</div>
+        <div class="anchor-name">${card.title}</div>
+        <div class="anchor-hp">${card.hp} HP</div>
+        <div class="anchor-bar"><div class="anchor-bar-fill" style="width:${pct}%"></div></div>
+      </div>`;
+  } else {
+    slot.style.border=''; slot.textContent='[ HOLD ]';
+  }
+}
+
+function renderHand(){
+  const el=document.getElementById('player-hand');
+  el.innerHTML='';
+  G.hand.forEach((card,idx)=>{
+    const c=document.createElement('div');
+    c.className=`card ${card.type}${card.aoe?' aoe':''}`;
+    c.id='hcard-'+idx;
+    c.style.cursor='grab';
+    if(!canPlay(card)) c.style.opacity='0.42';
+    const valLine=
+      card.type==='def'  ?`SHIELD: ${card.val} HP`:
+      card.type==='skill'?[card.heal?`+${card.heal} LUC`:'',card.draw?`DRAW ${card.draw}`:''].filter(Boolean).join('  '):
+      card.aoe           ?`AOE: ${card.val}`:`DMG: ${card.val}`;
+    c.innerHTML=`
+      <div class="card-cost ${card.cost===0?'zero':''}">${card.cost}</div>
+      <div class="card-tag" style="color:${card.color}">${card.tag}</div>
+      <div class="card-art"><span class="card-art-sym" style="color:${card.color}">${card.symbol}</span></div>
+      <div class="card-title">${card.title}</div>
+      <div class="card-desc">${card.desc}</div>
+      <div class="card-val">${valLine}</div>`;
+    // Use mousedown for custom drag — works through 3D CSS transforms
+    c.addEventListener('mousedown', e=>startCardDrag(e,idx));
+    el.appendChild(c);
+  });
+}
+
+// ── LOG ──
+let logT=null;
+function log(msg){
+  const el=document.getElementById('log');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(logT); logT=setTimeout(()=>el.classList.remove('show'),2200);
+}
+</script>
+</body>
+</html>

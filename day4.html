@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SECWATCH // DAY 4</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Special+Elite&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/day4.css">
+<script src="js/swState.js"></script>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="sw-hdr">
+  <div class="sw-logo">SECWATCH</div>
+  <div class="sw-meta">DAY 4 // RICKY MEADE'S HOUSE</div>
+  <div class="sw-loc">1407 CORNETT BRANCH ROAD // LETCHER COUNTY KY // 01.16.94  16:30</div>
+</div>
+
+<!-- MAIN WRAP -->
+<div class="wrap">
+
+  <!-- LEFT: Scene + narrative -->
+  <div class="scene-col">
+
+
+
+    <!-- Room Scene -->
+    <div class="room" id="room">
+
+      <!-- Structural -->
+      <div class="r-wall"></div>
+      <div class="r-floor"></div>
+
+      <!-- Window (amber) -->
+      <div class="r-window">
+        <div class="r-truck"></div>
+      </div>
+      <div class="r-win-frame"></div>
+
+      <!-- Calendar -->
+      <div class="r-calendar" id="decal-calendar">
+        <div class="r-cal-hdr">FEBRUARY 1983</div>
+        <div class="r-cal-body">
+          <div class="r-cal-grid">
+            <span class="r-cal-day">S</span><span class="r-cal-day">M</span><span class="r-cal-day">T</span>
+            <span class="r-cal-day">W</span><span class="r-cal-day">T</span><span class="r-cal-day">F</span>
+            <span class="r-cal-day">S</span>
+            <span class="r-cal-day"></span><span class="r-cal-day"></span><span class="r-cal-day">1</span>
+            <span class="r-cal-day">2</span><span class="r-cal-day">3</span><span class="r-cal-day">4</span>
+            <span class="r-cal-day">5</span>
+            <span class="r-cal-day">6</span><span class="r-cal-day">7</span><span class="r-cal-day">8</span>
+            <span class="r-cal-day">9</span><span class="r-cal-day">10</span><span class="r-cal-day">11</span>
+            <span class="r-cal-day">12</span>
+            <span class="r-cal-day">13</span><span class="r-cal-day marked">14</span>
+            <span class="r-cal-day">15</span><span class="r-cal-day">16</span>
+            <span class="r-cal-day">17</span><span class="r-cal-day">18</span><span class="r-cal-day">19</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Door -->
+      <div class="r-door"><div class="r-door-handle"></div></div>
+
+      <!-- Utility bills -->
+      <div class="r-bills">
+        <div class="r-bill"></div>
+        <div class="r-bill"></div>
+        <div class="r-bill">UTILITY NOTICE</div>
+      </div>
+
+      <!-- Shelf + mug -->
+      <div class="r-shelf-board"></div>
+      <div class="r-shelf"></div>
+      <div class="r-mug"></div>
+
+      <!-- Terminal area -->
+      <div class="r-terminal-zone">
+        <div class="r-monitor-housing">
+          <div class="r-screen-bezel">
+            <div class="r-screen-content" id="room-screen-txt">
+              C:\LKCO_RELAY&gt;<span class="r-cursor-blink">_</span><br>
+              RELAY ACTIVE<br>
+              SINCE 01/14/83
+            </div>
+          </div>
+        </div>
+        <div class="r-desk" style="position:relative">
+          <div class="r-cpu" id="cpu-unit"></div>
+        </div>
+      </div>
+
+      <!-- Envelope -->
+      <div class="r-envelope">
+        <div class="r-env-addr">Helen Meade<br>Pikeville, KY<br><em>(UNSEALED)</em></div>
+      </div>
+
+      <!-- HOTSPOT ZONES (invisible overlays) -->
+
+      <!-- Door -->
+      <div class="hotspot" style="left:15px;top:130px;width:100px;height:220px"
+           onclick="examine('door')">
+        <span class="hs-label">FRONT DOOR</span></div>
+
+      <!-- Window / truck -->
+      <div class="hotspot" style="left:calc(50% - 115px);top:18px;width:230px;height:160px"
+           onclick="examine('window')">
+        <span class="hs-label above">FRONT WINDOW / TRUCK</span></div>
+
+      <!-- Calendar -->
+      <div class="hotspot" style="left:48px;top:28px;width:82px;height:96px"
+           onclick="examine('calendar')">
+        <span class="hs-label">CALENDAR</span></div>
+
+      <!-- Utility bills -->
+      <div class="hotspot" style="left:108px;bottom:25px;width:72px;height:50px"
+           onclick="examine('bills')">
+        <span class="hs-label above">UTILITY BILLS</span></div>
+
+      <!-- Envelope -->
+      <div class="hotspot" style="left:118px;bottom:68px;width:80px;height:55px"
+           onclick="examine('envelope')">
+        <span class="hs-label above">ENVELOPE — UNSEALED</span></div>
+
+      <!-- Mug -->
+      <div class="hotspot" style="right:16px;top:138px;width:50px;height:60px"
+           onclick="examine('mug')">
+        <span class="hs-label">MUG</span></div>
+
+      <!-- Terminal (double-click or click opens it) -->
+      <div class="hotspot terminal-hs"
+           style="right:38px;bottom:30px;width:240px;height:200px"
+           onclick="examine('terminal')" ondblclick="openTerminal()">
+        <span class="hs-label above">LKCO RELAY TERMINAL — CLICK TO EXAMINE / DBL-CLICK TO USE</span></div>
+
+    </div><!-- end room -->
+    <!-- Narrative -->
+    <div class="narr"><span id="narr-text"></span><span class="narr-cursor" id="narr-cursor"></span></div>
+    <!-- Scene controls -->
+    <div class="scene-ctrls">
+      <button class="leave-btn" id="leave-btn" onclick="initLeave()">[ LEAVE HOUSE ]</button>
+      <span class="leave-note" id="leave-note">Access the terminal first.</span>
+    </div>
+
+  </div><!-- end scene-col -->
+
+  <!-- RIGHT: Inventory -->
+  <div class="inv-panel">
+
+    <!-- Location -->
+    <div class="inv-card">
+      <div class="inv-title">CURRENT LOCATION</div>
+      <div class="loc-card">
+        <div class="loc-title">1407 CORNETT BRANCH RD.</div>
+        <div class="loc-addr" id="loc-addr-name">Letcher County, Kentucky<br>Resident: Richard "Ricky" Meade (1959–?)</div>
+        <div class="loc-time">01/16/94 — 16:30 — Temp: <span style="color:var(--amb)">68°F INSIDE</span></div>
+      </div>
+    </div>
+
+    <!-- East Wall Proximity -->
+    <div class="inv-card">
+      <div class="inv-title">SYSTEM STATUS — EAST WALL</div>
+      <div class="ew-card">
+        <div class="ew-title-row">
+          <span class="ew-label">EAST WALL PROXIMITY</span>
+          <span class="ew-val" id="ew-val">0.0</span>
+        </div>
+        <div class="ew-bar-bg"><div class="ew-bar-fill" id="ew-bar"></div></div>
+        <div class="ew-status" id="ew-status">STATUS: BASELINE</div>
+      </div>
+      <div style="font-size:8.5px;color:var(--td);margin-top:7px;line-height:1.6">
+        LKCO relay terminal active.<br>East bench — sealed since 02/83.
+      </div>
+    </div>
+
+    <!-- Items collected -->
+    <div class="inv-card">
+      <div class="inv-title">DOCUMENTS — <span id="item-count">0</span> FOUND</div>
+      <div class="item-list" id="item-list">
+        <div class="no-items" id="no-items-msg">No files accessed yet.</div>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="inv-card">
+      <div class="inv-title">FIELD NOTES</div>
+      <div class="notes-body" id="notes-area"></div>
+    </div>
+
+  </div><!-- end inv-panel -->
+
+</div><!-- end wrap -->
+
+<!-- ===== TERMINAL OVERLAY ===== -->
+<div id="term-overlay">
+  <div class="term-housing">
+    <div class="term-hdr">
+      <div class="term-hdr-left">LKCO RELAY TERMINAL v2.1 — LETCHER-KNOX COAL OPERATIONS</div>
+      <div class="term-hdr-right">
+        <span id="term-uptime">ONLINE SINCE 01/14/83</span>
+        <button class="term-close-btn" id="term-close-btn" onclick="closeTerminal()">[ CLOSE ]</button>
+      </div>
+    </div>
+    <div class="term-output" id="term-output"></div>
+    <div class="term-input-row">
+      <span class="term-prompt" id="term-prompt">C:\LKCO_RELAY&gt;&nbsp;</span>
+      <input type="text" id="term-input" class="term-input"
+             autocomplete="off" autocorrect="off" spellcheck="false"
+             placeholder="type a command...">
+    </div>
+  </div>
+</div>
+
+<!-- ===== LEAVE OVERLAY ===== -->
+<div id="leave-overlay">
+  <div class="lo-text" id="lo-text"></div>
+  <div class="lo-ricky" id="lo-ricky" style="display:none">[RICKY]&nbsp;&nbsp;tell them i said it was worth it</div>
+  <div class="lo-meta" id="lo-meta" style="display:none">CHAT_EARL.LOG — APPENDED 01/16/94 16:47</div>
+  <button class="lo-continue" id="lo-continue" style="display:none"
+          onclick="window.location.href='dream.html?night=2'">[ SLEEP → ]</button>
+</div>
+<script src="js/Day4engine.js"></script>
+</body>
+</html>

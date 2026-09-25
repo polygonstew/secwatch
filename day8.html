@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SECWATCH v2.11b -- DAY 8</title>
+<!-- SECWATCH day8_final.html | /img/ /audio/ | see production_bible.md -->
+<!--
+  The system should have locked after Day 7.
+  It didn't.
+
+  You should not be here.
+  The system should not still be running.
+
+  It is.
+
+  NEW AUDIO NEEDED /audio/
+  ─────────────────────────────────────────────────
+  voice_earl_d8.mp3
+
+  Record in total silence. No room tone. No reverb.
+  No ambient at all. If you can hear the room, re-record.
+  The voice should sound like it is coming from
+  somewhere that does not have acoustics.
+
+  Earl's voice. But flat. Not dead — present.
+  Like a man who has stopped needing breath
+  to make sound, but remembers how it works.
+
+  Script:
+  "The arrangement holds.
+  I am telling you so you know.
+  [2 second pause]
+  The arrangement holds.
+  The land is accounted for.
+  You are accounted for.
+  The system is running.
+  [3 second pause]
+  I am —
+  [2 second pause]
+  I don't have a word for what I am now.
+  Present is close.
+  I am present.
+  [4 second pause]
+  The wall sends its regards."
+  [silence — do not click off — let it breathe — then stop]
+
+  This audio will play once on command, then replay
+  at a random interval of 20-40 minutes automatically.
+  Do not loop it. It should feel like it chose to play.
+  ─────────────────────────────────────────────────
+-->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --g:#33ff33;--gdim:#1a5c1a;--ghi:#afffaf;
+  --amb:#ffb833;--red:#ff4040;--blue:#33aaff;
+  --bg:#030503;--panel:#080c08;--border:#142014;
+}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--g);
+  font-family:'Share Tech Mono','Courier New',monospace;
+  font-size:clamp(10px,1.3vw,13px);overflow:hidden;user-select:none;}
+body::before{content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(to bottom,transparent 0px,transparent 3px,rgba(0,0,0,0.08) 3px,rgba(0,0,0,0.08) 4px);
+  pointer-events:none;z-index:900;}
+body::after{content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,0.78) 100%);
+  pointer-events:none;z-index:899;}
+
+#layout{width:100%;height:100%;display:grid;grid-template-rows:58% 42%;animation:crtFlicker 14s infinite;}
+#topRow{display:grid;grid-template-columns:63% 37%;border-bottom:1px solid var(--border);min-height:0;}
+
+/* camera panel */
+#camPanel{position:relative;background:var(--bg);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;}
+#camFrame{flex:1;position:relative;display:flex;align-items:center;justify-content:center;
+  background:#000;overflow:hidden;}
+#camFrame::before{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(to bottom,transparent 0px,transparent 2px,rgba(0,0,0,0.22) 2px,rgba(0,0,0,0.22) 3px);
+  pointer-events:none;z-index:30;}
+#camFrame::after{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,0.65) 100%);
+  pointer-events:none;z-index:31;}
+#camFeed{width:100%;height:100%;object-fit:cover;display:none;
+  filter:grayscale(1) brightness(0.82) contrast(1.18) sepia(0.5) hue-rotate(76deg) saturate(1.6);}
+#camFeed.active{display:block;}
+#camFeed.degraded{filter:grayscale(1) brightness(0.65) contrast(1.3) sepia(0.4) hue-rotate(76deg) saturate(1.4);
+  animation:camFlicker 0.11s steps(1) infinite;}
+#camNoFeed{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:10px;color:var(--gdim);letter-spacing:0.12em;z-index:5;}
+#camNoFeed .nf-box{border:1px solid var(--gdim);padding:18px 32px;text-align:center;}
+#camNoFeed.hidden{display:none;}
+#camHUD{position:absolute;inset:0;pointer-events:none;z-index:32;display:flex;flex-direction:column;
+  justify-content:space-between;padding:6px 10px;font-size:clamp(8px,0.95vw,11px);
+  letter-spacing:0.07em;color:var(--g);text-shadow:0 0 5px var(--g);opacity:0;transition:opacity 0.3s;}
+#camHUD.active{opacity:1;}
+.hud-row{display:flex;justify-content:space-between;align-items:center;}
+#hudRec{color:var(--red);animation:blink 1.6s step-end infinite;}
+#hudSig.weak{color:var(--amb);}
+#hudAlert{color:var(--amb);text-shadow:0 0 6px var(--amb);animation:blink 0.65s step-end infinite;
+  letter-spacing:0.14em;opacity:0;}
+#hudAlert.show{opacity:1;}
+#camAcquire{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+  background:#000;z-index:20;color:var(--g);letter-spacing:0.14em;text-shadow:0 0 8px var(--g);
+  animation:blink 0.85s step-end infinite;}
+#camAcquire.active{display:flex;}
+#camLabel{flex-shrink:0;background:var(--panel);border-bottom:1px solid var(--border);
+  padding:3px 10px;font-size:clamp(8px,0.9vw,10px);letter-spacing:0.1em;color:var(--gdim);
+  display:flex;justify-content:space-between;}
+#camBar{flex-shrink:0;background:var(--panel);border-top:1px solid var(--border);
+  padding:3px 8px;display:flex;gap:6px;flex-wrap:wrap;font-size:clamp(7px,0.85vw,10px);
+  letter-spacing:0.06em;min-height:22px;}
+.cam-btn{color:var(--gdim);padding:1px 4px;border:1px solid transparent;}
+.cam-btn.online{color:var(--g);}
+.cam-btn.active{color:var(--ghi);border-color:var(--g);text-shadow:0 0 6px var(--g);}
+
+/* comms */
+#commsPanel{background:var(--panel);display:flex;flex-direction:column;overflow:hidden;}
+#commsLabel{flex-shrink:0;border-bottom:1px solid var(--border);padding:3px 10px;
+  font-size:clamp(8px,0.9vw,10px);letter-spacing:0.1em;color:var(--gdim);
+  display:flex;justify-content:space-between;}
+#commsBody{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;
+  padding:8px 10px;display:flex;flex-direction:column;gap:8px;}
+#commsBody::-webkit-scrollbar{display:none;}
+#tapeDisplay{border:1px solid var(--border);padding:8px 10px;}
+.comm-title{color:var(--gdim);font-size:0.85em;letter-spacing:0.1em;margin-bottom:5px;}
+#tapeName{color:var(--ghi);letter-spacing:0.07em;min-height:1em;font-size:0.92em;}
+#tapeStatus{font-size:0.82em;color:var(--gdim);margin-top:3px;min-height:1em;}
+#tapeBar{margin-top:5px;height:2px;background:var(--gdim);width:0%;transition:width 0.5s linear;}
+#transcript{border:1px solid var(--border);padding:8px 10px;flex:1;font-size:0.88em;
+  line-height:1.55;color:var(--gdim);overflow-y:auto;scrollbar-width:none;min-height:50px;}
+#transcript::-webkit-scrollbar{display:none;}
+#transcript.active{color:var(--g);}
+
+/* integrity panel */
+#integrityPanel{border:1px solid var(--border);padding:7px 10px;font-size:clamp(8px,0.9vw,10px);letter-spacing:0.06em;}
+.int-title{color:var(--gdim);margin-bottom:5px;letter-spacing:0.1em;}
+.int-row{display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:0.9em;}
+.int-label{color:var(--gdim);width:52px;flex-shrink:0;}
+.int-bar-track{flex:1;height:6px;background:var(--gdim);position:relative;overflow:hidden;}
+.int-bar-fill{position:absolute;left:0;top:0;height:100%;background:var(--g);width:0%;
+  transition:width 1.2s ease,background 0.8s ease;}
+.int-bar-fill.amber{background:var(--amb);}
+.int-bar-fill.red{background:var(--red);}
+.int-val{color:var(--gdim);width:18px;text-align:right;flex-shrink:0;}
+.int-val.warn{color:var(--amb);}
+.int-val.err{color:var(--red);}
+#ewRow{display:none;}
+#ewRow.show{display:flex;}
+#commsHelp{font-size:0.8em;color:var(--gdim);letter-spacing:0.05em;line-height:1.7;
+  border-top:1px solid var(--border);padding:5px 10px;flex-shrink:0;}
+
+/* terminal */
+#termPanel{background:var(--bg);border-top:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+#termLabel{flex-shrink:0;border-bottom:1px solid var(--border);padding:2px 10px;
+  font-size:clamp(7px,0.85vw,9px);letter-spacing:0.1em;color:var(--gdim);
+  display:flex;justify-content:space-between;}
+#termOutput{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;
+  scrollbar-color:var(--gdim) transparent;padding:4px 10px 2px;}
+.ln{line-height:1.58;letter-spacing:0.022em;white-space:pre-wrap;word-break:break-word;
+  text-shadow:0 0 3px rgba(51,255,51,0.18);}
+.dim{color:var(--gdim);text-shadow:none;}
+.hi{color:var(--ghi);text-shadow:0 0 6px rgba(51,255,51,0.45);}
+.warn{color:var(--amb);text-shadow:0 0 4px rgba(255,184,51,0.35);}
+.err{color:var(--red);text-shadow:0 0 4px rgba(255,64,64,0.35);}
+.echo{color:var(--ghi);}
+.sys{color:var(--blue);}
+.cust{color:var(--ghi);font-size:0.85em;padding-left:4px;}
+.cust.player{color:var(--amb);text-shadow:0 0 6px rgba(255,184,51,0.5);}
+#termInputRow{flex-shrink:0;display:flex;align-items:center;padding:2px 10px 4px;
+  border-top:1px solid var(--border);opacity:0;pointer-events:none;min-height:22px;}
+#termInputRow.on{opacity:1;pointer-events:auto;}
+#termPrompt{white-space:pre;}
+.cur{display:inline-block;width:0.55em;height:0.92em;background:var(--g);
+  box-shadow:0 0 5px var(--g),0 0 12px rgba(51,255,51,0.35);
+  margin-left:1px;vertical-align:middle;position:relative;top:-1px;
+  animation:blink 1.1s step-end infinite;}
+#termTyped{white-space:pre;min-width:1px;}
+#ghost{position:fixed;opacity:0;width:1px;height:1px;top:-400px;border:none;outline:none;font-size:1px;pointer-events:none;}
+
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes crtFlicker{0%,100%{opacity:1}91%{opacity:1}91.3%{opacity:.80}91.7%{opacity:1}97.1%{opacity:1}97.4%{opacity:.87}97.7%{opacity:1}}
+@keyframes camFlicker{0%{opacity:1}50%{opacity:0.88}100%{opacity:1}}
+</style>
+<script src="js/swState.js"></script>
+</head>
+<body>
+<div id="layout">
+  <div id="topRow">
+
+    <div id="camPanel">
+      <div id="camLabel">
+        <span>SECWATCH v2.11b  --  CAMERA FEED</span>
+        <span id="camLabelRight">LKCO-04</span>
+      </div>
+      <div id="camFrame">
+        <img id="camFeed" src="" alt="">
+        <div id="camAcquire">ACQUIRING SIGNAL...</div>
+        <div id="camNoFeed">
+          <div class="nf-box">
+            <div>NO FEED SELECTED</div>
+            <div style="margin-top:6px;font-size:0.85em;color:var(--gdim);">SEC2.EXE</div>
+          </div>
+        </div>
+        <div id="camHUD">
+          <div class="hud-row"><span id="hudCamID">--</span><span id="hudAlert"></span><span id="hudLoc">--</span></div>
+          <div class="hud-row"><span id="hudRec">&#9679; REC</span><span id="hudDate">01/??/94&nbsp;&nbsp;--:--</span><span id="hudSig">SIG: --</span></div>
+        </div>
+      </div>
+      <div id="camBar"><span style="color:var(--gdim);letter-spacing:0.08em;">SEC2.EXE</span></div>
+    </div>
+
+    <div id="commsPanel">
+      <div id="commsLabel"><span>COMMS</span><span id="commsLabelRight">RUNNING</span></div>
+      <div id="commsBody">
+        <div id="tapeDisplay">
+          <div class="comm-title">&#9654; AUDIO</div>
+          <div id="tapeName">NO FILE LOADED</div>
+          <div id="tapeStatus">play VOICE.MP3</div>
+          <div id="tapeBar"></div>
+        </div>
+        <div id="transcript">THE SYSTEM IS STILL RUNNING</div>
+        <div id="integrityPanel">
+          <div class="int-title">&#9632; SITE INTEGRITY</div>
+          <div class="int-row"><span class="int-label">HARGROV</span><div class="int-bar-track"><div class="int-bar-fill" id="barH"></div></div><span class="int-val" id="valH">0</span></div>
+          <div class="int-row"><span class="int-label">LKCO</span><div class="int-bar-track"><div class="int-bar-fill" id="barL"></div></div><span class="int-val" id="valL">0</span></div>
+          <div class="int-row"><span class="int-label">SYSTEM</span><div class="int-bar-track"><div class="int-bar-fill" id="barS"></div></div><span class="int-val" id="valS">0</span></div>
+          <div class="int-row" id="ewRow"><span class="int-label" style="color:var(--red);">EAST WALL</span><div class="int-bar-track"><div class="int-bar-fill red" id="barE"></div></div><span class="int-val err" id="valE">0</span></div>
+        </div>
+      </div>
+      <div id="commsHelp">play VOICE.MP3 &nbsp;&nbsp; type CUSTODIANS.TXT &nbsp;&nbsp; sec2.exe</div>
+    </div>
+
+  </div>
+
+  <div id="termPanel">
+    <div id="termLabel">
+      <span id="termLabelLeft">TERMINAL  --  DAY 8  --  01/??/94  --:--</span>
+      <span id="termLabelRight">C:\SECWATCH</span>
+    </div>
+    <div id="termOutput"></div>
+    <div id="termInputRow">
+      <span id="termPrompt">C:\SECWATCH&gt;&nbsp;</span>
+      <span id="termTyped"></span>
+      <span class="cur"></span>
+    </div>
+  </div>
+</div>
+<input id="ghost" autocomplete="off" spellcheck="false">
+
+<script>
+'use strict';
+
+/* ════════════════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════════════════ */
+const S = {
+  cwd:'C:\\SECWATCH', inputMode:'cmd', inputBuf:'',
+  playerName:null, badge:null,
+  voiceHeard:false,
+  custodiansRead:false,
+  observerLogged:false,
+  _wrongTimestamp:false,
+};
+
+/* corrupted date — Day field refuses to resolve */
+const DATE_STR='01/??/94', TIME_STR='--:--';
+let _res=null;
+
+/* ════════════════════════════════════════════════════════
+   THREAT LEVEL — carry from Day 7
+════════════════════════════════════════════════════════ */
+const TL={
+  bars:{h:0,l:0,s:0,e:0},
+  _els:{},ewRow:null,ewTimer:null,
+
+  init(){
+    this._els={
+      h:{fill:document.getElementById('barH'),val:document.getElementById('valH')},
+      l:{fill:document.getElementById('barL'),val:document.getElementById('valL')},
+      s:{fill:document.getElementById('barS'),val:document.getElementById('valS')},
+      e:{fill:document.getElementById('barE'),val:document.getElementById('valE')},
+    };
+    this.ewRow=document.getElementById('ewRow');
+    try{const saved=JSON.parse(sessionStorage.getItem('sw_tl')||'{}');
+      ['h','l','s','e'].forEach(b=>{if(saved[b])this.bars[b]=saved[b];});}catch(e){}
+    ['h','l','s','e'].forEach(b=>this._render(b));
+    if(this.bars.h>=5||this.bars.l>=5||this.bars.s>=5){
+      this.ewRow&&this.ewRow.classList.add('show');
+      if(!this.ewTimer)this._startEW();
+    }
+    if(this.bars.h>=7||this.bars.l>=7||this.bars.s>=7)S.observerLogged=true;
+  },
+
+  _save(){try{sessionStorage.setItem('sw_tl',JSON.stringify(this.bars));}catch(e){}},
+
+  _render(b){
+    const v=Math.min(this.bars[b],10);
+    const el=this._els[b];if(!el||!el.fill)return;
+    el.fill.style.width=(v*10)+'%';
+    el.val.textContent=(v>=10)?'--':v;
+    if(v>=7){el.fill.classList.add('red');el.fill.classList.remove('amber');el.val.className='int-val err';}
+    else if(v>=4){el.fill.classList.add('amber');el.fill.classList.remove('red');el.val.className='int-val warn';}
+    else{el.fill.classList.remove('amber','red');el.val.className='int-val';}
+  },
+
+  raise(b,amt=1){
+    const prev=this.bars[b];
+    this.bars[b]=Math.min(10,this.bars[b]+amt);
+    if(this.bars[b]===prev)return;
+    this._render(b);this._save();
+    if(b!=='e'&&this.bars[b]>=7&&prev<7)S.observerLogged=true;
+    if(this.bars.h>=5||this.bars.l>=5||this.bars.s>=5){
+      this.ewRow&&this.ewRow.classList.add('show');
+      if(!this.ewTimer)this._startEW();
+    }
+  },
+
+  _startEW(){this.ewTimer=setInterval(()=>this.raise('e',1),3*60*1000);},
+};
+
+/* ════════════════════════════════════════════════════════
+   THE LIST OF CUSTODIANS
+   41 names going back to 1887.
+   The player's name is 42nd.
+   Added 03/11/83 07:14 — before they were born.
+════════════════════════════════════════════════════════ */
+function buildCustodiansList(playerName){
+  return [
+    {year:'1887', name:'Thomas J. Combs',        note:'surveyor — made the original arrangement'},
+    {year:'1889', name:'Margaret Alcott',         note:'adjacent landowner — became aware accidentally'},
+    {year:'1893', name:'Ira Combs',               note:'Thomas\'s son — maintenance only, never descended'},
+    {year:'1901', name:'Calloway Breeding',       note:'new deed holder — brief awareness, sold quickly'},
+    {year:'1901', name:'Nathaniel Combs',         note:'took over from Calloway, full custodian'},
+    {year:'1907', name:'Elva Prater',             note:'schoolteacher — wrote about it, unpublished'},
+    {year:'1912', name:'James Combs',             note:'Ira\'s son — custodian 1912-1948'},
+    {year:'1921', name:'Roy Breeding',            note:'grandson of Calloway — went looking for answers'},
+    {year:'1923', name:'Adair Combs',             note:'James\'s daughter — documented the feeling before'},
+    {year:'1924', name:'unnamed Welsh miner',     note:'1924 operation — came back up changed, left county'},
+    {year:'1927', name:'unnamed Welsh miner',     note:'second operation — did not come back up'},
+    {year:'1941', name:'Percy Stamper',           note:'wartime — surveyed for mineral deposits, found other things'},
+    {year:'1941', name:'Harold Combs',            note:'James\'s son — full custodian 1941-1971'},
+    {year:'1942', name:'Vergie Stamper',          note:'Percy\'s wife — found his notes, burned most of them'},
+    {year:'1948', name:'Ruby Combs',              note:'Harold\'s sister — keeper of oral history'},
+    {year:'1951', name:'G.T. Alcorn',             note:'survey lead — declined to probe, declined to return'},
+    {year:'1956', name:'unnamed Harlan miner',    note:'deep mine, adjacent seam — felt it through rock'},
+    {year:'1962', name:'E.L. Frazier',            note:'1962 operation foreman — disappeared east bench'},
+    {year:'1962', name:'unnamed worker',          note:'1962 operation — did not come back up'},
+    {year:'1962', name:'unnamed worker',          note:'1962 operation — did not come back up'},
+    {year:'1962', name:'unnamed worker',          note:'1962 operation — did not come back up'},
+    {year:'1962', name:'unnamed worker',          note:'1962 operation — did not come back up'},
+    {year:'1965', name:'Harold Combs',            note:'went down alone, maintenance — reported no change'},
+    {year:'1971', name:'Earl R. Combs',           note:'Harold\'s son — custodian 1971-1983'},
+    {year:'1973', name:'unnamed boy',             note:'neighbor child, wandered to site — parents moved away'},
+    {year:'1979', name:'James Hargrove',          note:'current owner, became aware indirectly — maintained distance'},
+    {year:'1981', name:'D.K. Alcorn',             note:'G.T.\'s granddaughter — found the survey notes'},
+    {year:'1982', name:'Earl R. Combs',           note:'second entry — deepening understanding'},
+    {year:'1982', name:'Ricky Meade',             note:'one time, 20 minutes — understood, stayed in place'},
+    {year:'1982', name:'Darnell [surname unknown]',note:'probed with Pete — stopped talking about it'},
+    {year:'1982', name:'Pete [surname unknown]',  note:'probed with Darnell — quit three days later'},
+    {year:'1983', name:'Earl R. Combs',           note:'eleventh descent — the learning was complete'},
+    {year:'1983', name:'Randy Pellegrino',        note:'arrived after — saw aftermath, understood enough'},
+    {year:'1986', name:'David Hargrove',          note:'Threshold Society founder — went to Floor 3 1991'},
+    {year:'1986', name:'five Threshold members',  note:'became aware at varying depths — most recovered'},
+    {year:'1991', name:'David Hargrove',          note:'twelfth visit total — writing on walls of Suite 3-C'},
+    {year:'1991', name:'Mike Stroud',             note:'building security — Floor 3, March 12 — tape cut off'},
+    {year:'1991', name:'Randy Pellegrino',        note:'second awareness — closer than the first'},
+    {year:'1993', name:'R.P. (initials only)',    note:'Pellegrino\'s assistant — asked too many questions, left firm'},
+    {year:'1993', name:'unnamed county clerk',    note:'Whitesburg — found deed irregularities, filed nothing'},
+    {year:'1994', name:'G.T. Alcorn II',          note:'great-grandson — went to site, did not approach wall'},
+    /* 42nd — the player */
+    {year:'1983', name:playerName||'[CURRENT USER]', note:'added 03/11/83  07:14  --  E.Combs', isPlayer:true},
+  ];
+}
+
+/* ════════════════════════════════════════════════════════
+   HIDDEN FILESYSTEM
+   These files do NOT appear in DIR.
+   They can only be found by typing their names directly.
+   The clue is in Day 7's NOTES_14PG.TXT:
+   "I am leaving three things. YOU.TXT is one.
+    A voice for the one who stays.
+    A list so they know they are not the first."
+════════════════════════════════════════════════════════ */
+const HIDDEN = {
+  'VOICE.MP3':{
+    type:'audio',
+    label:'[no label -- no metadata -- no file date]',
+    audio:'audio/voice_earl_d8.mp3',
+    transcript:[
+      "The arrangement holds.",
+      "I am telling you so you know.",
+      "",
+      "The arrangement holds.",
+      "",
+      "The land is accounted for.",
+      "You are accounted for.",
+      "The system is running.",
+      "",
+      "I am —",
+      "",
+      "I don't have a word for what I am now.",
+      "Present is close.",
+      "I am present.",
+      "",
+      "The wall sends its regards.",
+    ]
+  },
+};
+
+/* regular FS for nav */
+const FS={
+  'C:\\SECWATCH':{type:'dir',
+    children:['README.TXT','SEC2.EXE','FOREMAN.LOG','BADGE.LOG']},
+  'C:\\SECWATCH\\README.TXT':{type:'file',content:
+`SECWATCH v2.11b
+
+The session was not terminated.
+The system is still running.
+
+Date: 01/??/94
+The day field will not resolve.
+This is not a hardware error.
+
+Type HELP for commands.
+`},
+  'C:\\SECWATCH\\FOREMAN.LOG':{type:'file',content:
+`FOREMAN LOG -- LKCO-04
+Last modified: 03/11/83
+
+[Log imported from 1983 node]
+[See Day 7 terminal for full content]
+
+Last entry: 03/11/83
+Badge #0088 last recorded: 03/11/83  07:14
+E.Combs whereabouts: ACTIVE
+`},
+  'C:\\SECWATCH\\BADGE.LOG':{type:'file',content:
+`BADGE LOG -- ONGOING SESSION
+
+01/??/94  --:--  Badge [CURRENT]  SESSION ACTIVE
+
+[Previous session logs intact]
+[Badge #0088 status: ACTIVE]
+[Badge #0047 status: ACTIVE]
+
+NOTE: Two deactivated badges show ACTIVE status.
+NOTE: Date field unresolvable.
+NOTE: Session count: [updating]
+`},
+};
+
+/* ════════════════════════════════════════════════════════
+   CAMERAS — Day 8 uses Day 2 LKCO images (same site)
+   cam9 shows current state — cable reel still gone
+════════════════════════════════════════════════════════ */
+const CAMS={
+  cam7:{label:'CAM7',loc:'TRAILER-EXT',   img:'img/cam7.png',     online:true},
+  cam8:{label:'CAM8',loc:'PERIMETER-ROAD',img:'img/cam8.png',     online:true},
+  cam9:{label:'CAM9',loc:'EAST-WALL-80FT',img:'img/cam9_d2.png',  online:true,degraded:true},
+};
+const LKCO_KEYS=['cam7','cam8','cam9'];
+
+/* ════════════════════════════════════════════════════════
+   DOM REFS
+════════════════════════════════════════════════════════ */
+const camFeed=document.getElementById('camFeed');
+const camAcquire=document.getElementById('camAcquire');
+const camNoFeed=document.getElementById('camNoFeed');
+const camHUD=document.getElementById('camHUD');
+const camBar=document.getElementById('camBar');
+const camLabelR=document.getElementById('camLabelRight');
+const hudCamID=document.getElementById('hudCamID');
+const hudLoc=document.getElementById('hudLoc');
+const hudDate=document.getElementById('hudDate');
+const hudSig=document.getElementById('hudSig');
+const hudAlert=document.getElementById('hudAlert');
+const tapeName=document.getElementById('tapeName');
+const tapeStatus=document.getElementById('tapeStatus');
+const tapeBar=document.getElementById('tapeBar');
+const transcript=document.getElementById('transcript');
+const termOutput=document.getElementById('termOutput');
+const termInputRow=document.getElementById('termInputRow');
+const termPrompt=document.getElementById('termPrompt');
+const termTyped=document.getElementById('termTyped');
+const termLabelR=document.getElementById('termLabelRight');
+const ghost=document.getElementById('ghost');
+const commsLabelR=document.getElementById('commsLabelRight');
+
+/* ════════════════════════════════════════════════════════
+   AUDIO
+════════════════════════════════════════════════════════ */
+let currentAudio=null,tapeInterval=null,_voiceTimer=null;
+
+function playAudio(src,loop=false){
+  stopAudio();
+  currentAudio=new Audio(src);currentAudio.loop=loop;currentAudio.volume=0.85;
+  currentAudio.play().catch(()=>{});return currentAudio;
+}
+function stopAudio(){
+  if(currentAudio){currentAudio.pause();currentAudio.src='';currentAudio=null;}
+  clearInterval(tapeInterval);tapeBar.style.width='0%';
+}
+function setTranscript(lines,cls=''){
+  transcript.innerHTML='';transcript.className=cls||'';
+  lines.forEach(l=>{
+    const d=document.createElement('div');
+    d.textContent=l||'\u00a0';d.style.lineHeight='1.55';d.style.fontSize='0.88em';
+    transcript.appendChild(d);
+  });transcript.scrollTop=0;
+}
+
+async function playVoice(auto=false){
+  const v=HIDDEN['VOICE.MP3'];
+  stopAudio();
+  if(!auto){
+    tapeName.textContent=v.label;
+    tapeStatus.textContent='LOADING...';
+    setTranscript(['[LOADING...]']);
+    await sleep(700);
+  }
+  tapeStatus.textContent='> PLAYING';
+  setTranscript(v.transcript,'active');
+  commsLabelR.textContent='PLAYING';
+  const a=playAudio(v.audio);
+  tapeInterval=setInterval(()=>{
+    if(!currentAudio||!currentAudio.duration)return;
+    tapeBar.style.width=(currentAudio.currentTime/currentAudio.duration*100)+'%';
+  },500);
+  if(a){await new Promise(r=>{a.onended=r;setTimeout(r,90000);});}
+  clearInterval(tapeInterval);
+  tapeStatus.textContent='ENDED';
+  tapeBar.style.width='100%';
+  commsLabelR.textContent='RUNNING';
+  S.voiceHeard=true;
+  /* schedule random replay */
+  scheduleVoiceReplay();
+}
+
+function scheduleVoiceReplay(){
+  if(_voiceTimer)clearTimeout(_voiceTimer);
+  /* replays randomly between 20-40 minutes */
+  const delay=(20+Math.random()*20)*60*1000;
+  _voiceTimer=setTimeout(async ()=>{
+    if(S.inputMode!=='cmd')return;
+    const d=document.createElement('div');d.className='ln warn';
+    d.textContent='  [audio begins without input]';
+    termOutput.insertBefore(d,termInputRow);
+    termOutput.scrollTop=termOutput.scrollHeight;
+    await playVoice(true);
+    showInput();
+  },delay);
+}
+
+/* ════════════════════════════════════════════════════════
+   TERMINAL ENGINE
+════════════════════════════════════════════════════════ */
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function ln(text='',cls=''){
+  const d=document.createElement('div');d.className='ln'+(cls?' '+cls:'');
+  d.textContent=text;termOutput.appendChild(d);termOutput.scrollTop=termOutput.scrollHeight;
+}
+async function lnSlow(text,cls='',ms=13){
+  const d=document.createElement('div');d.className='ln'+(cls?' '+cls:'');d.textContent='';
+  termOutput.appendChild(d);
+  for(const ch of text){d.textContent+=ch;termOutput.scrollTop=termOutput.scrollHeight;await sleep(ms);}
+}
+function showInput(p){
+  termPrompt.textContent=p||S.cwd+'> ';
+  termTyped.textContent=S.inputBuf='';
+  termInputRow.classList.add('on');
+  termLabelR.textContent=S.cwd;
+  ghost.style.pointerEvents='auto';ghost.focus();
+}
+function hideInput(){termInputRow.classList.remove('on');ghost.style.pointerEvents='none';}
+function resolvePath(n){
+  if(!n)return S.cwd;const u=n.toUpperCase();
+  if(u==='..'){const p=S.cwd.split('\\');return p.length<=2?S.cwd:p.slice(0,-1).join('\\');}
+  return S.cwd+'\\'+u;
+}
+ghost.addEventListener('keydown',e=>{
+  if(!termInputRow.classList.contains('on'))return;
+  if(S.inputMode==='any'){const r=_res;_res=null;S.inputMode='cmd';hideInput();r();return;}
+  if(S.inputMode==='cmd'){
+    if(e.key==='Enter'){
+      const cmd=S.inputBuf.trim();hideInput();
+      if(cmd)ln(S.cwd+'> '+cmd,'echo');
+      S.inputBuf='';if(cmd)handleCmd(cmd);else showInput();
+    }else if(e.key==='Backspace'){S.inputBuf=S.inputBuf.slice(0,-1);termTyped.textContent=S.inputBuf;}
+    else if(e.key.length===1){S.inputBuf+=e.key;termTyped.textContent=S.inputBuf;}
+  }
+});
+document.addEventListener('click',()=>{if(termInputRow.classList.contains('on'))ghost.focus();});
+document.addEventListener('keydown',()=>{const d=new Audio();d.volume=0;d.play().catch(()=>{});},{once:true});
+
+/* ════════════════════════════════════════════════════════
+   COMMANDS
+════════════════════════════════════════════════════════ */
+async function handleCmd(raw){
+  const parts=raw.trim().split(/\s+/);
+  const cmd=parts[0].toLowerCase();
+  const arg=parts.slice(1).join(' ').toUpperCase();
+
+  switch(cmd){
+    case 'cls':termOutput.innerHTML='';break;
+
+    case 'help':case'?':
+      ln('');
+      ln('  dir / cd / type      Navigate filesystem');
+      ln('  play VOICE.MP3       Hidden audio file');
+      ln('  type CUSTODIANS.TXT  Hidden list (must type filename directly)');
+      ln('  sec2.exe             LKCO cameras');
+      ln('  stop                 Stop audio');
+      ln('  cls / help');
+      ln('');
+      ln('  NOTE: Some files do not appear in DIR.','dim');
+      ln('        Earl\'s notes mentioned three things he left.','dim');
+      ln('        YOU.TXT was one. Find the other two.','dim');
+      ln('');break;
+
+    case 'stop':
+      stopAudio();tapeStatus.textContent='STOPPED';commsLabelR.textContent='RUNNING';
+      ln('  Stopped.','dim');break;
+
+    case 'play':{
+      if(!arg){ln('Usage: play [filename]','warn');break;}
+      if(arg==='VOICE.MP3'||arg==='VOICE'){
+        ln('');
+        tapeName.textContent=HIDDEN['VOICE.MP3'].label;
+        hideInput();
+        await playVoice(false);
+      }else{
+        ln('  File not found: '+arg,'err');
+        ln('  Some files are not in the directory index.','dim');
+      }
+      break;
+    }
+
+    case 'dir':{
+      const node=FS[S.cwd];
+      if(!node||node.type!=='dir'){ln('Path error.','err');break;}
+      ln('');ln(' Directory of '+S.cwd);ln('');
+      for(const name of node.children){
+        const fp=S.cwd+'\\'+name;const ch=FS[fp];
+        if(ch?.type==='dir')ln(' <DIR>  '+name,'hi');
+        else ln('        '+name,'');
+      }
+      ln('');ln('  '+node.children.length+' item(s)');
+      ln('');
+      if(!S.voiceHeard&&!S.custodiansRead){
+        await sleep(600);
+        ln('  NOTE: Directory listing may be incomplete.','dim');
+        ln('  Type HELP for further guidance.','dim');
+        ln('');
+      }
+      break;
+    }
+
+    case 'cd':{
+      if(!arg){ln(S.cwd);break;}
+      const t=resolvePath(arg);
+      if(FS[t]?.type==='dir'){S.cwd=t;termPrompt.textContent=S.cwd+'> ';termLabelR.textContent=S.cwd;}
+      else ln('Invalid directory.','err');break;
+    }
+
+    case 'type':{
+      if(!arg){ln('Usage: type [filename]','warn');break;}
+
+      /* HIDDEN FILE — not in DIR */
+      if(arg==='CUSTODIANS.TXT'||arg==='CUSTODIANS'){
+        S.custodiansRead=true;TL.raise('l',2);TL.raise('s',1);
+        ln('');
+        await lnSlow('  CUSTODIANS.TXT','hi',10);
+        await sleep(200);
+        ln('  [file not in directory index]','dim');
+        ln('  [creation date: 03/11/83  07:12]','dim');
+        ln('  [last modified: 03/11/83  07:12]','dim');
+        ln('');
+        await lnSlow('  EVERYONE WHO HAS BEEN AWARE OF THE EAST WALL','dim',8);
+        ln('  since 1887','dim');
+        ln('');
+        await sleep(400);
+        const list=buildCustodiansList(S.playerName);
+        for(let i=0;i<list.length;i++){
+          const entry=list[i];
+          const isLast=entry.isPlayer;
+          await sleep(isLast?800:60);
+          if(isLast){
+            await sleep(400);
+            ln('  ────────────────────────────────────────','dim');
+            await sleep(300);
+          }
+          const d=document.createElement('div');
+          d.className='ln cust'+(isLast?' player':'');
+          const num=String(i+1).padStart(2,' ');
+          d.textContent='  '+num+'.  ['+entry.year+']  '+entry.name;
+          if(entry.note){
+            d.textContent+='  --  '+entry.note;
+          }
+          termOutput.appendChild(d);
+          termOutput.scrollTop=termOutput.scrollHeight;
+          if(isLast){
+            await sleep(1200);
+            ln('');
+            await lnSlow('  Your name was added to this list at 07:14 on 03/11/83.','warn',16);
+            await sleep(400);
+            await lnSlow('  Before you were born.','warn',18);
+            await sleep(400);
+            await lnSlow('  Earl knew someone would come.','dim',16);
+            await sleep(400);
+            await lnSlow('  He left a place for you.','dim',16);
+            ln('');
+          }
+        }
+        ln('');
+        ln('  END OF LIST','dim');
+        ln('');
+        break;
+      }
+
+      /* normal file */
+      const fp=S.cwd+'\\'+arg;const f=FS[fp];
+      if(!f){
+        ln('File not found: '+arg,'err');
+        /* hint if they're close */
+        if(arg.includes('VOICE')||arg.includes('CUSTOD')||arg.includes('LIST')){
+          ln('  Hint: files without a date cannot be listed by DIR.','dim');
+          ln('  Type the full filename to access them.','dim');
+        }
+        break;
+      }
+      ln('');
+      for(const line of f.content.split('\n')){
+        const c=line.startsWith('[')&&line.endsWith(']')?'dim':line.startsWith('!!')?'err':'';
+        ln(line,c);
+      }
+      ln('');break;
+    }
+
+    case 'sec2.exe':case'sec2':await runSec2();break;
+
+    default:
+      ln('');ln("'"+parts[0]+"' is not recognized.",'err');ln('Type HELP.','dim');ln('');
+  }
+  showInput();
+}
+
+/* ════════════════════════════════════════════════════════
+   SEC2 — cameras still running
+════════════════════════════════════════════════════════ */
+async function runSec2(){
+  ln('');
+  await lnSlow('Initializing LKCO-04...','dim',10);await sleep(260);
+  camBar.innerHTML='';
+  LKCO_KEYS.forEach(k=>{
+    const c=CAMS[k];
+    const btn=document.createElement('span');
+    btn.className='cam-btn online';btn.id='btn_'+k;
+    btn.textContent=c.label+(c.degraded?' [WEAK]':'');
+    camBar.appendChild(btn);
+    const sep=document.createElement('span');sep.style.color='var(--border)';sep.textContent=' | ';
+    camBar.appendChild(sep);
+  });
+  const hint=document.createElement('span');
+  hint.style.color='var(--gdim)';hint.textContent='TYPE: 7 8 9';
+  camBar.appendChild(hint);
+  camLabelR.textContent='LKCO-04';
+  for(const k of LKCO_KEYS){
+    const c=CAMS[k];
+    await lnSlow('  '+c.label+' :: '+c.loc.padEnd(18)+' '+(c.degraded?'[ONLINE] signal degraded':'[ONLINE]'),c.degraded?'warn':'dim',7);
+    await sleep(c.degraded?160:65);
+  }
+  await sleep(260);ln('');ln('  Type: 7 8 9');ln('');
+  await runCamLoop();
+}
+async function runCamLoop(){
+  const nums=['7','8','9'];
+  while(true){
+    const key=await new Promise(r=>{
+      _res=r;S.inputMode='any';showInput('CAM > ');
+      ghost.onkeydown=e=>{
+        if(e.key==='Escape'||e.key==='q'||e.key==='Q'||e.key==='0'){
+          const rr=_res;if(!rr)return;_res=null;S.inputMode='cmd';hideInput();rr('exit');
+        }else if(nums.includes(e.key)){
+          const rr=_res;if(!rr)return;_res=null;S.inputMode='cmd';hideInput();rr(e.key);
+        }
+      };
+    });
+    if(key==='exit'){ln('  Closing.','dim');ln('');break;}
+    await showCam('cam'+key);
+    showInput('CAM > ');ln('  [7 8 9] or Q','dim');
+  }
+}
+async function showCam(camKey){
+  const cam=CAMS[camKey];if(!cam)return;
+  if(S.activeCamKey){const o=document.getElementById('btn_'+S.activeCamKey);if(o)o.classList.remove('active');}
+  S.activeCamKey=camKey;
+  const btn=document.getElementById('btn_'+camKey);if(btn)btn.classList.add('active');
+  camFeed.classList.remove('active','degraded');camFeed.src='';
+  camNoFeed.classList.add('hidden');camAcquire.classList.add('active');
+  camHUD.classList.remove('active');
+  const src=cam.img;
+  await new Promise(r=>{const t=new Image();t.onload=t.onerror=r;t.src=src;});
+  await sleep(cam.degraded?1500:800);
+  camAcquire.classList.remove('active');
+  camFeed.src=src;camFeed.classList.add('active');
+  if(cam.degraded)camFeed.classList.add('degraded');
+  hudCamID.textContent=cam.label;hudLoc.textContent=cam.loc;
+  hudDate.textContent=DATE_STR+'\u00a0'+TIME_STR;
+  hudSig.textContent=cam.degraded?'SIG: WEAK':'SIG: OK';
+  hudSig.className=cam.degraded?'weak':'';
+  hudAlert.textContent=S.observerLogged?'OBSERVER LOGGED':'';
+  hudAlert.classList.toggle('show',S.observerLogged);
+  camHUD.classList.add('active');
+  if(camKey==='cam9'){
+    await sleep(1000);
+    ln('  CAM9 -- east wall bench.','dim');
+    ln('  The cable reel is still gone.','warn');
+    ln('  It has been gone for a year now.','dim');
+    ln('  Nobody has come to retrieve it.','dim');
+    ln('  Nobody knows it should be here.','dim');
+    ln('  Except Earl.','warn');
+    ln('  Earl is not available to ask.','dim');
+    ln('');
+  }
+}
+let S_activeCamKey=null;
+
+/* ════════════════════════════════════════════════════════
+   BOOT
+════════════════════════════════════════════════════════ */
+async function boot(){
+  TL.init();
+
+  /* pull playerName and badge from sessionStorage */
+  try{
+    S.playerName=sessionStorage.getItem('sw_player')||null;
+    S.badge=sessionStorage.getItem('sw_badge')||'????';
+  }catch(e){}
+
+  await sleep(400);
+
+  /* corrupted boot */
+  ln('+==========================================================+','hi');
+  ln('|   S E C W A T C H   v 2 . 1 1 b                         |','hi');
+  ln('|   Hargrove Properties LLC                                |','hi');
+
+  const dateLine=document.createElement('div');
+  dateLine.className='ln warn';
+  dateLine.textContent='|   Date: 01/??/94  /  Time: --:--                          |';
+  termOutput.appendChild(dateLine);termOutput.scrollTop=termOutput.scrollHeight;
+
+  ln('+==========================================================+','hi');
+  await sleep(400);ln('');
+
+  await lnSlow('  SYSTEM: Session was not terminated.','dim',14);
+  await sleep(300);
+  await lnSlow('  SYSTEM: Terminal has been running since 01/17/94.','dim',14);
+  await sleep(500);ln('');
+
+  /* date error */
+  const errLine=document.createElement('div');
+  errLine.className='ln err';
+  errLine.textContent='  SYSTEM DATE ERROR: Day field unresolvable.';
+  termOutput.appendChild(errLine);termOutput.scrollTop=termOutput.scrollHeight;
+  await sleep(300);
+  ln('  This is not a hardware error.','dim');
+  await sleep(700);ln('');
+
+  /* what day is this */
+  await lnSlow('  The game should have ended.','dim',16);
+  await sleep(400);
+  await lnSlow('  Day 7 was the last day.','dim',16);
+  await sleep(400);
+  await lnSlow('  The system disagrees.','warn',16);
+  await sleep(1000);ln('');
+
+  /* hint toward the hidden files */
+  ln('  Earl\'s 14-page notes mentioned three things he left.','dim');
+  await sleep(300);
+  ln('  YOU.TXT was one.','dim');
+  await sleep(300);
+  ln('  The other two are not in the directory.','warn');
+  await sleep(300);
+  ln('  You will have to know what to look for.','dim');
+  await sleep(800);ln('');
+
+  if(TL.bars.e>0){
+    const ewVal=TL.bars.e>=10?'--':TL.bars.e;
+    ln('  East Wall level: '+ewVal,'warn');
+    if(TL.bars.e>=10){
+      ln('  East Wall level is at maximum.','err');
+      ln('  The bar no longer shows a number.','err');
+    }
+    await sleep(500);ln('');
+  }
+
+  ln('  HELP for commands.','dim');
+  ln('');
+  S.inputMode='cmd';showInput();
+}
+
+boot();
+</script>
+</body>
+</html>

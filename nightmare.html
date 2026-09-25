@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SECWATCH // SLEEP PARALYSIS</title>
+<link rel="stylesheet" href="css/nm.css">
+</head>
+<body>
+
+<div id="fmv-overlay">
+  <video id="intro-video" src="video/intro.mp4" playsinline></video>
+  <button id="skip-btn" onclick="endFMV()">[ PRESS ENTER TO STRUGGLE ]</button>
+</div>
+<div id="game-wrapper" style="display:none;">
+  <div id="header">
+    <span id="sys-status">DIAGNOSTIC: REM SLEEP INTERRUPTED</span>
+    <span id="wave-counter">STAGE: 1</span>
+    <span class="alert-text">PARALYSIS DETECTED</span>
+  </div>
+
+  <div id="arena">
+    <div id="grid">
+      </div>
+  </div>
+
+  <div id="hud">
+    <div id="queue-area">
+      </div>
+    <div id="controls-row">
+      <div id="hand">
+        </div>
+      <button class="btn-exec" id="btn-exec" onclick="executeTurn()" disabled>EXECUTE</button>
+    </div>
+  </div>
+</div>
+
+<div id="draft-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:900; flex-direction:column; align-items:center; justify-content:center;">
+  <h2 style="color:var(--g); letter-spacing:0.3em; margin-bottom:10px; font-size:32px;">SURVIVED THE HOUR</h2>
+  <p style="color:var(--gdim); margin-bottom:40px; font-size:14px; letter-spacing:0.1em;">THE MIND ADAPTS. ASSIMILATE NEW TACTIC:</p>
+  <div id="draft-cards" style="display:flex; gap:25px;">
+    </div>
+</div>
+
+<div id="overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.98); z-index:1000; flex-direction:column; align-items:center; justify-content:center;">
+  <h1 id="end-title" class="alert-text" style="font-size:60px; margin-bottom:20px; letter-spacing:0.3em; text-shadow:0 0 30px var(--red);">PARALYSIS COMPLETE</h1>
+  <p id="end-desc" style="margin-bottom: 50px; color: var(--gdim); letter-spacing: 0.2em;">THE TERROR HAS TAKEN OVER.</p>
+  
+  <div style="display:flex; gap:30px;">
+    <button class="btn-exec" onclick="restartFromDeath()">FIGHT IT (RETRY)</button>
+    <button class="btn-exec" onclick="stayUpAllNight()" style="border-color:var(--amb); color:var(--amb);">WAKE UP (STAY UP ALL NIGHT)</button>
+  </div>
+</div>
+
+<script src="js/nMengine.js"></script>
+<script src="js/JAMengine.js"></script>
+</body>
+</html>

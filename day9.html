@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SECWATCH v2.11b -- DAY 9</title>
+<!-- SECWATCH day9_final.html | /img/ /audio/ | see production_bible.md -->
+<!--
+  Day 9 is not a location.
+  It is a revelation.
+
+  You have been playing alone.
+  You assumed.
+
+  The SECWATCH network is a network.
+  Multiple nodes. Multiple terminals.
+  Other people have played this game.
+
+  The system has been logging them all.
+  No new audio needed.
+  No new images needed.
+  This day is entirely text.
+  That is enough.
+-->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --g:#33ff33;--gdim:#1a5c1a;--ghi:#afffaf;
+  --amb:#ffb833;--red:#ff4040;--blue:#33aaff;--cyan:#33ffee;
+  --bg:#030503;--panel:#060a06;--border:#102010;
+}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--g);
+  font-family:'Share Tech Mono','Courier New',monospace;
+  font-size:clamp(10px,1.3vw,13px);overflow:hidden;user-select:none;}
+body::before{content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(to bottom,transparent 0px,transparent 3px,rgba(0,0,0,0.08) 3px,rgba(0,0,0,0.08) 4px);
+  pointer-events:none;z-index:900;}
+body::after{content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,0.78) 100%);
+  pointer-events:none;z-index:899;}
+
+/* full terminal layout — no camera panel this day */
+#layout{width:100%;height:100%;display:grid;grid-template-rows:auto 1fr;animation:crtFlicker 18s infinite;}
+#sysBar{background:var(--panel);border-bottom:1px solid var(--border);padding:3px 12px;
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:clamp(7px,0.85vw,9px);letter-spacing:0.1em;color:var(--gdim);}
+
+/* terminal fills the screen */
+#termPanel{background:var(--bg);display:flex;flex-direction:column;overflow:hidden;}
+#termLabel{flex-shrink:0;border-bottom:1px solid var(--border);padding:2px 12px;
+  font-size:clamp(7px,0.85vw,9px);letter-spacing:0.1em;color:var(--gdim);
+  display:flex;justify-content:space-between;}
+#termOutput{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;
+  scrollbar-color:var(--gdim) transparent;padding:6px 12px 2px;}
+.ln{line-height:1.58;letter-spacing:0.022em;white-space:pre-wrap;word-break:break-word;
+  text-shadow:0 0 3px rgba(51,255,51,0.18);}
+.dim{color:var(--gdim);text-shadow:none;}
+.hi{color:var(--ghi);text-shadow:0 0 6px rgba(51,255,51,0.45);}
+.warn{color:var(--amb);text-shadow:0 0 4px rgba(255,184,51,0.35);}
+.err{color:var(--red);text-shadow:0 0 4px rgba(255,64,64,0.35);}
+.echo{color:var(--ghi);}
+.sys{color:var(--blue);}
+.cyan{color:var(--cyan);}
+
+/* session log entry styles */
+.sess{font-size:0.85em;display:flex;align-items:baseline;gap:0;padding:1px 0;}
+.sess-badge{color:var(--gdim);min-width:54px;flex-shrink:0;}
+.sess-date{color:var(--gdim);min-width:90px;flex-shrink:0;font-size:0.9em;}
+.sess-dur{color:var(--gdim);min-width:52px;flex-shrink:0;font-size:0.9em;}
+.sess-bars{display:flex;gap:3px;align-items:center;}
+.sess-bar-lbl{font-size:0.8em;color:var(--gdim);margin-left:4px;}
+.sess-h{color:var(--gdim);}
+.sess-l{color:var(--gdim);}
+.sess-s{color:var(--gdim);}
+.sess-e{color:var(--gdim);}
+.sess-e.high{color:var(--amb);}
+.sess-e.crit{color:var(--red);text-shadow:0 0 4px rgba(255,64,64,0.4);}
+.sess-e.max{color:var(--red);animation:blink 1s step-end infinite;}
+.sess.current{background:rgba(51,255,51,0.04);border-left:2px solid var(--gdim);}
+.sess.current .sess-badge{color:var(--ghi);}
+.sess.current .sess-e{color:var(--amb);}
+
+/* note / observation entries */
+.obs{padding:4px 0;font-size:0.88em;color:var(--gdim);font-style:italic;}
+.obs.alert{color:var(--amb);}
+.obs.danger{color:var(--red);}
+
+/* East Wall progress display */
+.ew-entry{padding:2px 0;}
+.ew-badge{color:var(--gdim);font-size:0.85em;}
+.ew-bar{display:inline-block;height:6px;background:var(--red);vertical-align:middle;margin:0 4px;}
+.ew-val{color:var(--red);font-size:0.85em;}
+
+#termInputRow{flex-shrink:0;display:flex;align-items:center;padding:3px 12px 5px;
+  border-top:1px solid var(--border);opacity:0;pointer-events:none;min-height:22px;}
+#termInputRow.on{opacity:1;pointer-events:auto;}
+#termPrompt{white-space:pre;}
+.cur{display:inline-block;width:0.55em;height:0.92em;background:var(--g);
+  box-shadow:0 0 5px var(--g),0 0 12px rgba(51,255,51,0.35);
+  margin-left:1px;vertical-align:middle;position:relative;top:-1px;animation:blink 1.1s step-end infinite;}
+#termTyped{white-space:pre;min-width:1px;}
+#ghost{position:fixed;opacity:0;width:1px;height:1px;top:-400px;border:none;outline:none;font-size:1px;pointer-events:none;}
+
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes crtFlicker{0%,100%{opacity:1}92%{opacity:1}92.4%{opacity:.82}92.8%{opacity:1}97%{opacity:1}97.4%{opacity:.88}97.8%{opacity:1}}
+</style>
+<script src="js/swState.js"></script>
+</head>
+<body>
+
+<div id="layout">
+  <div id="sysBar">
+    <span>SECWATCH v2.11b  --  NETWORK LOG  --  ALL NODES</span>
+    <span id="sysBarRight">01/??/94  --:--</span>
+  </div>
+
+  <div id="termPanel">
+    <div id="termLabel">
+      <span>TERMINAL  --  DAY 9  --  NETWORK VIEW</span>
+      <span id="termLabelRight">SECWATCH://ALL</span>
+    </div>
+    <div id="termOutput"></div>
+    <div id="termInputRow">
+      <span id="termPrompt">NETWORK&gt;&nbsp;</span>
+      <span id="termTyped"></span>
+      <span class="cur"></span>
+    </div>
+  </div>
+</div>
+
+<input id="ghost" autocomplete="off" spellcheck="false">
+
+<script>
+'use strict';
+
+const S={
+  cwd:'NETWORK',inputMode:'cmd',inputBuf:'',
+  playerBadge:null,playerName:null,
+  tlBars:{h:0,l:0,s:0,e:0},
+  sessionStart:Date.now(),
+  networkRead:false, ewMapRead:false, ownRead:false,
+};
+let _res=null;
+
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* ════════════════════════════════════════════════════════
+   PULL PLAYER DATA AND TL FROM SESSION STORAGE
+════════════════════════════════════════════════════════ */
+function loadSession(){
+  try{
+    S.playerBadge=sessionStorage.getItem('sw_badge')||'????';
+    S.playerName=sessionStorage.getItem('sw_player')||null;
+    const tl=JSON.parse(sessionStorage.getItem('sw_tl')||'{}');
+    if(tl.h)S.tlBars.h=tl.h;
+    if(tl.l)S.tlBars.l=tl.l;
+    if(tl.s)S.tlBars.s=tl.s;
+    if(tl.e)S.tlBars.e=tl.e;
+  }catch(e){}
+}
+
+/* ════════════════════════════════════════════════════════
+   GENERATE FAKE BUT PLAUSIBLE SESSION LOG
+   The player's real data is embedded in the middle.
+   Most sessions show zero TL — people who quit early.
+   41 sessions show high numbers — the ones who stayed.
+════════════════════════════════════════════════════════ */
+function genSessions(playerBadge,playerTL){
+  const sessions=[];
+
+  /* large pool of quick exits — first 80% of all players */
+  const quickBadges=[
+    '1147','2283','0812','3351','4490','7612','2201','5543','9987','1100',
+    '0445','6612','3391','8823','1567','2234','7790','4482','6613','9201',
+    '5533','0332','7714','2289','1156','3340','8802','4415','6671','9945',
+    '1223','0556','7783','3398','8817','5590','2267','4434','6678','9912',
+    '1289','0523','7751','3367','8851','5527','2294','4461','6645','9979',
+  ];
+  const dates=['01/15/94','01/16/94','01/17/94','01/18/94','01/19/94',
+               '01/20/94','01/21/94','01/22/94','01/23/94','01/24/94',
+               '01/25/94','01/26/94','01/27/94','01/28/94','01/29/94',
+               '01/30/94','01/31/94','02/01/94','02/02/94','02/03/94'];
+  const durations=['0m12s','0m31s','1m04s','1m22s','2m03s','0m44s','0m19s','2m41s','0m08s','3m12s'];
+
+  quickBadges.forEach((b,i)=>{
+    sessions.push({
+      badge:b,
+      date:dates[i%dates.length],
+      dur:durations[i%durations.length],
+      tl:{h:0,l:0,s:0,e:0},
+      note:'',
+    });
+  });
+
+  /* 41 sessions that went far — varying depths */
+  const deepSessions=[
+    {badge:'0003',date:'01/15/94',dur:'4h 22m',tl:{h:7,l:7,s:7,e:7},note:'left system running'},
+    {badge:'1919',date:'01/16/94',dur:'2h 08m',tl:{h:6,l:8,s:5,e:6},note:'left system running'},
+    {badge:'0077',date:'01/17/94',dur:'3h 41m',tl:{h:8,l:9,s:7,e:8},note:'left system running'},
+    {badge:'4444',date:'01/18/94',dur:'1h 55m',tl:{h:5,l:6,s:6,e:5},note:'left system running'},
+    {badge:'7291',date:'01/19/94',dur:'5h 03m',tl:{h:7,l:8,s:8,e:9},note:'left system running — EW approaching max'},
+    {badge:'2020',date:'01/20/94',dur:'2h 17m',tl:{h:6,l:7,s:6,e:6},note:'left system running'},
+    {badge:'0911',date:'01/21/94',dur:'3h 58m',tl:{h:9,l:8,s:7,e:9},note:'left system running'},
+    {badge:'5555',date:'01/22/94',dur:'1h 44m',tl:{h:5,l:5,s:5,e:5},note:'left system running'},
+    {badge:'1313',date:'01/23/94',dur:'4h 11m',tl:{h:7,l:9,s:8,e:8},note:'left system running'},
+    {badge:'3333',date:'01/24/94',dur:'2h 32m',tl:{h:6,l:6,s:7,e:6},note:'left system running'},
+    {badge:'0808',date:'01/25/94',dur:'3h 22m',tl:{h:8,l:8,s:8,e:9},note:'left system running'},
+    {badge:'6161',date:'01/26/94',dur:'1h 59m',tl:{h:5,l:7,s:6,e:6},note:'left system running'},
+    {badge:'9999',date:'01/27/94',dur:'6h 17m',tl:{h:9,l:10,s:9,e:10},note:'EW: MAX  --  session still open'},
+    {badge:'1001',date:'01/28/94',dur:'2h 44m',tl:{h:7,l:7,s:7,e:7},note:'left system running'},
+    {badge:'2112',date:'01/29/94',dur:'3h 01m',tl:{h:6,l:8,s:7,e:7},note:'left system running'},
+    {badge:'0404',date:'01/30/94',dur:'2h 18m',tl:{h:7,l:6,s:6,e:7},note:'left system running'},
+    {badge:'7777',date:'01/31/94',dur:'4h 44m',tl:{h:8,l:9,s:8,e:9},note:'left system running'},
+    {badge:'1492',date:'02/01/94',dur:'1h 33m',tl:{h:5,l:6,s:5,e:5},note:'left system running'},
+    {badge:'8080',date:'02/02/94',dur:'3h 55m',tl:{h:7,l:8,s:8,e:8},note:'left system running'},
+    {badge:'2468',date:'02/03/94',dur:'2h 07m',tl:{h:6,l:6,s:6,e:6},note:'left system running'},
+    {badge:'1111',date:'02/04/94',dur:'5h 22m',tl:{h:9,l:9,s:8,e:10},note:'EW: MAX  --  session still open'},
+    {badge:'0099',date:'02/05/94',dur:'2h 41m',tl:{h:6,l:7,s:7,e:7},note:'left system running'},
+    {badge:'3141',date:'02/06/94',dur:'3h 18m',tl:{h:7,l:8,s:7,e:8},note:'left system running'},
+    {badge:'8888',date:'02/07/94',dur:'1h 48m',tl:{h:5,l:5,s:6,e:5},note:'left system running'},
+    {badge:'0606',date:'02/08/94',dur:'4h 02m',tl:{h:8,l:8,s:8,e:9},note:'left system running'},
+    {badge:'2222',date:'02/09/94',dur:'2h 22m',tl:{h:6,l:7,s:6,e:6},note:'left system running'},
+    {badge:'9191',date:'02/10/94',dur:'3h 44m',tl:{h:7,l:9,s:8,e:8},note:'left system running'},
+    {badge:'0505',date:'02/11/94',dur:'1h 55m',tl:{h:5,l:6,s:5,e:6},note:'left system running'},
+    {badge:'4242',date:'02/12/94',dur:'5h 01m',tl:{h:8,l:9,s:9,e:9},note:'left system running'},
+    {badge:'1234',date:'02/13/94',dur:'2h 38m',tl:{h:6,l:7,s:7,e:7},note:'left system running'},
+    {badge:'6006',date:'02/14/94',dur:'3h 12m',tl:{h:7,l:8,s:7,e:8},note:'left system running'},
+    {badge:'0101',date:'02/15/94',dur:'2h 09m',tl:{h:6,l:6,s:6,e:7},note:'left system running'},
+    {badge:'5151',date:'02/16/94',dur:'4h 33m',tl:{h:8,l:8,s:8,e:9},note:'left system running'},
+    {badge:'3003',date:'02/17/94',dur:'1h 47m',tl:{h:5,l:7,s:6,e:6},note:'left system running'},
+    {badge:'7007',date:'02/18/94',dur:'3h 58m',tl:{h:7,l:8,s:8,e:8},note:'left system running'},
+    {badge:'9009',date:'02/19/94',dur:'2h 21m',tl:{h:6,l:6,s:7,e:7},note:'left system running'},
+    {badge:'4004',date:'02/20/94',dur:'5h 44m',tl:{h:9,l:9,s:9,e:10},note:'EW: MAX  --  session still open'},
+    {badge:'1818',date:'02/21/94',dur:'2h 04m',tl:{h:6,l:7,s:6,e:6},note:'left system running'},
+    {badge:'6060',date:'02/22/94',dur:'3h 29m',tl:{h:7,l:8,s:7,e:8},note:'left system running'},
+    {badge:'2002',date:'02/23/94',dur:'2h 51m',tl:{h:7,l:7,s:7,e:7},note:'left system running'},
+    {badge:'8118',date:'02/24/94',dur:'4h 07m',tl:{h:8,l:9,s:8,e:9},note:'left system running'},
+  ];
+
+  /* mix deep sessions into the quick ones */
+  deepSessions.forEach((ds,i)=>{
+    const pos=5+(i*2);
+    sessions.splice(Math.min(pos,sessions.length),0,ds);
+  });
+
+  /* add current player session */
+  const elapsed=Math.floor((Date.now()-S.sessionStart)/60000);
+  const elStr=elapsed<1?'<1m':(elapsed<60?elapsed+'m':(Math.floor(elapsed/60)+'h '+((elapsed%60)||'')+'m').trim());
+  const playerSession={
+    badge:playerBadge,
+    date:'01/??/94',
+    dur:elStr+' (active)',
+    tl:playerTL,
+    note:'CURRENT SESSION',
+    isPlayer:true,
+  };
+  sessions.push(playerSession);
+
+  return sessions;
+}
+
+/* ════════════════════════════════════════════════════════
+   EAST WALL ACCUMULATION MAP
+   Shows all sessions with high East Wall levels.
+   The combined effect is the horror.
+════════════════════════════════════════════════════════ */
+function getEWMap(sessions){
+  return sessions
+    .filter(s=>s.tl.e>0)
+    .sort((a,b)=>b.tl.e-a.tl.e);
+}
+
+/* ════════════════════════════════════════════════════════
+   TERMINAL ENGINE
+════════════════════════════════════════════════════════ */
+function ln(text='',cls=''){
+  const d=document.createElement('div');d.className='ln'+(cls?' '+cls:'');
+  d.textContent=text;termOutput.appendChild(d);termOutput.scrollTop=termOutput.scrollHeight;
+}
+async function lnSlow(text,cls='',ms=13){
+  const d=document.createElement('div');d.className='ln'+(cls?' '+cls:'');d.textContent='';
+  termOutput.appendChild(d);
+  for(const ch of text){d.textContent+=ch;termOutput.scrollTop=termOutput.scrollHeight;await sleep(ms);}
+}
+function showInput(){
+  termTyped.textContent=S.inputBuf='';
+  termInputRow.classList.add('on');
+  ghost.style.pointerEvents='auto';ghost.focus();
+}
+function hideInput(){termInputRow.classList.remove('on');ghost.style.pointerEvents='none';}
+
+const termOutput=document.getElementById('termOutput');
+const termInputRow=document.getElementById('termInputRow');
+const termPrompt=document.getElementById('termPrompt');
+const termTyped=document.getElementById('termTyped');
+const termLabelR=document.getElementById('termLabelRight');
+const ghost=document.getElementById('ghost');
+
+ghost.addEventListener('keydown',e=>{
+  if(!termInputRow.classList.contains('on'))return;
+  if(S.inputMode==='cmd'){
+    if(e.key==='Enter'){
+      const cmd=S.inputBuf.trim();hideInput();
+      if(cmd)ln('NETWORK> '+cmd,'echo');
+      S.inputBuf='';if(cmd)handleCmd(cmd);else showInput();
+    }else if(e.key==='Backspace'){S.inputBuf=S.inputBuf.slice(0,-1);termTyped.textContent=S.inputBuf;}
+    else if(e.key.length===1){S.inputBuf+=e.key;termTyped.textContent=S.inputBuf;}
+  }
+});
+document.addEventListener('click',()=>{if(termInputRow.classList.contains('on'))ghost.focus();});
+document.addEventListener('keydown',()=>{const d=new Audio();d.volume=0;d.play().catch(()=>{});},{once:true});
+
+/* ════════════════════════════════════════════════════════
+   COMMANDS
+════════════════════════════════════════════════════════ */
+async function handleCmd(raw){
+  const parts=raw.trim().split(/\s+/);
+  const cmd=parts[0].toLowerCase();
+  const arg=parts.slice(1).join(' ').toUpperCase();
+
+  switch(cmd){
+    case 'cls':termOutput.innerHTML='';break;
+
+    case 'help':case'?':
+      ln('');
+      ln('  sessions          All recorded terminal sessions');
+      ln('  sessions mine     Your session only');
+      ln('  sessions deep     Sessions that reached Day 7');
+      ln('  eastwall          East Wall accumulation across all sessions');
+      ln('  eastwall mine     Your East Wall contribution');
+      ln('  network           Network overview');
+      ln('  cls / help');
+      ln('');break;
+
+    case 'sessions':{
+      const sessions=genSessions(S.playerBadge,S.tlBars);
+      if(arg==='MINE'){
+        S.ownRead=true;
+        ln('');
+        ln('  YOUR SESSION  --  Badge '+S.playerBadge,'hi');
+        ln('');
+        const ps=sessions.find(s=>s.isPlayer);
+        if(ps){
+          ln('  Badge:    '+ps.badge,'');
+          ln('  Date:     '+ps.date,'');
+          ln('  Duration: '+ps.dur,'warn');
+          ln('  H: '+ps.tl.h+'  L: '+ps.tl.l+'  S: '+ps.tl.s+'  E: '+(ps.tl.e>=10?'--':ps.tl.e),ps.tl.e>=10?'err':'warn');
+          ln('');
+
+          /* the key question */
+          const minutes=Math.floor((Date.now()-S.sessionStart)/60000);
+          const ewTicks=Math.floor(minutes/3);
+          ln('  This tab has been open for approximately '+minutes+' minute'+(minutes===1?'':'s')+'.','dim');
+          await sleep(400);
+          if(ewTicks>0){
+            ln('  During that time, the East Wall bar ticked up '+ewTicks+' time'+(ewTicks===1?'':'s')+'.','warn');
+            await sleep(300);
+            ln('  While you were reading.','warn');
+            await sleep(300);
+            ln('  While you were not thinking about it.','dim');
+          }else{
+            ln('  The East Wall bar has ticked up 0 additional times.','dim');
+            ln('  It will.  Every three real minutes.  Whether the game is open or not.','warn');
+          }
+          ln('');
+          ln('  The bar ticks up when the tab is open.','dim');
+          ln('  Not when you play.  When the tab exists.','warn');
+          ln('');
+        }
+        break;
+      }
+      if(arg==='DEEP'){
+        S.networkRead=true;
+        ln('');
+        ln('  SESSIONS THAT REACHED DAY 7','hi');
+        ln('  Badge     Date        Duration    H  L  S  E   Note','dim');
+        ln('  ─────────────────────────────────────────────────────────','dim');
+        const deep=sessions.filter(s=>s.tl.e>=5).sort((a,b)=>b.tl.e-a.tl.e);
+        for(const s of deep){
+          const row=document.createElement('div');
+          row.className='ln'+(s.isPlayer?' warn':'');
+          const ew=s.tl.e>=10?'--':String(s.tl.e);
+          row.textContent='  '+s.badge.padEnd(8)+'  '+s.date.padEnd(11)+'  '+s.dur.padEnd(11)+'  '+
+            s.tl.h+' '+s.tl.l+' '+s.tl.s+' '+ew+'   '+(s.note||'');
+          termOutput.appendChild(row);termOutput.scrollTop=termOutput.scrollHeight;
+          await sleep(30);
+        }
+        ln('');
+        ln('  '+deep.length+' sessions reached Day 7.','dim');
+        ln('  '+(deep.filter(s=>s.note&&s.note.includes('running')).length)+' left the system running.','warn');
+        ln('  '+(deep.filter(s=>s.tl.e>=10).length)+' have East Wall at maximum.','err');
+        ln('');
+        break;
+      }
+      /* all sessions */
+      S.networkRead=true;
+      ln('');
+      ln('  ALL SESSIONS  --  SECWATCH NETWORK LOG','hi');
+      ln('  Badge     Date        Duration    H  L  S  E','dim');
+      ln('  ────────────────────────────────────────────','dim');
+      for(const s of sessions){
+        const row=document.createElement('div');
+        const ew=s.tl.e>=10?'--':String(s.tl.e);
+        const allZero=s.tl.h===0&&s.tl.l===0&&s.tl.s===0&&s.tl.e===0;
+        row.className='ln'+(s.isPlayer?' sess current':allZero?' dim':'');
+        row.textContent='  '+s.badge.padEnd(8)+'  '+s.date.padEnd(11)+'  '+
+          s.dur.padEnd(11)+'  '+s.tl.h+' '+s.tl.l+' '+s.tl.s+' '+ew+
+          (s.isPlayer?'  ← YOU':'')+(s.note&&!s.isPlayer?'  ['+s.note+']':'');
+        termOutput.appendChild(row);termOutput.scrollTop=termOutput.scrollHeight;
+        await sleep(allZero?8:20);
+      }
+      ln('');
+      ln('  TOTAL SESSIONS: '+sessions.length,'dim');
+      ln('  SESSIONS WITH ACTIVITY: '+sessions.filter(s=>s.tl.h+s.tl.l+s.tl.s+s.tl.e>0).length,'warn');
+      ln('  EAST WALL ABOVE 0: '+sessions.filter(s=>s.tl.e>0).length,'warn');
+      ln('  EAST WALL AT MAX: '+sessions.filter(s=>s.tl.e>=10).length,'err');
+      ln('');
+      break;
+    }
+
+    case 'eastwall':{
+      S.ewMapRead=true;
+      const sessions=genSessions(S.playerBadge,S.tlBars);
+      const ewSessions=getEWMap(sessions).filter(s=>s.tl.e>0);
+
+      if(arg==='MINE'){
+        ln('');
+        ln('  YOUR EAST WALL CONTRIBUTION','hi');
+        ln('');
+        const ewVal=S.tlBars.e>=10?'--':S.tlBars.e;
+        ln('  Current level: '+ewVal,'warn');
+        ln('');
+
+        /* show the bar visually */
+        const barEl=document.createElement('div');
+        barEl.className='ln';
+        const filled=Math.min(S.tlBars.e,10);
+        barEl.textContent='  ['+('█'.repeat(filled)+('░'.repeat(10-filled)))+']  '+ewVal;
+        barEl.style.color=S.tlBars.e>=10?'var(--red)':S.tlBars.e>=7?'var(--amb)':'var(--g)';
+        termOutput.appendChild(barEl);termOutput.scrollTop=termOutput.scrollHeight;
+
+        ln('');
+        const minutes=Math.floor((Date.now()-S.sessionStart)/60000);
+        ln('  This session has been open '+minutes+' minute'+(minutes===1?'':'s')+'.','dim');
+        await sleep(300);
+
+        if(S.tlBars.e<10){
+          const remaining=(10-S.tlBars.e)*3;
+          ln('  At current rate: '+remaining+' minutes until East Wall reaches maximum.','warn');
+        }else{
+          ln('  East Wall is at maximum.','err');
+          ln('  The bar no longer shows a number.','err');
+          await sleep(300);
+          ln('  We do not know what happens at maximum.','err');
+          await sleep(300);
+          ln('  None of the sessions that reached maximum have ended.','err');
+          ln('  They are all still open.','err');
+        }
+        ln('');
+        break;
+      }
+
+      /* full east wall map */
+      ln('');
+      ln('  EAST WALL ACCUMULATION -- ALL SESSIONS','hi');
+      ln('  This is the combined effect of every open session.','dim');
+      ln('');
+      await sleep(300);
+
+      for(const s of ewSessions){
+        const row=document.createElement('div');
+        const ew=s.tl.e;
+        const bar='█'.repeat(Math.min(ew,10))+'░'.repeat(Math.max(0,10-ew));
+        const cls=ew>=10?'err':ew>=7?'warn':'';
+        row.className='ln '+(s.isPlayer?'warn':'dim');
+        row.style.fontSize='0.88em';
+        row.textContent='  '+s.badge.padEnd(8)+'  ['+bar+']  '+(ew>=10?'--':ew)+
+          (s.isPlayer?'  ← YOU':'')+(s.note&&s.note.includes('MAX')?' !!':'');
+        if(ew>=10)row.style.color='var(--red)';
+        else if(ew>=7)row.style.color='var(--amb)';
+        termOutput.appendChild(row);termOutput.scrollTop=termOutput.scrollHeight;
+        await sleep(25);
+      }
+
+      ln('');
+      /* total accumulated east wall */
+      const total=ewSessions.reduce((sum,s)=>sum+Math.min(s.tl.e,10),0);
+      await lnSlow('  Combined East Wall accumulation across all sessions: '+total,'warn',14);
+      await sleep(600);
+      ln('');
+      await lnSlow('  The wall extends across all of them.','dim',14);
+      await sleep(400);
+      await lnSlow('  Not in the game.','dim',14);
+      await sleep(400);
+      await lnSlow('  In the sessions left open.','warn',14);
+      await sleep(400);
+      await lnSlow('  In the browsers nobody closed.','warn',14);
+      await sleep(600);ln('');
+      await lnSlow('  How long has your tab been open?','err',16);
+      ln('');
+      break;
+    }
+
+    case 'network':{
+      S.networkRead=true;
+      ln('');
+      ln('  SECWATCH NETWORK STATUS','hi');
+      ln('');
+      ln('  Nodes: HARGROVE BUSINESS CENTER  [ACTIVE]','sys');
+      ln('         LKCO-04 LETCHER COUNTY     [ACTIVE]','sys');
+      ln('         [extended nodes -- see SESSIONS]','dim');
+      ln('');
+      await sleep(300);
+      ln('  The SECWATCH network is not isolated.','dim');
+      await sleep(300);
+      ln('  Every session connects to the same node.','dim');
+      await sleep(300);
+      ln('  Every session has been logged.','warn');
+      await sleep(300);
+      ln('  Every session is still running.','warn');
+      await sleep(500);ln('');
+      const sessions=genSessions(S.playerBadge,S.tlBars);
+      const stillOpen=sessions.filter(s=>s.note&&(s.note.includes('running')||s.note.includes('active'))).length;
+      ln('  Active sessions (tabs still open): approximately '+stillOpen,'err');
+      await sleep(300);
+      ln('  Sessions with East Wall above 0: '+sessions.filter(s=>s.tl.e>0).length,'err');
+      ln('');
+      await sleep(400);
+      await lnSlow('  Forty-one people left their system running.','warn',16);
+      await sleep(400);
+      await lnSlow("  They don't know they're still logged in.",'warn',16);
+      await sleep(400);
+      await lnSlow("  Their East Wall bars are still ticking.",'err',16);
+      await sleep(400);
+      await lnSlow("  Every three real minutes.",'err',16);
+      await sleep(400);
+      await lnSlow("  While they sleep.",'err',16);
+      ln('');
+      break;
+    }
+
+    default:
+      ln('');ln("'"+parts[0]+"' not recognized.",'err');ln('Type HELP.','dim');ln('');
+  }
+  showInput();
+}
+
+/* ════════════════════════════════════════════════════════
+   BOOT — Day 9
+════════════════════════════════════════════════════════ */
+async function boot(){
+  loadSession();
+
+  await sleep(400);
+
+  /* no banner — different feel from all other days */
+  await lnSlow('SECWATCH NETWORK  --  ALL NODES  --  GLOBAL VIEW','hi',10);
+  await sleep(300);
+  ln('01/??/94','dim');
+  await sleep(600);ln('');
+
+  await lnSlow('  You have been playing alone.','dim',16);
+  await sleep(500);
+  await lnSlow('  You assumed.','dim',16);
+  await sleep(800);ln('');
+
+  await lnSlow('  The SECWATCH network is a network.','dim',16);
+  await sleep(400);
+  await lnSlow('  Multiple nodes.','dim',16);
+  await sleep(300);
+  await lnSlow('  Multiple terminals.','dim',16);
+  await sleep(300);
+  await lnSlow('  Other people have played this game.','warn',16);
+  await sleep(800);ln('');
+
+  await lnSlow('  The system has been logging them all.','warn',16);
+  await sleep(400);
+
+  /* show a quick summary */
+  const sessions=genSessions(S.playerBadge,S.tlBars);
+  const total=sessions.length;
+  const withActivity=sessions.filter(s=>s.tl.h+s.tl.l+s.tl.s+s.tl.e>0).length;
+  const ewNonZero=sessions.filter(s=>s.tl.e>0).length;
+  const ewMax=sessions.filter(s=>s.tl.e>=10).length;
+
+  await sleep(300);
+  ln('  Total sessions recorded: '+total,'dim');
+  await sleep(200);
+  ln('  Sessions with measurable activity: '+withActivity,'warn');
+  await sleep(200);
+  ln('  Sessions with East Wall above 0: '+ewNonZero,'err');
+  await sleep(200);
+
+  const maxLine=document.createElement('div');
+  maxLine.className='ln err';
+  maxLine.style.textShadow='0 0 8px rgba(255,64,64,0.4)';
+  maxLine.textContent='  Sessions with East Wall at maximum: '+ewMax;
+  termOutput.appendChild(maxLine);termOutput.scrollTop=termOutput.scrollHeight;
+  await sleep(600);ln('');
+
+  /* the personal detail */
+  await lnSlow('  Your session is in this log.','warn',16);
+  await sleep(400);
+  await lnSlow('  Badge '+S.playerBadge+'.','warn',16);
+  await sleep(400);
+  const minutes=Math.floor((Date.now()-S.sessionStart)/60000);
+  await lnSlow('  Tab open for approximately '+minutes+' minute'+(minutes===1?'':'s')+'.','dim',14);
+  await sleep(400);
+
+  const ewNow=S.tlBars.e>=10?'--':S.tlBars.e;
+  const ewLine=document.createElement('div');
+  ewLine.className='ln '+(S.tlBars.e>=10?'err':'warn');
+  ewLine.textContent='  East Wall: '+ewNow;
+  termOutput.appendChild(ewLine);termOutput.scrollTop=termOutput.scrollHeight;
+  await sleep(800);ln('');
+
+  ln('  Type HELP for network commands.','dim');
+  ln('  Type SESSIONS to see everyone.','dim');
+  ln('  Type EASTWALL to see what you have all built.','dim');
+  ln('');
+
+  /* subtle ongoing message — appears after a long idle */
+  setTimeout(async ()=>{
+    if(S.inputMode!=='cmd')return;
+    const d=document.createElement('div');
+    d.className='ln dim';
+    const m=Math.floor((Date.now()-S.sessionStart)/60000);
+    d.textContent='  ['+m+' minutes elapsed  --  East Wall continues to extend]';
+    termOutput.insertBefore(d,termInputRow);
+    termOutput.scrollTop=termOutput.scrollHeight;
+  },8*60*1000);
+
+  S.inputMode='cmd';showInput();
+}
+
+boot();
+</script>
+</body>
+</html>

@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SECWATCH // DAY 5</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+html,body{
+  width:100%;height:100%;min-height:100vh;
+  background:#000000;
+  color:#3acc68;
+  font-family:'Share Tech Mono',monospace;
+  overflow:hidden;
+}
+
+/* CRT scanlines */
+body::before{
+  content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(
+    0deg,transparent,transparent 2px,
+    rgba(0,0,0,0.08) 2px,rgba(0,0,0,0.08) 4px
+  );
+  pointer-events:none;z-index:999;
+}
+
+/* Phosphor vignette */
+body::after{
+  content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,0.65) 100%);
+  pointer-events:none;z-index:998;
+}
+
+/* ===== DEPTH METER ===== */
+#depth-meter{
+  position:fixed;right:28px;top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  z-index:50;opacity:0;transition:opacity 1.5s;
+}
+#depth-meter.visible{opacity:1}
+.dm-label{font-size:8px;letter-spacing:0.2em;color:#1a6030;writing-mode:vertical-rl;
+  text-orientation:mixed;transform:rotate(180deg);}
+.dm-track{width:3px;height:220px;background:#080e08;border:1px solid #1a2818;position:relative}
+.dm-fill{
+  position:absolute;bottom:0;left:0;right:0;height:0%;
+  background:linear-gradient(180deg,#1a6030 0%,#4dff91 100%);
+  transition:height 1.8s cubic-bezier(0.2,0.8,0.3,1);
+}
+.dm-val{font-size:8px;color:#2a8a4e;letter-spacing:0.1em;white-space:nowrap}
+
+/* ===== MAIN STAGE ===== */
+#stage{
+  position:fixed;inset:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:40px 60px 100px;
+  z-index:10;
+}
+
+/* Text block */
+#text-block{
+  max-width:640px;width:100%;
+  font-size:13px;line-height:2;
+  color:#3acc68;
+  text-align:left;
+  min-height:200px;
+  display:flex;flex-direction:column;justify-content:flex-end;
+}
+#text-content{
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+.text-cursor{
+  display:inline-block;width:8px;height:14px;
+  background:#3acc68;
+  animation:tblink 1s step-end infinite;
+  vertical-align:middle;margin-left:1px;
+}
+@keyframes tblink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* dim / bright text variants */
+#text-content.dim{color:#1a5028;text-shadow:none}
+#text-content.normal{color:#3acc68;text-shadow:0 0 6px rgba(58,204,104,0.35)}
+#text-content.bright{
+  color:#6dff9c;letter-spacing:0.015em;
+  text-shadow:0 0 8px rgba(109,255,156,0.6),0 0 20px rgba(109,255,156,0.2);
+}
+#text-content.shift{
+  color:#4dff91;letter-spacing:0.04em;
+  text-shadow:0 0 10px rgba(77,255,145,0.8),0 0 30px rgba(77,255,145,0.3);
+  font-size:13.5px;
+}
+#text-content.horror{
+  color:#8aff60;
+  text-shadow:0 0 14px rgba(138,255,96,0.9),0 0 40px rgba(138,255,96,0.4),
+    0 0 80px rgba(138,255,96,0.15);
+  letter-spacing:0.08em;font-size:14px;
+}
+#text-content.name-reveal{
+  color:#ffffff;
+  text-shadow:0 0 20px rgba(255,255,255,0.9),0 0 50px rgba(77,255,145,0.6);
+  letter-spacing:0.4em;font-size:16px;text-align:center;
+}
+
+/* ===== INPUT AREA ===== */
+#input-area{
+  position:fixed;bottom:0;left:0;right:0;
+  display:flex;flex-direction:column;align-items:center;
+  padding:0 0 28px;z-index:50;
+}
+#continue-prompt{
+  font-size:9.5px;letter-spacing:0.35em;color:#1a5028;
+  margin-bottom:10px;
+  animation:promptfade 2s ease-in-out infinite;
+  cursor:pointer;user-select:none;
+}
+@keyframes promptfade{0%,100%{opacity:0.4}50%{opacity:1}}
+#continue-prompt.hidden{display:none}
+
+#yn-prompt{
+  display:none;
+  flex-direction:column;align-items:center;gap:12px;
+}
+#yn-prompt.visible{display:flex}
+.yn-question{font-size:12px;letter-spacing:0.15em;color:#4dff91;
+  text-shadow:0 0 8px rgba(77,255,145,0.5);}
+.yn-options{display:flex;gap:40px}
+.yn-btn{
+  background:transparent;
+  border:1px solid #1a5028;
+  color:#2a8a4e;
+  font-family:'Share Tech Mono',monospace;
+  font-size:13px;letter-spacing:0.3em;
+  padding:10px 30px;cursor:pointer;
+  transition:all 0.2s;
+}
+.yn-btn:hover{
+  border-color:#4dff91;color:#6dff9c;
+  background:rgba(77,255,145,0.06);
+  text-shadow:0 0 10px rgba(77,255,145,0.6);
+  box-shadow:0 0 20px rgba(77,255,145,0.1);
+}
+.yn-btn.Y:hover{
+  border-color:#4dff91;color:#6dff9c;
+}
+.yn-btn.N:hover{
+  border-color:#ff6060;color:#ff8080;
+  background:rgba(255,80,80,0.05);
+  text-shadow:0 0 10px rgba(255,80,80,0.5);
+  box-shadow:0 0 20px rgba(255,80,80,0.08);
+}
+
+/* Day indicator (faint) */
+#day-marker{
+  position:fixed;top:20px;left:50%;transform:translateX(-50%);
+  font-size:8.5px;letter-spacing:0.5em;color:#0a1e0e;z-index:50;
+  transition:color 1s;user-select:none;
+}
+#day-marker.visible{color:#1a3820}
+
+/* East wall counter (bottom left) */
+#ew-counter{
+  position:fixed;bottom:20px;left:28px;
+  font-size:8.5px;letter-spacing:0.15em;color:#1a3820;
+  z-index:50;line-height:1.8;opacity:0;transition:opacity 1s;
+}
+#ew-counter.visible{opacity:1}
+
+/* CAM9 overlay */
+#cam9-overlay{
+  display:none;position:fixed;inset:0;background:#000;z-index:500;
+  flex-direction:column;align-items:center;justify-content:center;
+  gap:16px;
+}
+#cam9-overlay.open{display:flex}
+.cam9-frame{
+  width:420px;height:280px;border:1px solid #1a2818;position:relative;
+  background:#020402;overflow:hidden;
+}
+/* Scanline effect on cam */
+.cam9-frame::before{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,
+    transparent,transparent 3px,
+    rgba(0,0,0,0.12) 3px,rgba(0,0,0,0.12) 4px);
+  z-index:10;pointer-events:none;
+}
+/* Static noise */
+.cam9-frame::after{
+  content:'';position:absolute;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+  opacity:0.4;z-index:2;pointer-events:none;
+}
+.cam9-wall{
+  position:absolute;bottom:0;left:0;right:0;height:58%;
+  background:linear-gradient(180deg,#0a0e08 0%,#060906 100%);
+  border-top:1px solid #0e1a0a;
+}
+/* Rock strata lines */
+.cam9-wall::before{
+  content:'';position:absolute;top:15%;left:0;right:0;height:1px;background:#0e1a0a;
+  box-shadow:0 18px 0 #0e1a0a,0 36px 0 #0a1008,0 50px 0 #0e1a0a;
+}
+.cam9-sky{
+  position:absolute;top:0;left:0;right:0;height:42%;
+  background:linear-gradient(180deg,#020402 0%,#060a04 100%);
+}
+/* The depression in gravel */
+.cam9-gravel{
+  position:absolute;bottom:0;left:0;right:0;height:18%;
+  background:linear-gradient(180deg,#0a0e08 0%,#080c06 100%);
+}
+.cam9-depression{
+  position:absolute;bottom:4px;left:38%;
+  width:80px;height:14px;
+  background:radial-gradient(ellipse at center,#02040200 0%,#010201 60%,transparent 100%);
+  border-radius:50%;border:1px solid #0e1a0a;
+  opacity:0.7;
+}
+.cam9-hud{
+  position:absolute;top:8px;left:10px;right:10px;
+  display:flex;justify-content:space-between;align-items:flex-start;
+  z-index:15;pointer-events:none;
+}
+.cam9-hud span{font-size:8px;color:#1a4020;letter-spacing:0.1em}
+.cam9-rec{color:#4a0a0a!important;animation:recblink 1.5s step-end infinite}
+@keyframes recblink{0%,100%{opacity:1}50%{opacity:0.2}}
+.cam9-text{
+  max-width:420px;font-size:11px;line-height:1.9;
+  color:#2a8a4e;text-align:left;
+}
+.cam9-continue{
+  background:transparent;border:1px solid #1a3020;
+  color:#2a8a4e;font-family:'Share Tech Mono',monospace;
+  font-size:10px;letter-spacing:0.2em;padding:8px 22px;cursor:pointer;
+  transition:all 0.2s;margin-top:8px;
+}
+.cam9-continue:hover{border-color:#4dff91;color:#4dff91;
+  background:rgba(77,255,145,0.05)}
+
+</style>
+<script src="js/swState.js"></script>
+</head>
+<body>
+
+<!-- Day marker -->
+<div id="day-marker">DAY 5 · 01/17/94 · LKCO-04 · EAST WALL BENCH LEVEL</div>
+
+<!-- Depth meter -->
+<div id="depth-meter">
+  <div class="dm-label">DEPTH</div>
+  <div class="dm-track"><div class="dm-fill" id="dm-fill"></div></div>
+  <div class="dm-val" id="dm-val">0 ft</div>
+</div>
+
+<!-- East wall counter -->
+<div id="ew-counter" id="ew-counter">
+  EAST WALL<br>
+  <span id="ew-display">—</span>
+</div>
+
+<!-- Main text stage -->
+<div id="stage">
+  <div id="text-block">
+    <span id="text-content" class="normal"></span><span class="text-cursor" id="tcursor"></span>
+  </div>
+</div>
+
+<!-- Input area -->
+<div id="input-area">
+  <div id="continue-prompt" onclick="advance()">[ PRESS ENTER TO CONTINUE ]</div>
+  <div id="yn-prompt">
+    <div class="yn-question">YOU SHOULD TURN BACK.</div>
+    <div class="yn-options">
+      <button class="yn-btn Y" onclick="chooseY()">[ Y ]</button>
+      <button class="yn-btn N" onclick="chooseN()">[ N ]</button>
+    </div>
+  </div>
+</div>
+
+<!-- CAM9 overlay -->
+<div id="cam9-overlay">
+  <div class="cam9-frame">
+    <div class="cam9-sky"></div>
+    <div class="cam9-wall"></div>
+    <div class="cam9-gravel">
+      <div class="cam9-depression"></div>
+    </div>
+    <div class="cam9-hud">
+      <span>CAM9 · LKCO-04 · EAST BENCH</span>
+      <span class="cam9-rec">● REC</span>
+    </div>
+  </div>
+  <div class="cam9-text" id="cam9-text"></div>
+  <button class="cam9-continue" id="cam9-btn" onclick="window.location.href='dream.html?night=3'" style="display:none">
+    [ CONTINUE TO DAY 6 → ]
+  </button>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const playerName = localStorage.getItem('sw_name') || 'UNKNOWN';
+let eastWall = parseFloat(localStorage.getItem('sw_east_wall') || '2.1');
+let beatIndex = 0;
+let typing = false;
+let choiceMade = false;
+let currentDepth = 0;
+
+// ============================================================
+// DEPTH LEVELS PER BEAT (feet underground)
+// ============================================================
+const depthMap = {
+  0: 0, 1: 0, 2: 0, 3: 0, 4: 0, // above ground / bench
+  5: 8,  // crack
+  6: 20, // inside passage
+  7: 34, // symbols
+  8: 50, // deeper
+  9: 64, // language shift
+  10: 78, // boundary
+};
+const MAX_DEPTH = 78;
+
+// ============================================================
+// THE BEATS
+// ============================================================
+const beats = [
+
+  // 0 — approach
+  {
+    cls: 'dim',
+    text:
+`SECWATCH SECURITY MONITORING SYSTEM
+Version 4.1.2 — Pellegrino & Associates
+
+> SESSION: 01/17/1994
+> OPERATOR: ${playerName}
+> LOCATION: LKCO-04 EAST WALL BENCH LEVEL
+> TIME: 07:42
+
+TERMINAL MODE ACTIVE.
+ALL PERIPHERAL SYSTEMS OFFLINE.
+
+RECORDING.`,
+  },
+
+  // 1 — parking
+  {
+    cls: 'normal',
+    text:
+`You drove the county road before the sun came up.
+
+The LKCO access road is unlocked. Has been unlocked since 1983.
+The padlock is still there — hanging open on the chain, the way
+you leave a lock when you plan to be back in a minute.
+
+You parked where Earl parked. Same gravel pullout.
+Same view of the ridgeline. The sky is the color of old concrete.
+
+It is eleven degrees. You can see your breath.
+
+You walk to the east bench.`,
+  },
+
+  // 2 — the bench
+  {
+    cls: 'normal',
+    text:
+`The bench is flat. Bare. The dozer tracks are still here
+from 1983, hardened into the frozen ground.
+
+Where the cable reel was: a depression in the gravel.
+Circular. About three feet across.
+
+The reel is gone. You knew that from the cameras.
+It was there for eleven years and then it wasn't.
+No drag marks. The gravel is undisturbed around the
+perimeter of the impression.
+
+The impression is permanent. The gravel has settled
+into it. Whatever was there — whatever held the reel
+in place all that time — is not there anymore.
+
+The east wall is ahead of you.`,
+  },
+
+  // 3 — the wall / warmth
+  {
+    cls: 'normal',
+    text:
+`Limestone. Horizontal strata. The seam ran east
+and hit something that wasn't coal. The 1979 survey
+said the instruments gave inconsistent readings.
+
+They declined to proceed.
+
+You put your hand on the wall.
+
+It is warm.
+
+January. Eleven degrees overnight. Your breath
+is visible in front of your face. The rock beneath
+your palm is warm the way an animal is warm.
+The way something is warm when it has been
+generating heat from inside itself for a long time.
+
+You keep your hand there for a moment.
+
+Then you take it away.
+
+At the base of the wall there is a crack.`,
+  },
+
+  // 4 — the crack
+  {
+    cls: 'normal',
+    text:
+`Six inches wide. Horizontal, following the strata.
+It opens into darkness. The flashlight beam goes in
+and goes in and does not find a back wall.
+
+The crack is six inches wide.
+
+You fit through it.
+
+The passage continues.`,
+  },
+
+  // 5 — inside (depth begins)
+  {
+    cls: 'normal',
+    depth: true,
+    text:
+`The rock on both sides is warm.
+
+You move the flashlight along the walls.
+The limestone here is unmarked — no blast damage,
+no drill scarring. This passage was not made.
+It opened. It has been opening for a long time.
+
+The air is warmer than the surface.
+Not uncomfortable. Not yet.
+
+The passage goes back farther than the flashlight reaches.
+
+You move forward.`,
+  },
+
+  // 6 — chalk marks / Threshold Society
+  {
+    cls: 'normal',
+    depth: true,
+    text:
+`The chalk marks are on the right wall.
+
+Twelve of them. You recognize the symbol from the sealed
+court file. From the photograph in the Day 3 records.
+You thought it was ritual inscription.
+
+Here, in context, you can see the whole of it.
+
+It is not a ritual symbol. It is a survey notation.
+The coordinates — 37°11'43"N 82°56'14"W — compressed
+into a glyph by someone who had been trying to understand
+what their instruments were showing them. They rendered
+the data as a mark because language wasn't working.
+
+Twelve sets. One for each member of the Threshold Society.
+They came down here. They looked. They wrote:
+we were here and this is the coordinate of what we found.
+
+They were not calling anything.
+They were recording.
+
+One of the marks is shakier than the others.
+Less precise. The chalk pressed harder, the line unsteady.
+The handwriting of someone doing this quickly,
+or frightened, or both.
+
+The initials beside it: D.H.
+
+David Hargrove was down here.
+He came down here and wrote his initials next to
+a set of coordinates and then he went back up
+and eleven months later he went to Floor 3.
+
+He already knew what he would find there.
+
+You move forward.`,
+  },
+
+  // 7 — deeper / temp rising
+  {
+    cls: 'normal',
+    depth: true,
+    text:
+`The temperature rises.
+
+You count your steps from the crack.
+Forty. Fifty. Sixty.
+
+You stop counting.
+
+The passage has widened. You no longer have
+to angle your shoulders. The floor is flat,
+worn smooth in a way that stone does not wear
+from water. More like — contact. Sustained contact.
+Something has been in this passage many times.
+
+Earl came here eleven times.
+His father came twelve times.
+His father's father came twelve times.
+The original surveyor came once.
+
+The chain goes back to 1887.
+
+The passage goes forward.`,
+  },
+
+  // 8 — language shift (the words feel borrowed)
+  {
+    cls: 'shift',
+    depth: true,
+    text:
+`The flashlight catches something ahead.
+
+Not a wall. Not an end. A place where the quality
+of the darkness changes. Where dark becomes a thing
+that is dark in the way that presence is dark.
+Where the passage opens into a space that should not
+be here based on any reasonable geology.
+
+The word arrives already worn smooth, pre-used,
+borrowed from something that has been using it
+longer than English has existed: threshold.
+
+You are at the threshold.
+
+There is warmth ahead that is not temperature.
+There is light ahead that is not light in the way
+that light is usually light.
+
+Something ahead of you is not looking at you
+because looking requires direction and it has
+no preference of direction.
+
+Something ahead of you is aware of you in the way
+that you are suddenly aware you have been breathing
+this whole time.
+
+You have always been doing this.
+You just noticed.`,
+  },
+
+  // 9 — the boundary
+  {
+    cls: 'bright',
+    depth: true,
+    isYN: true,
+    text:
+`You are at the boundary.
+
+This is as far as Earl came on his eleventh time.
+
+The eleventh time he did not turn back.
+
+There is light ahead.
+Not electric. Not natural.
+Something that has been generating its own light
+for longer than this mountain has existed.
+
+It does not have a surface in the way that objects
+have surfaces.
+
+It is more accurate to say there is a place where
+the rock stops and something else begins.
+The something else is not dark and not light.
+It is — present. In the way that a smell is present.
+In the way that pressure is present.
+
+It is not looking at you.
+
+But it is aware of you.
+
+You should turn back.`,
+  },
+
+];
+
+// ============================================================
+// ADVANCE / INIT
+// ============================================================
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') advance();
+});
+document.addEventListener('click', e => {
+  if (e.target.id === 'continue-prompt' ||
+      e.target.id === 'stage' ||
+      e.target.id === 'text-block' ||
+      e.target.id === 'text-content') {
+    advance();
+  }
+});
+
+window.addEventListener('load', () => {
+  document.getElementById('day-marker').classList.add('visible');
+  updateEwDisplay();
+  setTimeout(() => playBeat(0), 600);
+});
+
+// ============================================================
+// PLAY A BEAT
+// ============================================================
+function playBeat(idx) {
+  if (idx >= beats.length) return;
+  beatIndex = idx;
+  const beat = beats[idx];
+
+  // Show depth meter when underground
+  if (beat.depth) {
+    document.getElementById('depth-meter').classList.add('visible');
+    document.getElementById('ew-counter').classList.add('visible');
+  }
+
+  // Set depth
+  const depth = depthMap[idx] !== undefined ? depthMap[idx] : currentDepth;
+  if (depth !== undefined) {
+    setDepth(depth);
+    currentDepth = depth;
+  }
+
+  // Set text class
+  document.getElementById('text-content').className = beat.cls || 'normal';
+
+  // Hide Y/N prompt, show continue
+  document.getElementById('yn-prompt').classList.remove('visible');
+  document.getElementById('continue-prompt').classList.add('hidden');
+  document.getElementById('tcursor').style.display = 'inline-block';
+
+  // Type
+  typing = true;
+  typeText(beat.text, () => {
+    typing = false;
+    if (beat.isYN) {
+      // Show Y/N
+      document.getElementById('tcursor').style.display = 'none';
+      document.getElementById('yn-prompt').classList.add('visible');
+    } else {
+      document.getElementById('continue-prompt').classList.remove('hidden');
+    }
+  });
+}
+
+// ============================================================
+// ADVANCE
+// ============================================================
+function advance() {
+  if (typing) {
+    // Skip typewriter
+    skipType();
+    return;
+  }
+  if (choiceMade) return;
+  const next = beatIndex + 1;
+  if (next < beats.length) {
+    playBeat(next);
+  }
+}
+
+// ============================================================
+// Y PATH — TURN BACK
+// ============================================================
+function chooseY() {
+  if (choiceMade) return;
+  choiceMade = true;
+  document.getElementById('yn-prompt').classList.remove('visible');
+  document.getElementById('continue-prompt').classList.add('hidden');
+
+  // Reset East Wall
+  eastWall = 1.0;
+  localStorage.setItem('sw_east_wall', '1.0');
+  localStorage.setItem('sw_custodian', 'true');
+  updateEwDisplay();
+
+  const yText =
+`You turn back.
+
+The passage behind you is exactly as you left it.
+The chalk marks. The chalk marks on the right wall.
+The twelve glyphs. D.H., shaky.
+
+You move faster going up than you descended.
+
+At the crack you stop.
+
+You turn around once and look back into the passage.
+The light is still there.
+
+Not electric. Not natural.
+
+You come through the crack. Cold air. January cold.
+The bench. The depression in the gravel.
+
+Behind you, the wall is smooth.
+There is no crack.
+
+There has never been a crack.
+
+You stand on the bench for a long time.
+Then you drive back.`;
+
+  document.getElementById('text-content').className = 'normal';
+  typing = true;
+  typeText(yText, () => {
+    typing = false;
+    // Ascend the depth
+    ascendDepth(() => {
+      setTimeout(showCam9, 1200);
+    });
+  });
+}
+
+// ============================================================
+// N PATH — THE WALL KNOWS YOUR NAME
+// ============================================================
+function chooseN() {
+  if (choiceMade) return;
+  choiceMade = true;
+  document.getElementById('yn-prompt').classList.remove('visible');
+  document.getElementById('continue-prompt').classList.add('hidden');
+  document.getElementById('tcursor').style.display = 'none';
+  document.getElementById('text-content').className = 'normal';
+  document.getElementById('text-content').textContent = '';
+
+  // 30 seconds of silence — just cursor
+  const silentCursor = document.createElement('span');
+  silentCursor.className = 'text-cursor';
+  document.getElementById('text-content').appendChild(silentCursor);
+
+  // East Wall spikes
+  eastWall = 10.0;
+  localStorage.setItem('sw_east_wall', '10.0');
+  updateEwDisplay();
+  setDepth(78);
+
+  // Screen brightens
+  document.body.style.transition = 'background 8s';
+  document.body.style.background = '#000802';
+
+  setTimeout(() => {
+    // Remove silent cursor
+    silentCursor.remove();
+    document.getElementById('tcursor').style.display = 'inline-block';
+    document.getElementById('text-content').className = 'shift';
+
+    // "The wall knows your name."
+    typeText('The wall knows your name.\n\n', () => {
+      // Name typed char by char, very slow
+      document.getElementById('text-content').className = 'name-reveal';
+      document.getElementById('text-content').textContent = '';
+      slowTypeName(playerName, () => {
+        setTimeout(() => {
+          document.getElementById('text-content').className = 'shift';
+          document.getElementById('tcursor').style.display = 'none';
+
+          setTimeout(() => {
+            document.getElementById('tcursor').style.display = 'inline-block';
+            typeText('\n\nIt has always known your name.', () => {
+              // East Wall becomes "--"
+              eastWall = -1;
+              localStorage.setItem('sw_east_wall', '-1');
+              document.getElementById('ew-display').textContent = '--';
+
+              // 30 more seconds of silence
+              document.getElementById('tcursor').style.display = 'none';
+              const silentCursor2 = document.createElement('span');
+              silentCursor2.className = 'text-cursor';
+              document.getElementById('text-content').appendChild(silentCursor2);
+
+              setTimeout(() => {
+                silentCursor2.remove();
+                document.getElementById('tcursor').style.display = 'inline-block';
+
+                // Come back up
+                document.getElementById('text-content').className = 'dim';
+                typeText('\n\nYou come back up.\n\nYou do not know how long you were there.\nThe bench. The flat bench.\nJanuary cold.', () => {
+                  ascendDepth(() => {
+                    setTimeout(showCam9, 1200);
+                  });
+                });
+              }, 30000);
+            });
+          }, 4000);
+        }, 3000);
+      });
+    });
+  }, 30000);
+}
+
+// ============================================================
+// SLOW NAME TYPE (N PATH)
+// ============================================================
+function slowTypeName(name, cb) {
+  const el = document.getElementById('text-content');
+  el.textContent = '';
+  let i = 0;
+  function next() {
+    if (i < name.length) {
+      el.textContent += name[i];
+      i++;
+      setTimeout(next, 380 + Math.random() * 200);
+    } else {
+      if (cb) setTimeout(cb, 1200);
+    }
+  }
+  setTimeout(next, 1000);
+}
+
+// ============================================================
+// DEPTH MANAGEMENT
+// ============================================================
+function setDepth(ft) {
+  currentDepth = ft;
+  const pct = Math.min((ft / MAX_DEPTH) * 100, 100);
+  document.getElementById('dm-fill').style.height = pct + '%';
+  document.getElementById('dm-val').textContent = ft + ' ft';
+}
+
+function ascendDepth(cb) {
+  const steps = [64, 50, 34, 20, 8, 0];
+  let i = 0;
+  function next() {
+    if (i < steps.length) {
+      setDepth(steps[i]);
+      i++;
+      setTimeout(next, 600);
+    } else {
+      if (cb) cb();
+    }
+  }
+  next();
+}
+
+// ============================================================
+// CAM9 ENDING
+// ============================================================
+function showCam9() {
+  document.getElementById('cam9-overlay').classList.add('open');
+  document.getElementById('day-marker').style.display = 'none';
+  document.getElementById('depth-meter').style.display = 'none';
+  document.getElementById('ew-counter').style.display = 'none';
+
+  const cam9Text = document.getElementById('cam9-text');
+  const cam9Lines =
+`CAM9 — LKCO-04 EAST BENCH — 01/17/94
+
+You check the feed on your way back to the truck.
+
+The east wall. The bench level. January sky.
+The gravel. The depression where the reel used to be.
+
+The crack is gone.
+
+Just rock.
+Just the wall.
+Just the flat bench and the gray sky and the impression
+in the gravel where something sat for eleven years
+and then didn't.
+
+You look at the feed for a long time.
+
+Nothing moves.
+
+Nothing is there.`;
+
+  typeEl(cam9Text, cam9Lines, () => {
+    setTimeout(() => {
+      document.getElementById('cam9-btn').style.display = 'inline-block';
+    }, 1000);
+  });
+}
+
+// ============================================================
+// TYPEWRITER ENGINE
+// ============================================================
+let skipFlag = false;
+let typeTimeout = null;
+let fullText = '';
+let typedSoFar = '';
+let typeCallback = null;
+
+function typeText(text, cb) {
+  fullText = text;
+  typedSoFar = '';
+  typeCallback = cb;
+  skipFlag = false;
+  const el = document.getElementById('text-content');
+  el.textContent = '';
+  let i = 0;
+
+  function tick() {
+    if (skipFlag) {
+      el.textContent = text;
+      typedSoFar = text;
+      if (cb) cb();
+      return;
+    }
+    if (i < text.length) {
+      const ch = text[i];
+      el.textContent += ch;
+      typedSoFar += ch;
+      i++;
+      const delay = ch === '\n' ? 220 : ch === '.' || ch === '—' ? 80 : 22;
+      typeTimeout = setTimeout(tick, delay);
+    } else {
+      if (cb) cb();
+    }
+  }
+  tick();
+}
+
+function skipType() {
+  skipFlag = true;
+  if (typeTimeout) clearTimeout(typeTimeout);
+  const el = document.getElementById('text-content');
+  el.textContent = fullText;
+  typing = false;
+  const beat = beats[beatIndex];
+  if (beat && beat.isYN) {
+    document.getElementById('tcursor').style.display = 'none';
+    document.getElementById('yn-prompt').classList.add('visible');
+  } else {
+    document.getElementById('continue-prompt').classList.remove('hidden');
+  }
+  if (typeCallback) { typeCallback(); typeCallback = null; }
+}
+
+function typeEl(el, text, cb) {
+  el.textContent = '';
+  let i = 0;
+  function tick() {
+    if (i < text.length) {
+      el.textContent += text[i];
+      i++;
+      const ch = text[i-1];
+      const delay = ch === '\n' ? 180 : 20;
+      setTimeout(tick, delay);
+    } else {
+      if (cb) cb();
+    }
+  }
+  tick();
+}
+
+// ============================================================
+// EAST WALL DISPLAY
+// ============================================================
+function updateEwDisplay() {
+  const el = document.getElementById('ew-display');
+  if (eastWall < 0) {
+    el.textContent = '--';
+  } else {
+    el.textContent = eastWall.toFixed(1);
+  }
+}
+</script>
+</body>
+</html>

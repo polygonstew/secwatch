@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SECWATCH // DAY 3</title>
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=PT+Serif:ital,wght@0,400;0,700;1,400&family=Share+Tech+Mono&family=Special+Elite&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/day3.css">
+<script src="js/swState.js"></script>
+</head>
+<body>
+
+<!-- Name prompt overlay -->
+<div id="name-overlay">
+  <div class="no-prompt">
+    <div class="sys">LETCHER COUNTY CLERK'S OFFICE // VISITOR LOG // 01.16.94</div>
+    <div class="q">The clerk at the front desk handed you a yellow visitor card and a pen.<br>She didn't say anything. You filled in your name.</div>
+    <div class="subq">(This will be used in official documents.)</div>
+    <input type="text" class="name-field" id="name-input" placeholder="YOUR NAME" maxlength="30" autocomplete="off">
+    <br>
+    <button class="name-submit" onclick="submitName()">[ SIGN IN ]</button>
+  </div>
+</div>
+
+<!-- Header -->
+<div class="sw-hdr">
+  <div class="sw-logo">SECWATCH</div>
+  <div class="sw-meta">DAY 3 // PAPER TRAIL</div>
+  <div class="sw-loc">LETCHER COUNTY CLERK'S OFFICE // WHITESBURG KY // 01.16.94 14:00</div>
+</div>
+
+<!-- Main layout -->
+<div class="wrap">
+
+  <!-- LEFT: Machine column -->
+  <div class="machine-col">
+
+    <!-- Narrative -->
+
+
+    <!-- The ALOS Z43 machine -->
+    <div class="machine">
+      <div class="mon-top">
+        <div class="mon-brand">
+          <span class="brand-alos">AL<span style="letter-spacing:-0.04em">O</span>S</span>
+          <span class="brand-mod">Z&nbsp;43</span>
+        </div>
+        <div class="bezel">
+          <div class="screen" id="screen">
+            <!-- Ghost text -->
+            <div class="ghost" id="ghost-txt"></div>
+            <!-- Zoom hint -->
+            <div class="zoom-hint" id="zoom-hint">SCROLL: ZOOM &nbsp;·&nbsp; DRAG: PAN &nbsp;·&nbsp; CLIP: ZOOM IN TO READ</div>
+            <!-- Newspaper viewport -->
+            <div class="np-viewport" id="viewport">
+              <div class="np-transform" id="transform-layer">
+                <div class="newspaper" id="newspaper-content">
+                  <!-- rendered by JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mon-ctrls">
+          <span class="zoom-ind" id="zoom-ind">ZOOM: 1.0×</span>
+          <button class="ctrl" id="btn-darker" onclick="adjustBright(-0.12)">DARKER</button>
+          <button class="ctrl" id="btn-auto" onclick="resetBright()">AUTO</button>
+          <button class="ctrl" id="btn-lighter" onclick="adjustBright(0.12)">LIGHTER</button>
+          <button class="ctrl print-c" id="btn-print" onclick="printClip()">⬡ PRINT</button>
+        </div>
+      </div>
+    <div class="narr" id="narr-box" style="margin-bottom: 8px;">
+      <span id="narr-text"></span><span class="narr-cursor" id="narr-cursor"></span>
+    </div>
+      <!-- Transport mechanism -->
+      <div class="transport">
+        <div class="reel left" id="reel-l"></div>
+        <div class="film-nav">
+          <div class="leds">
+            <div class="led g"></div>
+            <div class="led g"></div>
+            <div class="led a"></div>
+            <div class="led"></div>
+            <div class="led"></div>
+          </div>
+          <div class="frame-ctr">
+            FRAME <span id="f-num">1</span>&nbsp;/&nbsp;<span id="f-tot">5</span>
+          </div>
+          <div class="nav-btns">
+            <button class="nav-btn" id="prev-btn" onclick="prevFrame()" disabled>◀ PREV</button>
+            <button class="nav-btn" id="next-btn" onclick="nextFrame()">NEXT ▶</button>
+          </div>
+          <div class="film-label" id="film-label">COURIER 1983</div>
+        </div>
+        <div class="reel" id="reel-r"></div>
+      </div>
+    </div>
+
+  </div><!-- end machine-col -->
+
+  <!-- RIGHT: Inventory panel -->
+  <div class="inv-panel">
+    <div class="inv-panel">
+
+
+    <!-- Visitor badge -->
+    <div class="inv-card">
+      <div class="inv-title">VISITOR CREDENTIALS</div>
+      <div class="badge">
+        <div class="badge-stripe"></div>
+        <div class="badge-body">
+          <div class="badge-photo">👤</div>
+          <div class="badge-info">
+            <div class="badge-name" id="badge-name">—</div>
+            <div class="badge-role">Security Contractor</div>
+            <div class="badge-role" style="margin-top:2px">Pellegrino &amp; Associates</div>
+            <div class="badge-num" id="badge-num">VISITOR · DAY PASS ONLY</div>
+          </div>
+        </div>
+        <div class="badge-org">LETCHER COUNTY CLERK'S OFFICE — RESEARCH ACCESS</div>
+      </div>
+      <!-- Request slip -->
+      <div class="req-slip" style="margin-top:8px">
+        <span class="sl">MICROFILM REQUEST FORM — CLERK USE ONLY</span>
+        <div class="req-line"><strong>Collection:</strong> COURIER 1979–1994</div>
+        <div class="req-line"><strong>Subject:</strong> Hargrove / LKCO / Eastern Letcher</div>
+        <div class="req-line"><strong>Researcher:</strong> <span id="req-name">—</span></div>
+      </div>
+    </div>
+
+    <!-- Clippings -->
+    <div class="inv-card">
+      <div class="inv-title">CLIPPINGS — <span id="clip-count">0</span> / 5</div>
+      <div class="clips-list" id="clips-list">
+        <div class="no-clips" id="no-clips-msg">No articles clipped yet.<br>Zoom in (scroll wheel) to read,<br>then click [ CLIP ] on key articles.</div>
+      </div>
+    </div>
+
+    <!-- County Records (hidden until unlocked) -->
+    <div class="inv-card" id="docs-section">
+      <div class="inv-title">COUNTY RECORDS — ACCESS TERMINAL</div>
+      <div id="docs-list">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="inv-card">
+      <div class="inv-title">FIELD NOTES</div>
+      <div class="notes-area" id="notes-area"></div>
+    </div>
+
+    <!-- Printer event (hidden until triggered) -->
+    <div class="inv-card" id="printer-section">
+      <div class="inv-title" style="color:#c04040">⚠ PRINT QUEUE — PENDING JOB</div>
+      <div class="printer-box">
+        <div style="font-size:9px;color:var(--td);margin-bottom:8px">Queued print job detected in system.<br>Job predates current session.</div>
+        <div class="print-queue-item">
+          <div>
+            <div class="pq-name">PROPERTY TRANSFER NOTICE</div>
+            <div class="pq-date">Queued: 11/03/1987 · 09:44</div>
+            <div class="pq-status">STATUS: HELD — NEVER RELEASED</div>
+          </div>
+        </div>
+        <button class="release-btn" id="release-btn" onclick="releasePrint()">[ RELEASE PRINT JOB ]</button>
+        <div id="deed-printout">
+          <h3>LETCHER COUNTY PROPERTY TRANSFER NOTICE</h3>
+          <div class="deed-body">
+            <p>This instrument of transfer, duly executed and notarized under the laws of the Commonwealth of Kentucky, records the conveyance of all right, title, and interest in the following described real property:</p>
+            <p><strong>PARCEL DESIGNATION:</strong> LKCO-04, Eastern Letcher County. All that certain tract or parcel of land situated in the eastern portion of Letcher County, Kentucky, at the coordinates described in the 1887 survey as terminating at the point where the surveyor's instruments gave inconsistent readings, and declined to proceed further.</p>
+            <p><strong>GRANTOR:</strong> Hargrove Properties LLC (David R. Hargrove, Managing Member)</p>
+            <span class="deed-highlight" id="deed-grantee">GRANTEE: —</span>
+            <p>For and in consideration of Ten Dollars ($10.00) and other good and valuable consideration, the receipt and sufficiency of which are hereby acknowledged.</p>
+            <div class="notary">
+              <p>Notarized this 3rd day of November, 1987, in Letcher County, Kentucky.</p>
+              <p>Notary Public: <em>R. Pellegrino</em> &nbsp;&nbsp;|&nbsp;&nbsp; Expires: 12/31/1990</p>
+            </div>
+            <div class="deed-stamp">RECORDED · 11/03/1987</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Continue button -->
+    <button id="continue-btn" onclick="window.location.href='day4.html'">[ CONTINUE TO DAY 4 → ]</button>
+
+  </div><!-- end inv-panel -->
+
+</div><!-- end wrap -->
+
+<!-- Document modal -->
+<div id="doc-modal">
+  <div class="doc-modal-inner">
+    <button class="doc-close" onclick="closeDoc()">✕</button>
+    <div class="doc-modal-title" id="modal-title"></div>
+    <div class="doc-modal-meta" id="modal-meta"></div>
+    <div class="doc-modal-body" id="modal-body"></div>
+    <div class="doc-stamp" id="modal-stamp"></div>
+  </div>
+</div>
+<script src="js/Day3engine.js"></script>
+</body>
+</html>

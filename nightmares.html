@@ -1,0 +1,1655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SECWATCH // NIGHTMARE SEQUENCE</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#030303;
+  --surf:#080c08;
+  --surf2:#0c110c;
+  --bord:#162016;
+  --text:#9ab89a;
+  --muted:#2a4a2a;
+  --g:#33ff33;
+  --gdim:#1a5c1a;
+  --ghi:#afffaf;
+  --amb:#ffb833;
+  --amb2:#ffd070;
+  --red:#cc2222;
+  --red2:#ff3333;
+  --red3:#ff6666;
+  --cyan:#33ffee;
+  --pur:#aa66ff;
+  --deep:#ff6622;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
+  font-family:'Share Tech Mono',monospace;color:var(--text);font-size:13px;}
+
+/* scanlines */
+body::after{content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.06) 3px,rgba(0,0,0,.06) 4px);
+  pointer-events:none;z-index:9998;}
+
+/* ── SCREENS ── */
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .3s;}
+.screen.active{opacity:1;pointer-events:all;}
+
+/* ════════════════════════════════════════
+   STATIC NOISE CANVAS (replaces stars)
+════════════════════════════════════════ */
+#noise-canvas{position:absolute;inset:0;pointer-events:none;z-index:0;opacity:0.18;}
+
+/* ════════════════════════════════════════
+   MAP / DESCENT SCREEN
+════════════════════════════════════════ */
+#map-screen{background:var(--bg);overflow:hidden;}
+
+.map-top{
+  position:relative;z-index:2;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 22px 0;border-bottom:1px solid var(--bord);
+}
+.map-logo{font-size:11px;letter-spacing:0.35em;color:var(--gdim);}
+.map-logo span{color:var(--g);text-shadow:0 0 10px var(--g);}
+.map-hud{
+  display:flex;gap:18px;align-items:center;
+  background:rgba(8,12,8,.9);border:1px solid var(--bord);
+  padding:6px 14px;
+}
+.mh-item{display:flex;align-items:center;gap:7px;font-size:10px;}
+.mh-label{color:var(--muted);letter-spacing:2px;}
+.mh-bar-wrap{width:80px;height:5px;background:var(--bord);overflow:hidden;}
+.mh-bar{height:100%;background:linear-gradient(90deg,var(--gdim),var(--g));transition:width .4s;}
+.mh-bar.low{background:linear-gradient(90deg,#604000,var(--amb));}
+.mh-bar.crit{background:linear-gradient(90deg,var(--red),var(--red2));animation:crit-flicker .5s infinite alternate;}
+@keyframes crit-flicker{to{opacity:.4}}
+.mh-val{color:var(--text);min-width:40px;font-size:10px;}
+.mh-clarity{color:var(--amb);font-size:14px;font-weight:700;}
+
+/* Descent map */
+.map-area{
+  position:relative;z-index:2;flex:1;
+  display:flex;gap:32px;align-items:flex-start;justify-content:center;
+  padding:24px 20px;overflow:hidden;
+}
+
+/* Depth gauge - left side */
+.depth-gauge{
+  display:flex;flex-direction:column;align-items:center;gap:0;
+  flex-shrink:0;padding-top:8px;
+}
+.depth-label{font-size:8px;letter-spacing:0.15em;color:var(--muted);margin-bottom:6px;}
+.depth-track{
+  width:3px;height:380px;
+  background:linear-gradient(to bottom,var(--g),var(--amb),var(--deep),var(--red));
+  position:relative;opacity:0.4;
+}
+.depth-marker{
+  position:absolute;left:50%;transform:translateX(-50%);
+  width:8px;height:2px;background:var(--g);
+}
+
+/* Node list */
+.node-list{
+  display:flex;flex-direction:column;gap:0;
+  position:relative;z-index:2;
+}
+
+.descent-node{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 0;border-left:2px solid var(--bord);
+  padding-left:18px;position:relative;cursor:pointer;
+  transition:all .2s;
+}
+.descent-node::before{
+  content:'';position:absolute;left:-6px;top:50%;transform:translateY(-50%);
+  width:10px;height:10px;border-radius:50%;
+  background:var(--bord);border:2px solid var(--bord);transition:all .2s;
+}
+.descent-node.avail{border-left-color:var(--amb);}
+.descent-node.avail::before{background:var(--amb);border-color:var(--amb);
+  box-shadow:0 0 10px var(--amb);animation:ppulse 1.4s infinite;}
+.descent-node.avail:hover .node-card{border-color:var(--amb2);box-shadow:0 0 18px rgba(255,184,51,.2);}
+.descent-node.done{border-left-color:var(--gdim);}
+.descent-node.done::before{background:var(--gdim);border-color:var(--g);}
+.descent-node.locked{border-left-color:var(--bord);cursor:not-allowed;}
+.descent-node.locked::before{background:var(--bord);}
+.descent-node.sel .node-card{border-color:var(--g);box-shadow:0 0 24px rgba(51,255,51,.25);}
+@keyframes ppulse{0%,100%{box-shadow:0 0 0 0 rgba(255,184,51,.5);}50%{box-shadow:0 0 0 6px rgba(255,184,51,0);}}
+
+.node-depth{
+  font-size:9px;color:var(--muted);letter-spacing:0.08em;
+  min-width:80px;text-align:right;flex-shrink:0;
+}
+.node-card{
+  background:var(--surf);border:1px solid var(--bord);
+  padding:10px 14px;min-width:260px;transition:all .2s;
+}
+.node-card-top{display:flex;align-items:center;gap:10px;margin-bottom:4px;}
+.node-sym{font-size:20px;line-height:1;color:var(--muted);}
+/* ─── CARD ART AREA ───
+   Each node-sym span can be replaced with an <img>.
+   Recommended: 32x32px, PNG with transparency.
+   Example: <img src="img/nightmare_trailer.png" style="width:32px;height:32px;object-fit:contain;">
+   ─────────────────── */
+.node-name{font-size:12px;letter-spacing:0.2em;color:var(--ghi);}
+.node-done-tag{font-size:9px;color:var(--gdim);letter-spacing:0.1em;}
+.node-flavor{font-size:9px;color:var(--muted);line-height:1.5;font-style:italic;}
+.node-locked-tag{font-size:9px;color:var(--muted);letter-spacing:0.08em;opacity:0.5;}
+
+.map-bottom{
+  position:relative;z-index:2;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  padding:10px 20px 16px;border-top:1px solid var(--bord);
+}
+.map-flavor{
+  font-family:'Special Elite',cursive;font-size:11px;color:var(--muted);
+  font-style:italic;text-align:center;max-width:480px;min-height:18px;
+  letter-spacing:0.04em;
+}
+.map-btns{display:flex;gap:10px;}
+.mbtn{
+  padding:8px 22px;font-family:'Share Tech Mono',monospace;
+  font-size:10px;letter-spacing:0.2em;cursor:pointer;transition:all .2s;
+  background:transparent;
+}
+.mbtn.enter{border:1px solid var(--gdim);color:var(--g);}
+.mbtn.enter:hover:not(:disabled){border-color:var(--g);background:rgba(51,255,51,.06);box-shadow:0 0 12px rgba(51,255,51,.12);}
+.mbtn.enter:disabled{opacity:.3;cursor:not-allowed;}
+.mbtn.back{border:1px solid var(--bord);color:var(--muted);}
+.mbtn.back:hover{border-color:var(--muted);color:var(--text);}
+
+/* ════════════════════════════════════════
+   BATTLE SCREEN
+════════════════════════════════════════ */
+#battle-screen{
+  background:radial-gradient(ellipse 80% 60% at 50% 100%,rgba(20,5,5,.95) 0%,var(--bg) 65%);
+  overflow:hidden;
+}
+#battle-screen.enraged{
+  background:radial-gradient(ellipse 80% 60% at 50% 100%,rgba(60,0,0,.98) 0%,#050000 65%);
+  animation:erage-bg .8s infinite alternate;
+}
+@keyframes erage-bg{to{filter:saturate(1.4) brightness(1.06)}}
+
+.b-topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:6px 16px;background:rgba(8,12,8,.9);border-bottom:1px solid var(--bord);flex-shrink:0;
+}
+.b-titlewrap{display:flex;align-items:center;gap:10px;}
+.b-lvname{font-size:11px;letter-spacing:0.2em;color:var(--amb);}
+.b-waveinf{font-size:10px;color:var(--muted);}
+.b-turnnum{font-size:10px;color:var(--muted);}
+
+/* Status bars */
+.b-statrow{
+  display:flex;gap:8px;padding:5px 12px;
+  background:var(--surf);border-bottom:1px solid var(--bord);
+  flex-shrink:0;align-items:center;flex-wrap:wrap;
+}
+.ps-block{display:flex;align-items:center;gap:7px;min-width:190px;}
+.ps-name{font-size:9px;color:var(--amb);letter-spacing:0.1em;min-width:80px;}
+.ps-bwrap{flex:1;height:7px;background:var(--bord);overflow:hidden;min-width:60px;}
+.ps-bar{height:100%;transition:width .3s;}
+.bar-hp{background:linear-gradient(90deg,var(--gdim),var(--g));}
+.bar-hp.low{background:linear-gradient(90deg,#604000,var(--amb));}
+.bar-hp.crit{background:linear-gradient(90deg,var(--red),var(--red2));animation:crit-flicker .5s infinite alternate;}
+.ps-num{font-size:10px;color:var(--text);min-width:44px;}
+.es-list{display:flex;gap:5px;flex-wrap:wrap;flex:1;}
+.es-item{
+  display:flex;align-items:center;gap:5px;padding:3px 7px;font-size:9px;
+  background:rgba(120,20,20,.07);border:1px solid rgba(120,20,20,.2);
+}
+.es-item.boss{border-color:rgba(200,40,40,.4);background:rgba(200,40,40,.08);}
+.es-name{color:var(--red2);min-width:80px;}
+.es-bwrap{width:48px;height:4px;background:var(--bord);overflow:hidden;}
+.es-bar{height:100%;background:var(--red);transition:width .3s;}
+.es-bar.low{background:var(--red2);}
+.es-info{color:var(--muted);}
+.es-atk{color:var(--red2);animation:crit-flicker .4s infinite alternate;}
+.b-clarity{font-size:12px;color:var(--amb);}
+
+/* Board */
+.b-boardwrap{padding:6px 12px 4px;flex-shrink:0;position:relative;}
+.board-label-row{display:flex;gap:3px;padding:0 8px 2px;font-size:8px;color:var(--muted);letter-spacing:0.04em;}
+.board-label-cell{width:68px;text-align:center;flex-shrink:0;}
+#game-board{
+  display:flex;gap:3px;align-items:center;justify-content:center;
+  padding:7px;background:rgba(3,3,3,.8);border:1px solid var(--bord);
+  min-height:80px;position:relative;
+}
+.gcell{
+  width:68px;height:68px;background:var(--surf2);border:1px solid var(--bord);
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;position:relative;transition:all .15s;flex-shrink:0;overflow:hidden;
+}
+.gcell.pc{border-color:var(--g);background:rgba(51,255,51,.05);box-shadow:0 0 8px rgba(51,255,51,.15);}
+.gcell.ec{border-color:var(--red);background:rgba(180,30,30,.06);}
+.gcell.bc{border-color:var(--red2);background:rgba(220,40,40,.08);box-shadow:0 0 12px rgba(220,40,40,.15);}
+.gcell.bc.enraged{border-color:#ff1111;animation:bcpulse .4s infinite alternate;}
+@keyframes bcpulse{to{box-shadow:0 0 22px rgba(255,17,17,.55)}}
+.gcell.prevhit{border-color:rgba(200,50,50,.3);background:rgba(200,50,50,.04);}
+.ce-main{font-size:22px;line-height:1;}
+.ce-dir{position:absolute;top:2px;right:3px;font-size:8px;color:var(--muted);}
+.ce-idx{position:absolute;bottom:2px;right:3px;font-size:7px;color:rgba(30,60,30,.4);}
+.ce-hpbar{position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--bord);}
+.ce-hpfill{height:100%;background:var(--red);transition:width .3s;}
+.ce-atkwarn{position:absolute;top:2px;left:3px;font-size:10px;color:var(--red2);animation:crit-flicker .35s infinite alternate;}
+.ce-px{font-size:16px;color:rgba(200,50,50,.3);}
+
+/* Tiles / Anchors */
+.b-tilesec{padding:3px 12px 2px;flex-shrink:0;}
+.b-tilelabel{font-size:8px;letter-spacing:0.25em;color:var(--muted);margin-bottom:4px;}
+.b-tilesrow{display:flex;gap:6px;flex-wrap:wrap;}
+.tc{
+  background:var(--surf2);border:1px solid var(--bord);
+  padding:6px 9px;min-width:82px;transition:all .15s;cursor:default;position:relative;
+}
+.tc.tr{border-color:var(--gdim);cursor:pointer;}
+.tc.tr:hover{background:rgba(51,255,51,.06);transform:translateY(-2px);box-shadow:0 4px 12px rgba(51,255,51,.12);}
+.tc.tcd{opacity:.38;}
+.tc.tq{border-color:var(--cyan);background:rgba(51,255,238,.06);}
+.tc-art{
+  /* Card art area — 40x40px image or symbol */
+  width:40px;height:40px;display:flex;align-items:center;justify-content:center;
+  font-size:20px;line-height:1;margin-bottom:2px;
+}
+/* ─── CARD ART: each ability card ───
+   Replace the text content of .tc-art with:
+   <img src="img/anchor_breathe.png" style="width:36px;height:36px;object-fit:contain;image-rendering:pixelated;">
+   Recommended size: 40x40 or 48x48 PNG
+   ──────────────────────────────────── */
+.tc-nm{font-size:9px;color:var(--text);letter-spacing:.3px;margin-top:1px;}
+.tc-st{font-size:8px;color:var(--muted);margin-top:1px;}
+.tc-dots{display:flex;gap:2px;margin-top:3px;}
+.dot{width:5px;height:5px;border:1px solid var(--muted);}
+.dot.on{background:var(--amb);border-color:var(--amb);}
+.tc-cdtxt{position:absolute;top:3px;right:5px;font-size:8px;color:var(--muted);}
+.tc-qtag{font-size:8px;color:var(--cyan);letter-spacing:.5px;margin-top:1px;}
+
+/* Queue */
+.b-queuesec{display:flex;align-items:center;gap:7px;padding:3px 12px;flex-shrink:0;flex-wrap:wrap;}
+.b-qlabel{font-size:8px;letter-spacing:0.2em;color:var(--muted);}
+#qslots{display:flex;gap:5px;}
+.qslot{width:80px;height:28px;display:flex;align-items:center;justify-content:center;font-size:9px;}
+.qslot.emp{border:1px dashed var(--bord);color:var(--muted);}
+.qslot.fil{border:1px solid var(--cyan);background:rgba(51,255,238,.06);color:var(--text);}
+#qburst{font-size:10px;color:var(--amb);margin-left:5px;}
+
+/* Action buttons */
+.b-actions{display:flex;gap:5px;padding:4px 12px;flex-shrink:0;flex-wrap:wrap;}
+.abtn{
+  padding:6px 11px;border:1px solid var(--bord);background:var(--surf2);
+  color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:10px;
+  cursor:pointer;transition:all .15s;letter-spacing:.3px;
+}
+.abtn:hover:not(:disabled){border-color:var(--gdim);color:var(--g);background:rgba(51,255,51,.04);}
+.abtn.exe{border-color:var(--red);color:var(--red2);background:rgba(180,20,20,.06);}
+.abtn.exe:hover:not(:disabled){background:rgba(180,20,20,.16);}
+.abtn:disabled{opacity:.25;cursor:not-allowed;}
+
+/* Combat log */
+.b-log{
+  flex:1;overflow-y:auto;padding:3px 12px;
+  background:rgba(3,3,3,.5);border-top:1px solid var(--bord);
+  min-height:48px;max-height:70px;
+}
+.ll{padding:1px 0;font-size:10px;}
+.ll.n{color:var(--muted);}
+.ll.info{color:var(--amb);}
+.ll.mv{color:var(--cyan);}
+.ll.mve{color:rgba(51,120,51,.55);}
+.ll.dmg{color:var(--red2);}
+.ll.kil{color:var(--g);}
+.ll.cbo{color:var(--amb2);font-weight:700;}
+.ll.wv{color:var(--g);font-weight:700;}
+.ll.dng{color:var(--red2);}
+.ll.ded{color:var(--red2);font-weight:700;}
+.ll.bos{color:#ff2020;font-weight:700;animation:crit-flicker .35s infinite alternate;}
+.ll.tip{color:rgba(42,74,42,.7);font-style:italic;}
+.b-keyhint{
+  flex-shrink:0;text-align:center;font-size:8px;
+  color:rgba(42,74,42,.5);letter-spacing:0.1em;padding:2px 0 4px;
+}
+
+/* ════════════════════════════════════════
+   ANCHOR OFFER SCREEN
+════════════════════════════════════════ */
+#offer-screen{
+  background:radial-gradient(ellipse 70% 60% at 50% 90%,rgba(0,20,5,.85) 0%,var(--bg) 65%);
+  align-items:center;justify-content:center;gap:0;
+}
+.offer-wrap{display:flex;flex-direction:column;align-items:center;gap:16px;padding:20px;max-width:760px;width:100%;}
+.offer-hdr{text-align:center;}
+.offer-title{font-size:clamp(14px,3vw,24px);color:var(--g);letter-spacing:0.3em;text-shadow:0 0 20px rgba(51,255,51,.3);}
+.offer-sub{font-family:'Special Elite',cursive;font-size:11px;color:var(--muted);margin-top:5px;font-style:italic;}
+.offer-cards{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+.offer-card{
+  width:168px;background:var(--surf);border:1px solid var(--bord);
+  padding:18px 14px;display:flex;flex-direction:column;align-items:center;gap:7px;
+  cursor:pointer;transition:all .22s;position:relative;overflow:hidden;text-align:center;
+}
+.offer-card::before{
+  content:'';position:absolute;inset:0;opacity:0;transition:opacity .2s;
+  background:radial-gradient(ellipse 80% 80% at 50% 120%,rgba(51,255,51,.07) 0%,transparent 70%);
+}
+.offer-card:hover{border-color:var(--g);transform:translateY(-4px);box-shadow:0 6px 28px rgba(51,255,51,.12);}
+.offer-card:hover::before{opacity:1;}
+/* ─── CARD ART: offer cards ───
+   .oc-art contains the card image/symbol.
+   Replace span text with <img src="img/anchor_X.png" style="width:56px;height:56px;object-fit:contain;">
+   ──────────────────────────── */
+.oc-art{font-size:38px;line-height:1;width:56px;height:56px;display:flex;align-items:center;justify-content:center;}
+.oc-nm{font-size:10px;letter-spacing:0.18em;color:var(--ghi);}
+.oc-dmg{font-size:26px;font-weight:700;color:var(--red2);font-family:'Share Tech Mono',monospace;line-height:1;}
+.oc-stats{font-size:10px;color:var(--muted);}
+.oc-desc{font-size:10px;color:var(--text);line-height:1.5;}
+.oc-dots{display:flex;gap:3px;justify-content:center;margin-top:2px;}
+.oc-dot{width:7px;height:7px;background:var(--amb);border:1px solid var(--amb);}
+.oc-newbadge{
+  position:absolute;top:7px;right:7px;font-size:8px;letter-spacing:0.1em;
+  background:rgba(170,102,255,.12);border:1px solid var(--pur);color:var(--pur);
+  padding:2px 5px;
+}
+.offer-skip{
+  font-size:10px;color:var(--muted);cursor:pointer;letter-spacing:0.1em;
+  border:1px solid var(--bord);background:transparent;
+  padding:7px 18px;font-family:'Share Tech Mono',monospace;transition:all .2s;
+}
+.offer-skip:hover{color:var(--text);border-color:var(--muted);}
+
+/* ════════════════════════════════════════
+   LEVEL CLEAR OVERLAY
+════════════════════════════════════════ */
+.ovr{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:500;display:flex;align-items:center;justify-content:center;}
+.ovr.hid{display:none;}
+.wb{text-align:center;}
+.wbn{font-size:clamp(22px,5vw,38px);color:var(--amb);letter-spacing:0.3em;text-shadow:0 0 30px rgba(255,184,51,.4);}
+.wbe{font-size:12px;color:var(--muted);margin-top:8px;letter-spacing:0.1em;max-width:400px;}
+.boss-sym{font-size:80px;color:var(--red);line-height:1;text-shadow:0 0 55px rgba(200,30,30,.5);animation:bossreveal .7s ease both;}
+@keyframes bossreveal{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+.boss-nm{font-size:clamp(16px,4vw,28px);color:var(--red2);letter-spacing:0.3em;margin-top:8px;}
+.boss-fl{font-family:'Special Elite',cursive;font-size:12px;color:var(--muted);font-style:italic;margin-top:6px;max-width:380px;}
+
+.lc-box{
+  text-align:center;background:var(--surf);border:1px solid var(--bord);
+  padding:28px 40px;max-width:400px;
+}
+.lc-sym{font-size:60px;color:var(--g);line-height:1;text-shadow:0 0 30px rgba(51,255,51,.4);}
+.lc-title{font-size:20px;color:var(--ghi);letter-spacing:0.3em;margin-top:8px;}
+.lc-stats{font-size:11px;color:var(--muted);margin:10px 0;line-height:1.9;}
+.lc-clarity{color:var(--amb);font-size:14px;font-weight:700;}
+.lc-total{color:var(--text);}
+.lc-hp{color:var(--g);}
+.lc-btns{display:flex;gap:8px;justify-content:center;margin-top:12px;}
+.lc-btn{
+  padding:8px 18px;font-family:'Share Tech Mono',monospace;
+  font-size:10px;letter-spacing:0.1em;cursor:pointer;transition:all .2s;background:transparent;
+}
+.lcb-map{border:1px solid var(--bord);color:var(--muted);}
+.lcb-map:hover{border-color:var(--text);color:var(--text);}
+.lcb-vic{border:1px solid var(--gdim);color:var(--g);}
+.lcb-vic:hover{background:rgba(51,255,51,.08);}
+
+/* ════════════════════════════════════════
+   GAME OVER / SURFACED
+════════════════════════════════════════ */
+#gameover-screen{
+  background:radial-gradient(ellipse 70% 50% at 50% 60%,rgba(60,0,0,.8) 0%,#030000 70%);
+  align-items:center;justify-content:center;text-align:center;gap:12px;
+}
+.go-sym{font-size:72px;color:var(--red);line-height:1;text-shadow:0 0 50px rgba(180,20,20,.5);animation:bossreveal .7s ease both;}
+.go-title{font-size:clamp(18px,4vw,32px);color:var(--red2);letter-spacing:0.3em;}
+.go-fl{font-family:'Special Elite',cursive;font-size:13px;color:var(--muted);font-style:italic;max-width:340px;line-height:1.6;}
+.go-stat{font-size:11px;color:var(--muted);margin-top:4px;}
+.go-btn{
+  margin-top:8px;padding:10px 30px;
+  background:rgba(160,20,20,.12);border:1px solid var(--red);
+  color:var(--red2);font-family:'Share Tech Mono',monospace;
+  font-size:10px;letter-spacing:0.2em;cursor:pointer;transition:all .2s;
+}
+.go-btn:hover{background:rgba(160,20,20,.28);}
+
+#victory-screen{
+  background:radial-gradient(ellipse 70% 60% at 50% 70%,rgba(5,30,5,.9) 0%,#000803 70%);
+  align-items:center;justify-content:center;text-align:center;gap:10px;overflow:hidden;
+}
+#static-cvs{position:absolute;inset:0;pointer-events:none;}
+.vc-sym{font-size:72px;color:var(--g);line-height:1;text-shadow:0 0 50px rgba(51,255,51,.5);animation:bossreveal .8s ease both;}
+.vc-title{font-size:clamp(18px,4vw,32px);color:var(--ghi);letter-spacing:0.3em;}
+.vc-fl{font-family:'Special Elite',cursive;font-size:14px;color:var(--text);font-style:italic;max-width:420px;line-height:1.6;}
+.vc-stats{
+  background:rgba(51,255,51,.05);border:1px solid rgba(51,255,51,.15);
+  padding:12px 24px;font-size:11px;color:var(--muted);line-height:2;
+}
+.vc-stats strong{color:var(--amb);}
+.vc-btn{
+  padding:11px 34px;background:rgba(51,255,51,.08);border:1px solid var(--gdim);
+  color:var(--g);font-family:'Share Tech Mono',monospace;
+  font-size:10px;letter-spacing:0.2em;cursor:pointer;transition:all .2s;
+}
+.vc-btn:hover{background:rgba(51,255,51,.18);border-color:var(--g);}
+
+/* Floating damage text */
+.flt{position:fixed;pointer-events:none;font-size:16px;font-weight:700;z-index:1000;white-space:nowrap;animation:fltup .9s ease-out forwards;}
+@keyframes fltup{0%{transform:translateY(0) scale(1);opacity:1;}55%{transform:translateY(-36px) scale(1.1);opacity:.9;}100%{transform:translateY(-62px) scale(.85);opacity:0;}}
+
+/* Shake */
+@keyframes brdshk{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+.shaking{animation:brdshk .38s;}
+
+/* Tile modal */
+#tile-modal{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.92);z-index:600;
+  align-items:center;justify-content:center;
+}
+#tile-modal.open{display:flex;}
+.tm-box{
+  background:var(--surf);border:1px solid var(--bord);
+  padding:20px;max-width:480px;width:90%;
+}
+.tm-title{font-size:11px;color:var(--amb);letter-spacing:0.2em;margin-bottom:12px;}
+#tm-tiles{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.tm-tile{
+  background:var(--surf2);border:1px solid var(--bord);padding:8px 12px;
+  cursor:pointer;font-size:10px;transition:all .15s;min-width:100px;text-align:center;
+}
+.tm-tile:hover{border-color:var(--g);color:var(--ghi);}
+.tm-cancel{
+  background:transparent;border:1px solid var(--bord);color:var(--muted);
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  padding:6px 14px;cursor:pointer;letter-spacing:0.1em;
+}
+
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--bord);}
+
+@media(max-width:580px){
+  .gcell{width:46px;height:48px;}
+  .ce-main{font-size:16px;}
+  .offer-card{width:140px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════ MAP / DESCENT SCREEN ════════════ -->
+<div id="map-screen" class="screen">
+  <canvas id="noise-canvas"></canvas>
+
+  <div class="map-top">
+    <div class="map-logo">SECWATCH // <span>NIGHTMARE SEQUENCE</span></div>
+    <div class="map-hud">
+      <div class="mh-item">
+        <span class="mh-label">ORIENT</span>
+        <div class="mh-bar-wrap"><div class="mh-bar" id="mhp-bar" style="width:100%"></div></div>
+        <span class="mh-val" id="mhp-val">14/14</span>
+      </div>
+      <div class="mh-item">
+        <span class="mh-label" style="color:var(--muted)">CLARITY</span>
+        <span class="mh-clarity" id="mgold-val">0</span>
+      </div>
+      <div class="mh-item" style="font-size:9px;color:var(--muted);">
+        <span id="mtiles-count">2 anchors</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="map-area">
+
+    <!-- depth gauge visual -->
+    <div class="depth-gauge">
+      <div class="depth-label">DEPTH</div>
+      <div class="depth-track">
+        <div class="depth-marker" style="top:0%"></div>
+        <div class="depth-marker" style="top:22%"></div>
+        <div class="depth-marker" style="top:47%"></div>
+        <div class="depth-marker" style="top:70%"></div>
+        <div class="depth-marker" style="top:90%"></div>
+      </div>
+    </div>
+
+    <!-- node list -->
+    <div class="node-list">
+
+      <div class="descent-node avail" id="mnode-1" onclick="selectLvl(1)">
+        <div class="node-depth">SURFACE<br>0 FT</div>
+        <div class="node-card" id="ncard-1">
+          <div class="node-card-top">
+            <!-- CARD ART: THE TRAILER
+                 Replace span below with: <img src="img/nightmare_trailer.png" style="width:32px;height:32px;"> -->
+            <span class="node-sym">🏚</span>
+            <div>
+              <div class="node-name">THE TRAILER</div>
+              <div class="node-done-tag" id="ndone-1"></div>
+            </div>
+          </div>
+          <div class="node-flavor">1407 Cornett Branch Rd. The lights are on. They have been on for eleven years.</div>
+          <div class="node-locked-tag" id="nlock-1"></div>
+        </div>
+      </div>
+
+      <div class="descent-node locked" id="mnode-2" onclick="selectLvl(2)">
+        <div class="node-depth">BELOW GRADE<br>~30 FT</div>
+        <div class="node-card" id="ncard-2">
+          <div class="node-card-top">
+            <!-- CARD ART: FLOOR 3
+                 Replace span below with: <img src="img/nightmare_floor3.png" style="width:32px;height:32px;"> -->
+            <span class="node-sym">🚪</span>
+            <div>
+              <div class="node-name">FLOOR 3</div>
+              <div class="node-done-tag" id="ndone-2"></div>
+            </div>
+          </div>
+          <div class="node-flavor">Suite 3-C is closed now. All the others are open. Just that one.</div>
+          <div class="node-locked-tag" id="nlock-2"></div>
+        </div>
+      </div>
+
+      <div class="descent-node locked" id="mnode-3" onclick="selectLvl(3)">
+        <div class="node-depth">BENCH LEVEL<br>~78 FT</div>
+        <div class="node-card" id="ncard-3">
+          <div class="node-card-top">
+            <!-- CARD ART: THE BENCH
+                 Replace span below with: <img src="img/nightmare_bench.png" style="width:32px;height:32px;"> -->
+            <span class="node-sym">⛏</span>
+            <div>
+              <div class="node-name">THE BENCH</div>
+              <div class="node-done-tag" id="ndone-3"></div>
+            </div>
+          </div>
+          <div class="node-flavor">The cable reel is gone. No drag marks. The wall is warm here. It shouldn't be warm.</div>
+          <div class="node-locked-tag" id="nlock-3"></div>
+        </div>
+      </div>
+
+      <div class="descent-node locked" id="mnode-4" onclick="selectLvl(4)">
+        <div class="node-depth">THRESHOLD<br>~90 FT</div>
+        <div class="node-card" id="ncard-4">
+          <div class="node-card-top">
+            <!-- CARD ART: THE CRACK
+                 Replace span below with: <img src="img/nightmare_crack.png" style="width:32px;height:32px;"> -->
+            <span class="node-sym">〰</span>
+            <div>
+              <div class="node-name">THE CRACK</div>
+              <div class="node-done-tag" id="ndone-4"></div>
+            </div>
+          </div>
+          <div class="node-flavor">Six inches wide. You should not fit. You fit.</div>
+          <div class="node-locked-tag" id="nlock-4"></div>
+        </div>
+      </div>
+
+      <div class="descent-node locked" id="mnode-5" onclick="selectLvl(5)">
+        <div class="node-depth">BOUNDARY<br>UNKNOWN</div>
+        <div class="node-card" id="ncard-5">
+          <div class="node-card-top">
+            <!-- CARD ART: THE LIGHT
+                 Replace span below with: <img src="img/nightmare_wall.png" style="width:32px;height:32px;"> -->
+            <span class="node-sym" style="color:var(--red);">◈</span>
+            <div>
+              <div class="node-name" style="color:var(--red2)">THE LIGHT</div>
+              <div class="node-done-tag" id="ndone-5"></div>
+            </div>
+          </div>
+          <div class="node-flavor" style="color:rgba(160,60,60,.7)">It has been generating its own light for longer than this mountain has existed.</div>
+          <div class="node-locked-tag" id="nlock-5"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="map-bottom">
+    <div class="map-flavor" id="map-flavor">Select a depth to descend.</div>
+    <div class="map-btns">
+      <button class="mbtn enter" id="mbtn-enter" onclick="enterLevel()" disabled>▶ DESCEND</button>
+      <button class="mbtn back" onclick="goBack()">← WAKE UP</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ BATTLE SCREEN ════════════ -->
+<div id="battle-screen" class="screen">
+  <div class="b-topbar">
+    <div class="b-titlewrap">
+      <div class="b-lvname" id="b-lvname">—</div>
+      <div class="b-waveinf" id="b-waveinf"></div>
+    </div>
+    <div class="b-turnnum" id="b-turnnum"></div>
+  </div>
+
+  <div class="b-statrow">
+    <div class="ps-block">
+      <span class="ps-name">ORIENTATION</span>
+      <div class="ps-bwrap"><div class="ps-bar bar-hp" id="php-bar" style="width:100%"></div></div>
+      <span class="ps-num" id="php-num">14/14</span>
+    </div>
+    <div class="es-list" id="es-list"></div>
+    <div class="b-clarity" id="b-clarity">◈0</div>
+  </div>
+
+  <div class="b-boardwrap">
+    <div class="board-label-row" id="board-labels"></div>
+    <div id="game-board"></div>
+  </div>
+
+  <div class="b-tilesec">
+    <div class="b-tilelabel">ANCHORS — press 1-9 to queue, SPACE to execute</div>
+    <div class="b-tilesrow" id="tiles-row"></div>
+  </div>
+
+  <div class="b-queuesec">
+    <div class="b-qlabel">QUEUE</div>
+    <div id="qslots"></div>
+    <span id="qburst"></span>
+  </div>
+
+  <div class="b-actions">
+    <button class="abtn" id="ba-left"  onclick="act('left')">◀ STEP (A)</button>
+    <button class="abtn" id="ba-right" onclick="act('right')">STEP ▶ (D)</button>
+    <button class="abtn" id="ba-turn"  onclick="act('turn')">TURN (F)</button>
+    <button class="abtn exe" id="ba-exe" onclick="act('exe')">EXECUTE (SPACE)</button>
+    <button class="abtn" id="ba-wait"  onclick="act('wait')">ENDURE (W)</button>
+  </div>
+
+  <div class="b-log" id="b-log"></div>
+  <div class="b-keyhint">A/D = move &nbsp;|&nbsp; F = turn &nbsp;|&nbsp; 1-9 = queue anchor &nbsp;|&nbsp; SPACE = execute &nbsp;|&nbsp; W = endure</div>
+</div>
+
+<!-- ════════════ ANCHOR OFFER SCREEN ════════════ -->
+<div id="offer-screen" class="screen">
+  <div class="offer-wrap">
+    <div class="offer-hdr">
+      <div class="offer-title">CHOOSE AN ANCHOR</div>
+      <div class="offer-sub">Something to hold onto. Pick one or let it go.</div>
+    </div>
+    <div class="offer-cards" id="offer-cards"></div>
+    <button class="offer-skip" onclick="skipOffer()">[ NOTHING HELPS ] — SKIP</button>
+  </div>
+</div>
+
+<!-- ════════════ GAME OVER ════════════ -->
+<div id="gameover-screen" class="screen">
+  <!-- CARD ART: GAME OVER SYMBOL
+       Replace the sym div below with an image if desired -->
+  <div class="go-sym">◈</div>
+  <div class="go-title">LOST</div>
+  <div class="go-fl" id="go-fl">You didn't find your way back up.<br>The system is still running.</div>
+  <div class="go-stat" id="go-stat"></div>
+  <button class="go-btn" onclick="initGame()">↺ TRY AGAIN</button>
+</div>
+
+<!-- ════════════ VICTORY ════════════ -->
+<div id="victory-screen" class="screen">
+  <canvas id="static-cvs"></canvas>
+  <!-- CARD ART: VICTORY SYMBOL -->
+  <div class="vc-sym">▲</div>
+  <div class="vc-title">SURFACED</div>
+  <div class="vc-fl">You made it back up.<br>The wall is still there.<br>The system is still running.<br>That's all it takes. For now.</div>
+  <div class="vc-stats" id="vc-stats"></div>
+  <button class="vc-btn" onclick="goBackFromVictory()">→ CONTINUE</button>
+</div>
+
+<!-- ════════════ OVERLAYS ════════════ -->
+<div id="ovr-wave" class="ovr hid">
+  <div class="wb">
+    <div class="wbn" id="ow-num">DESCENT 1/3</div>
+    <div class="wbe" id="ow-ens"></div>
+  </div>
+</div>
+
+<div id="ovr-boss" class="ovr hid">
+  <div style="text-align:center">
+    <!-- CARD ART: BOSS REVEAL
+         Replace the boss-sym div with <img src="img/nightmare_boss.png" style="width:120px;height:120px;"> -->
+    <div class="boss-sym">◈</div>
+    <div class="boss-nm" id="ob-nm">THE WALL</div>
+    <div class="boss-fl">It has always been here. It has always known your name.</div>
+  </div>
+</div>
+
+<div id="ovr-lc" class="ovr hid">
+  <div class="lc-box">
+    <!-- CARD ART: LEVEL CLEAR
+         Replace vc-sym with <img src="img/nightmare_clear.png" style="width:60px;height:60px;"> -->
+    <div class="lc-sym">▲</div>
+    <div class="lc-title" id="lc-title">SURFACED</div>
+    <div class="lc-stats">
+      <div class="lc-clarity" id="lc-clarity">+0 Clarity</div>
+      <div class="lc-total" id="lc-total"></div>
+      <div class="lc-hp" id="lc-hp"></div>
+    </div>
+    <div class="lc-btns">
+      <button class="lc-btn lcb-map" id="lcb-map" onclick="returnToMap()">↑ ASCEND</button>
+      <button class="lc-btn lcb-vic" id="lcb-vic" onclick="doVictory()" style="display:none">★ WOKE UP</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tile upgrade picker modal -->
+<div id="tile-modal">
+  <div class="tm-box">
+    <div class="tm-title" id="tm-title">Choose an anchor to deepen:</div>
+    <div id="tm-tiles"></div>
+    <button class="tm-cancel" onclick="cancelUpgrade()">✕ Cancel</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ════════════════════════════════════════════════════════
+//  PROCEDURAL AUDIO (synthetic horror tones)
+// ════════════════════════════════════════════════════════
+let _ac;
+function getAC(){if(!_ac)_ac=new(window.AudioContext||window.webkitAudioContext)();return _ac;}
+function beep(freq,dur,type='square',vol=0.06,delay=0){
+  try{
+    const c=getAC(),o=c.createOscillator(),g=c.createGain();
+    o.connect(g);g.connect(c.destination);
+    o.frequency.value=freq;o.type=type;
+    const s=c.currentTime+delay;
+    g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(vol,s+.01);
+    g.gain.exponentialRampToValueAtTime(.001,s+dur);
+    o.start(s);o.stop(s+dur+.05);
+  }catch(e){}
+}
+const SFX={
+  hit:    ()=>{beep(110,.12,'sawtooth',.08);},
+  phit:   ()=>{beep(80,.22,'sawtooth',.1);beep(60,.35,'sawtooth',.06,.05);},
+  kill:   ()=>{[220,180,140].forEach((f,i)=>beep(f,.15,'sine',.07,i*.08));},
+  clarity:()=>{beep(440,.08,'sine',.05);beep(550,.1,'sine',.04,.07);},
+  queue:  ()=>{beep(160,.04,'square',.05);},
+  exec:   ()=>{beep(90,.06,'square',.1);beep(120,.05,'square',.1,.04);},
+  wave:   ()=>{beep(55,.4,'sawtooth',.09);beep(44,.5,'sawtooth',.06,.12);},
+  boss:   ()=>{[40,36,32].forEach((f,i)=>beep(f,.8,'sawtooth',.12,i*.2));},
+  enrage: ()=>{[55,80,110,160].forEach((f,i)=>beep(f,.18,'sawtooth',.1,i*.07));},
+  vic:    ()=>{[330,440,550,660].forEach((f,i)=>beep(f,.25,'sine',.08,i*.12));},
+  offer:  ()=>{[220,330,440].forEach((f,i)=>beep(f,.14,'sine',.06,i*.09));},
+  pickup: ()=>{[440,550,660].forEach((f,i)=>beep(f,.12,'sine',.07,i*.08));},
+};
+
+// ════════════════════════════════════════════════════════
+//  ANCHOR (TILE) DEFINITIONS
+//  These are the player's mental tools against the presences.
+//  Each has commented card art area above it.
+// ════════════════════════════════════════════════════════
+const TDEFS={
+  /* ── STARTING ANCHORS ── */
+
+  // CARD ART: breathe — a pair of lungs or a simple breath symbol
+  breathe:{
+    name:'BREATHE', sym:'◯', dmg:2, range:1, cd:2, aoe:false,
+    desc:'Basic. Stay in your body. Forward 1.'
+  },
+  // CARD ART: look_away — an eye turning aside
+  look_away:{
+    name:'LOOK AWAY', sym:'∅', dmg:1, range:3, cd:1, aoe:false,
+    desc:"Don't engage directly. Range 3."
+  },
+
+  /* ── OFFER / PICKUP POOL ── */
+
+  // CARD ART: the_deal — a handshake or a wall outline
+  the_deal:{
+    name:'THE DEAL', sym:'≡', dmg:3, range:1, cd:3, aoe:false,
+    desc:"Earl's method. Mutual acknowledgment."
+  },
+  // CARD ART: static — CRT static bars
+  static_burst:{
+    name:'STATIC', sym:'▓', dmg:2, range:2, cd:3, aoe:true,
+    desc:'Disrupt the signal. AOE both sides 2.'
+  },
+  // CARD ART: iron_county — mountain silhouette
+  iron_county:{
+    name:'IRON COUNTY', sym:'▲', dmg:5, range:1, cd:5, aoe:false,
+    desc:'Appalachian stubborn. Devastating. Slow.'
+  },
+  // CARD ART: tape_recorder — a cassette tape
+  tape_recorder:{
+    name:'TAPE RECORDER', sym:'▶', dmg:1, range:3, cd:0, aoe:false,
+    desc:'No cooldown. Keep documenting. Range 3.'
+  },
+  // CARD ART: geological_survey — strata layers
+  geol_survey:{
+    name:'GEOL. SURVEY', sym:'≈', dmg:2, range:4, cd:2, aoe:false,
+    desc:'Read the terrain. Long range 4.'
+  },
+  // CARD ART: dont_dig — a pickaxe with X
+  dont_dig:{
+    name:"DON'T DIG", sym:'✕', dmg:3, range:2, cd:4, aoe:true,
+    desc:"Earl's warning. AOE sweep range 2."
+  },
+  // CARD ART: flashlight — a beam of light
+  flashlight:{
+    name:'FLASHLIGHT', sym:'◈', dmg:2, range:2, cd:2, aoe:true,
+    desc:'Drive it back. AOE both sides 2.'
+  },
+  // CARD ART: foremans_rule — a hard hat
+  foremans_rule:{
+    name:"FOREMAN'S RULE", sym:'◆', dmg:4, range:2, cd:4, aoe:false,
+    desc:'Authority over echoes. Forward 2.'
+  },
+  // CARD ART: combs_method — a descending depth gauge
+  combs_method:{
+    name:"COMBS' METHOD", sym:'◉', dmg:3, range:2, cd:3, aoe:false,
+    desc:'Eleventh-visit tolerance. Range 2.'
+  },
+};
+function mkTile(key){const d=TDEFS[key];return{...d,defKey:key,cdLeft:0};}
+
+const OFFER_POOL=[
+  'the_deal','static_burst','iron_county','tape_recorder',
+  'geol_survey','dont_dig','flashlight','foremans_rule','combs_method'
+];
+
+// ════════════════════════════════════════════════════════
+//  LEVEL / NIGHTMARE DATA
+// ════════════════════════════════════════════════════════
+const LEVELS=[
+  {
+    id:1, name:"THE TRAILER", coord:'37.1954°N', boardSize:6,
+    flavor:"Ricky's knowing reaches for you across eleven years. You know what he understood. You don't want to understand it too.",
+    accent:'#ffb833',
+    waves:[
+      // Wave 1 — intro, Ricky's echo
+      [{name:"RICKY'S KNOWING",sym:'◌', hp:5, pos:4,
+        tiles:[{name:'Pull',dmg:1,range:2,cd:3,cdLeft:3}]}],
+      // Wave 2 — two knowings
+      [{name:"RICKY'S KNOWING",sym:'◌', hp:4, pos:3,
+        tiles:[{name:'Pull',dmg:1,range:2,cd:3,cdLeft:3}]},
+       {name:'WARMTH',sym:'~', hp:3, pos:5,
+        tiles:[{name:'Radiate',dmg:1,range:1,cd:2,cdLeft:2}]}],
+      // Wave 3 — mini-boss
+      [{name:"RICKY'S ECHO ★",sym:'◎', hp:10, pos:4, isMini:true,
+        tiles:[{name:'Pull',dmg:2,range:2,cd:2,cdLeft:2},
+               {name:'Knowing',dmg:1,range:3,cd:3,cdLeft:3}]}],
+    ],
+    clarityReward:30, offerAfterWaves:[1,2],
+  },
+  {
+    id:2, name:'FLOOR 3', coord:'02:19', boardSize:7,
+    flavor:"David Hargrove was in here for six hours looking at a photograph. He was fine physically. He kept writing the same name.",
+    accent:'#33aaff',
+    waves:[
+      [{name:"DAVID'S WRITING",sym:'⌇', hp:7, pos:5,
+        tiles:[{name:'Write',dmg:2,range:1,cd:2,cdLeft:2}]}],
+      [{name:"DAVID'S WRITING",sym:'⌇', hp:5, pos:4,
+        tiles:[{name:'Write',dmg:2,range:1,cd:2,cdLeft:2}]},
+       {name:'THERMAL PRESENCE',sym:'∿', hp:5, pos:6,
+        tiles:[{name:'Heat',dmg:2,range:2,cd:2,cdLeft:2}]}],
+      [{name:'DAVID\'S SHADE ★',sym:'⌇', hp:13, pos:5, isMini:true,
+        tiles:[{name:'Write',dmg:2,range:1,cd:1,cdLeft:1},
+               {name:'Understand',dmg:2,range:2,cd:3,cdLeft:3}]}],
+    ],
+    clarityReward:45, offerAfterWaves:[1,2],
+  },
+  {
+    id:3, name:'THE BENCH', coord:'78 FT', boardSize:7,
+    flavor:"The cable reel was here since 1983. Now it isn't. No drag marks. The wall is hot. You keep your hand away from it.",
+    accent:'#ff6622',
+    waves:[
+      [{name:'THRESHOLD REMNANT',sym:'Ψ', hp:7, pos:4,
+        tiles:[{name:'Ritual',dmg:2,range:1,cd:2,cdLeft:2}]},
+       {name:'CABLE PULL',sym:'—', hp:4, pos:6,
+        tiles:[{name:'Pull',dmg:1,range:3,cd:2,cdLeft:2}]}],
+      [{name:'THRESHOLD REMNANT',sym:'Ψ', hp:6, pos:3,
+        tiles:[{name:'Ritual',dmg:2,range:1,cd:2,cdLeft:2}]},
+       {name:'THRESHOLD REMNANT',sym:'Ψ', hp:6, pos:5,
+        tiles:[{name:'Ritual',dmg:2,range:1,cd:2,cdLeft:2}]}],
+      [{name:'THE GEOLOGIST ★',sym:'Ψ', hp:14, pos:5, isMini:true,
+        tiles:[{name:'Survey',dmg:2,range:2,cd:2,cdLeft:2},
+               {name:'Seal',dmg:2,range:1,cd:3,cdLeft:3}]}],
+    ],
+    clarityReward:55, offerAfterWaves:[1,2],
+  },
+  {
+    id:4, name:'THE CRACK', coord:'THRESHOLD', boardSize:8,
+    flavor:"You fit through six inches. You should not fit. The crack sealed behind you. Earl was here before. Eleven times.",
+    accent:'#cc2222',
+    waves:[
+      [{name:"EARL'S ECHO",sym:'▣', hp:8, pos:5,
+        tiles:[{name:'Descend',dmg:2,range:1,cd:2,cdLeft:2}]},
+       {name:'THERMAL PRESENCE',sym:'∿', hp:6, pos:7,
+        tiles:[{name:'Heat',dmg:2,range:2,cd:2,cdLeft:2}]}],
+      [{name:"EARL'S ECHO",sym:'▣', hp:9, pos:4,
+        tiles:[{name:'Descend',dmg:2,range:1,cd:1,cdLeft:1}]},
+       {name:'RICKY\'S KNOWING',sym:'◌', hp:5, pos:6,
+        tiles:[{name:'Pull',dmg:2,range:2,cd:2,cdLeft:2}]},
+       {name:'CABLE PULL',sym:'—', hp:4, pos:7,
+        tiles:[{name:'Pull',dmg:1,range:3,cd:2,cdLeft:2}]}],
+      [{name:"EARL ★ — THE 12TH",sym:'▣', hp:16, pos:5, isMini:true,
+        tiles:[{name:'Descend',dmg:3,range:1,cd:2,cdLeft:2},
+               {name:'Knowing',dmg:2,range:2,cd:2,cdLeft:2}]}],
+    ],
+    clarityReward:70, offerAfterWaves:[0,2],
+  },
+  {
+    id:5, name:'THE LIGHT', coord:'UNKNOWN DEPTH', boardSize:8,
+    flavor:"You are at the boundary. This is as far as Earl came on his eleventh time. There is something ahead. It has always known your name.",
+    accent:'#ff3333',
+    waves:[
+      // Guard wave
+      [{name:"EARL'S ECHO",sym:'▣', hp:10, pos:4,
+        tiles:[{name:'Descend',dmg:2,range:1,cd:2,cdLeft:2}]},
+       {name:'THERMAL PRESENCE',sym:'∿', hp:8, pos:6,
+        tiles:[{name:'Heat',dmg:2,range:2,cd:2,cdLeft:2}]}],
+      // Boss: THE WALL
+      [{name:'THE WALL',sym:'◈', hp:22, pos:5, isBoss:true, enrageAt:10,
+        /* ── CARD ART: THE WALL BOSS
+           sym is used as the board cell character.
+           The boss reveal overlay uses the hard-coded boss-sym div (see HTML).
+           Replace that div content with your image.
+           ── */
+        tiles:[
+          {name:'EXTEND',dmg:2,range:2,cd:1,cdLeft:1},
+          {name:'PERCEIVE',dmg:2,range:3,cd:2,cdLeft:2},
+        ],
+        enrageTiles:[
+          {name:'EXTEND',dmg:3,range:2,cd:1,cdLeft:0},
+          {name:'PERCEIVE',dmg:2,range:3,cd:1,cdLeft:0},
+          {name:'IT IS HOT',dmg:3,range:1,cd:2,cdLeft:2,aoe:true},
+        ],
+      }],
+    ],
+    clarityReward:0, offerAfterWaves:[0],
+  },
+];
+
+// ════════════════════════════════════════════════════════
+//  GLOBAL STATE
+// ════════════════════════════════════════════════════════
+let G={};
+
+function initGame(){
+  G={
+    hp:14, maxHp:14,
+    pos:1, dir:1,
+    clarity:0,
+    tiles:[mkTile('breathe'),mkTile('look_away')],
+    queue:[],
+    done:new Set(),
+    selLvl:null,
+    curLvl:null,
+    waveIdx:0,
+    enemies:[],
+    turn:1,
+    phase:'idle',
+    log:[],
+    enraged:false,
+    tTurns:0, tKills:0, tClarity:0,
+    offerPool:[...OFFER_POOL],
+    returnPage:null, // set when nightmares.html should redirect back
+  };
+  showScr('map');
+  renderMap();
+}
+
+// ════════════════════════════════════════════════════════
+//  SCREEN MANAGEMENT
+// ════════════════════════════════════════════════════════
+function showScr(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el=document.getElementById(id+'-screen');
+  if(el)el.classList.add('active');
+}
+function showOvr(id){document.getElementById(id).classList.remove('hid');}
+function hideOvr(id){document.getElementById(id).classList.add('hid');}
+
+// ════════════════════════════════════════════════════════
+//  MAP
+// ════════════════════════════════════════════════════════
+function renderMap(){
+  const pct=Math.max(0,G.hp/G.maxHp*100);
+  const bar=document.getElementById('mhp-bar');
+  bar.style.width=pct+'%';
+  bar.className='mh-bar'+(G.hp<=2?' crit':G.hp<=Math.ceil(G.maxHp*.35)?' low':'');
+  document.getElementById('mhp-val').textContent=G.hp+'/'+G.maxHp;
+  document.getElementById('mgold-val').textContent=G.clarity;
+  document.getElementById('mtiles-count').textContent=G.tiles.length+' anchor'+(G.tiles.length!==1?'s':'');
+
+  for(let i=1;i<=5;i++){
+    const nd=document.getElementById('mnode-'+i);
+    const done=G.done.has(i);
+    const avail=i===1||G.done.has(i-1);
+    nd.className='descent-node'+(done?' done':avail?' avail':' locked');
+    if(G.selLvl===i)nd.classList.add('sel');
+    const dt=document.getElementById('ndone-'+i);
+    const lk=document.getElementById('nlock-'+i);
+    if(dt)dt.textContent=done?'[ SURFACED ]':'';
+    if(lk)lk.textContent=avail?'':' [ TOO DEEP ]';
+  }
+  const enterBtn=document.getElementById('mbtn-enter');
+  enterBtn.disabled=!G.selLvl;
+  if(G.selLvl)enterBtn.textContent='▼ DESCEND INTO '+LEVELS[G.selLvl-1].name;
+}
+
+function selectLvl(id){
+  const avail=id===1||G.done.has(id-1);
+  if(!avail)return;
+  G.selLvl=id;
+  document.querySelectorAll('.descent-node').forEach(n=>n.classList.remove('sel'));
+  document.getElementById('mnode-'+id).classList.add('sel');
+  document.getElementById('map-flavor').textContent='"'+LEVELS[id-1].flavor+'"';
+  renderMap();
+}
+function enterLevel(){if(!G.selLvl)return;startLevel(G.selLvl);}
+function goBack(){
+  // Return to day progression — modify this href as needed
+  const ret=G.returnPage||'day2.html';
+  if(confirm('Wake up and return? The nightmare will be here.')){
+    window.location.href=ret;
+  }
+}
+function goBackFromVictory(){
+  const ret=G.returnPage||'day3.html';
+  window.location.href=ret;
+}
+
+// ════════════════════════════════════════════════════════
+//  BATTLE — START LEVEL
+// ════════════════════════════════════════════════════════
+function startLevel(id){
+  const lvl=LEVELS[id-1];
+  G.curLvl=lvl; G.waveIdx=0; G.turn=1;
+  G.pos=1; G.dir=1; G.queue=[]; G.log=[]; G.enraged=false;
+  G.tiles.forEach(t=>t.cdLeft=0);
+
+  const bs=document.getElementById('battle-screen');
+  bs.classList.remove('enraged');
+  showScr('battle');
+
+  document.getElementById('b-lvname').textContent=lvl.name;
+  document.getElementById('b-clarity').textContent='◈'+G.clarity;
+
+  buildBoardLabels(lvl.boardSize);
+  loadWave();
+}
+
+function buildBoardLabels(bs){
+  const row=document.getElementById('board-labels');
+  row.innerHTML='';
+  const labels=['SURFACE','——','——','BENCH','——','——','DEEP','——'];
+  for(let i=0;i<bs;i++){
+    const d=document.createElement('div');
+    d.className='board-label-cell';
+    d.style.fontSize='7px';
+    d.style.color='var(--muted)';
+    d.textContent=i===0?'SURFACE':i===bs-1?'WALL':i<bs/2?'·':'·';
+    row.appendChild(d);
+  }
+}
+
+function loadWave(){
+  const lvl=G.curLvl;
+  const wdata=lvl.waves[G.waveIdx];
+  const bs=lvl.boardSize;
+  const isBossWave=wdata.some(e=>e.isBoss);
+  const isMiniWave=wdata.some(e=>e.isMini);
+
+  G.enemies=wdata.map((ed,i)=>({
+    ...ed,
+    id:i,
+    tiles:ed.tiles.map(t=>({...t})),
+    enrageTiles:ed.enrageTiles?ed.enrageTiles.map(t=>({...t})):null,
+    maxHp:ed.hp,
+  }));
+  G.enraged=false;
+  G.phase='wave-intro';
+  G.turn=1;
+
+  const wnum=G.waveIdx+1;
+  const wmax=lvl.waves.length;
+  document.getElementById('b-waveinf').textContent=`DESCENT ${wnum}/${wmax}`;
+  document.getElementById('b-turnnum').textContent=`TURN 1`;
+
+  if(isBossWave){
+    SFX.boss();
+    document.getElementById('ob-nm').textContent=G.enemies[0].name;
+    showOvr('ovr-boss');
+    setTimeout(()=>{hideOvr('ovr-boss');startPlayerTurn();},3200);
+  } else {
+    SFX.wave();
+    document.getElementById('ow-num').textContent=`DESCENT ${wnum}/${wmax}`;
+    document.getElementById('ow-ens').textContent=G.enemies.map(e=>e.name+(e.isMini?' [ECHO]':'')).join('  /  ');
+    showOvr('ovr-wave');
+    setTimeout(()=>{hideOvr('ovr-wave');startPlayerTurn();},2000);
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  BATTLE LOOP
+// ════════════════════════════════════════════════════════
+function startPlayerTurn(){
+  G.phase='player';
+  G.queue=[];
+  G.tiles.forEach(t=>{if(t.cdLeft>0)t.cdLeft--;});
+  renderBattle();
+  updateBtns();
+  addLog(`— Turn ${G.turn} —`,'tip');
+  renderLog();
+}
+
+function act(type,arg){
+  if(G.phase!=='player')return;
+  const bs=G.curLvl.boardSize;
+
+  if(type==='left'){
+    if(G.pos>0){G.pos--;SFX.queue();addLog(`Stepped back → pos ${G.pos}`,'mv');}
+    else addLog('At surface. Cannot retreat further.','n');
+    renderBattle();updateBtns();renderLog();return;
+  }
+  if(type==='right'){
+    if(G.pos<bs-1){G.pos++;SFX.queue();addLog(`Stepped deeper → pos ${G.pos}`,'mv');}
+    else addLog('At the wall. Cannot go further.','n');
+    renderBattle();updateBtns();renderLog();return;
+  }
+  if(type==='turn'){
+    G.dir*=-1;SFX.queue();
+    addLog(`Turned — facing ${G.dir===1?'deeper':'surface'}`,'mv');
+    renderBattle();updateBtns();renderLog();return;
+  }
+  if(type==='queue'){
+    const ti=arg;
+    if(ti===undefined||ti>=G.tiles.length)return;
+    if(G.tiles[ti].cdLeft>0){addLog(`${G.tiles[ti].name} not ready (${G.tiles[ti].cdLeft} turns)`,'n');renderLog();return;}
+    if(G.queue.includes(ti)){addLog(`${G.tiles[ti].name} already queued`,'n');renderLog();return;}
+    if(G.queue.length>=3){addLog('Queue full — execute or clear','n');renderLog();return;}
+    G.queue.push(ti);SFX.queue();
+    addLog(`Queued: ${G.tiles[ti].name}`,'info');
+    renderBattle();renderLog();return;
+  }
+  if(type==='exe'){
+    if(G.queue.length===0){addLog('Nothing queued','n');renderLog();return;}
+    SFX.exec();
+    let totalDmg=0;
+    const hitCellSets=[];
+    G.queue.forEach(ti=>{
+      const tile=G.tiles[ti];
+      const cells=hitCells(G.pos,G.dir,tile.range,tile.aoe||false,bs);
+      hitCellSets.push({tile,cells,ti});
+      tile.cdLeft=tile.cd;
+    });
+    G.queue=[];
+
+    hitCellSets.forEach(({tile,cells,ti})=>{
+      let hit=false;
+      G.enemies.forEach(en=>{
+        if(cells.includes(en.pos)&&en.hp>0){
+          en.hp=Math.max(0,en.hp-tile.dmg);
+          totalDmg+=tile.dmg;
+          hit=true;
+          SFX.hit();
+          spawnFloat('-'+tile.dmg,en.pos,'var(--red2)');
+          addLog(`${tile.name} hits ${en.name} for ${tile.dmg} — ${en.hp}/${en.maxHp} left`,'dmg');
+          if(en.hp<=0){
+            SFX.kill();
+            addLog(`${en.name} — gone.`,'kil');
+            G.tKills++;
+          }
+        }
+      });
+      if(!hit)addLog(`${tile.name} — no contact`,'n');
+    });
+
+    if(totalDmg>=6){addLog(`BURST: ${totalDmg} total`,'cbo');}
+
+    renderBattle();renderLog();
+
+    // Check enrage
+    G.enemies.forEach(en=>{
+      if(en.isBoss&&en.enrageAt&&en.hp<=en.enrageAt&&!G.enraged){
+        G.enraged=true;
+        if(en.enrageTiles){en.tiles=en.enrageTiles.map(t=>({...t}));}
+        SFX.enrage();
+        document.getElementById('battle-screen').classList.add('enraged');
+        addLog(`!! THE WALL IS HOT — THE WALL IS HOT !!`,'bos');
+        renderLog();
+      }
+    });
+
+    // Check all enemies dead
+    if(G.enemies.every(e=>e.hp<=0)){
+      setTimeout(waveComplete,600);
+    } else {
+      setTimeout(enemyTurn,500);
+    }
+    return;
+  }
+  if(type==='wait'){
+    addLog('Endured.','n');
+    renderLog();
+    enemyTurn();
+  }
+}
+
+function enemyTurn(){
+  G.phase='enemy';
+  updateBtns();
+  let delay=0;
+
+  G.enemies.filter(e=>e.hp>0).forEach(en=>{
+    setTimeout(()=>{
+      if(en.hp<=0)return;
+      // Move toward player
+      const diff=G.pos-en.pos;
+      if(Math.abs(diff)>1&&Math.abs(diff)<=3){
+        const mv=diff>0?1:-1;
+        en.pos+=mv;
+        addLog(`${en.name} moves → pos ${en.pos}`,'mve');
+        renderBattle();renderLog();
+      }
+      // Check attack
+      en.tiles.forEach(tile=>{
+        if(tile.cdLeft>0){tile.cdLeft--;return;}
+        const cells=hitCells(en.pos,en.pos<G.pos?1:-1,tile.range,tile.aoe||false,G.curLvl.boardSize);
+        if(cells.includes(G.pos)){
+          G.hp=Math.max(0,G.hp-tile.dmg);
+          SFX.phit();
+          shakeBoard();
+          spawnFloat('-'+tile.dmg,G.pos,'var(--amb)');
+          addLog(`${en.name}: ${tile.name} — ${tile.dmg} disorientation. ${G.hp}/${G.maxHp} orientation left.`,'dng');
+          tile.cdLeft=tile.cd;
+          renderBattle();renderLog();
+          if(G.hp<=0){setTimeout(()=>endBattle(false),400);return;}
+        }
+      });
+    },delay);
+    delay+=350;
+  });
+
+  setTimeout(()=>{
+    if(G.hp<=0)return;
+    G.turn++;
+    document.getElementById('b-turnnum').textContent=`TURN ${G.turn}`;
+    G.tTurns++;
+    startPlayerTurn();
+  },delay+300);
+}
+
+function waveComplete(){
+  const lvl=G.curLvl;
+  const nextWave=G.waveIdx+1;
+
+  // Offer anchor if configured
+  if(lvl.offerAfterWaves&&lvl.offerAfterWaves.includes(G.waveIdx)){
+    SFX.offer();
+    showOffer(nextWave<lvl.waves.length);
+    return;
+  }
+
+  if(nextWave<lvl.waves.length){
+    G.waveIdx=nextWave;
+    setTimeout(loadWave,600);
+  } else {
+    levelComplete();
+  }
+}
+
+function levelComplete(){
+  const lvl=G.curLvl;
+  G.done.add(lvl.id);
+  const reward=lvl.clarityReward;
+  G.clarity+=reward;
+  G.tClarity+=reward;
+  SFX.vic();
+
+  document.getElementById('battle-screen').classList.remove('enraged');
+  document.getElementById('lc-clarity').textContent='+'+reward+' Clarity';
+  document.getElementById('lc-total').textContent='Total clarity: '+G.clarity;
+  document.getElementById('lc-hp').textContent='Orientation: '+G.hp+'/'+G.maxHp;
+  document.getElementById('lc-title').textContent='SURFACED — '+lvl.name;
+
+  const vic=document.getElementById('lcb-vic');
+  if(G.done.size===5){
+    vic.style.display='inline-block';
+    document.getElementById('lcb-map').style.display='none';
+  } else {
+    vic.style.display='none';
+    document.getElementById('lcb-map').style.display='inline-block';
+  }
+  showOvr('ovr-lc');
+}
+
+function endBattle(won){
+  if(!won){
+    document.getElementById('battle-screen').classList.remove('enraged');
+    SFX.phit();
+    document.getElementById('go-fl').textContent="You didn't find your way back up.\nThe system is still running.";
+    document.getElementById('go-stat').textContent=`Turns: ${G.tTurns}  |  Presences dispersed: ${G.tKills}`;
+    showScr('gameover');
+  }
+}
+
+function doVictory(){
+  hideOvr('ovr-lc');
+  SFX.vic();
+  showScr('victory');
+  document.getElementById('vc-stats').innerHTML=
+    `Turns endured: <strong>${G.tTurns}</strong><br>`+
+    `Presences dispersed: <strong>${G.tKills}</strong><br>`+
+    `Clarity accumulated: <strong>${G.clarity}</strong><br>`+
+    `Orientation remaining: <strong>${G.hp}/${G.maxHp}</strong>`;
+  // Static burst effect on victory
+  startStaticBurst();
+}
+
+function returnToMap(){
+  hideOvr('ovr-lc');
+  showScr('map');
+  renderMap();
+}
+
+// ════════════════════════════════════════════════════════
+//  OFFER SYSTEM
+// ════════════════════════════════════════════════════════
+let _offerPending=false;
+function showOffer(continueToNextWave){
+  _offerPending=continueToNextWave;
+  const container=document.getElementById('offer-cards');
+  container.innerHTML='';
+
+  // Pick 3 from pool
+  const picks=[];
+  const pool=[...G.offerPool];
+  for(let i=0;i<3&&pool.length;i++){
+    const idx=Math.floor(Math.random()*pool.length);
+    picks.push(pool.splice(idx,1)[0]);
+  }
+  // Remove picked from pool so they don't repeat too soon
+  picks.forEach(k=>{const pi=G.offerPool.indexOf(k);if(pi>=0)G.offerPool.splice(pi,1);});
+  if(G.offerPool.length<3)G.offerPool=[...OFFER_POOL]; // refill
+
+  picks.forEach(key=>{
+    const d=TDEFS[key];
+    const card=document.createElement('div');
+    card.className='offer-card';
+    const dots=Array.from({length:d.cd+1},(_,i)=>`<div class="oc-dot" style="${i<d.cd?'background:var(--bord);border-color:var(--muted);':''}"></div>`).join('');
+    card.innerHTML=`
+      <div class="oc-newbadge">NEW</div>
+      <!-- CARD ART: ${key}
+           Replace the oc-art span with:
+           <img src="img/anchor_${key}.png" style="width:52px;height:52px;object-fit:contain;"> -->
+      <div class="oc-art"><span>${d.sym}</span></div>
+      <div class="oc-nm">${d.name}</div>
+      <div class="oc-dmg">${d.dmg}</div>
+      <div class="oc-stats">RNG ${d.range}${d.aoe?' AOE':''} &nbsp;|&nbsp; CD ${d.cd}</div>
+      <div class="oc-desc">${d.desc}</div>
+      <div class="oc-dots">${dots}</div>`;
+    card.onclick=()=>pickOffer(key);
+    container.appendChild(card);
+  });
+  showScr('offer');
+}
+
+function pickOffer(key){
+  G.tiles.push(mkTile(key));
+  SFX.pickup();
+  continueAfterOffer();
+}
+function skipOffer(){continueAfterOffer();}
+function continueAfterOffer(){
+  if(_offerPending){
+    G.waveIdx++;
+    showScr('battle');
+    setTimeout(loadWave,300);
+  } else {
+    levelComplete();
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  RENDER BATTLE
+// ════════════════════════════════════════════════════════
+function renderBattle(){
+  const bs=G.curLvl.boardSize;
+  const board=document.getElementById('game-board');
+  board.innerHTML='';
+
+  for(let i=0;i<bs;i++){
+    const cell=document.createElement('div');
+    cell.className='gcell';
+
+    const en=G.enemies.find(e=>e.pos===i&&e.hp>0);
+    const isPlayer=G.pos===i;
+
+    if(en){
+      const isBoss=en.isBoss;
+      cell.classList.add(isBoss?'bc':'ec');
+      if(isBoss&&G.enraged)cell.classList.add('enraged');
+
+      // Attack warning
+      const willAtk=en.tiles.some(t=>{
+        if(t.cdLeft>0)return false;
+        const cells=hitCells(en.pos,en.pos<G.pos?1:-1,t.range,t.aoe||false,bs);
+        return cells.includes(G.pos);
+      });
+
+      /* ── CARD ART: enemy cells
+         Replace ce-main content with:
+         <img src="img/enemy_ENEMYNAME.png" style="width:36px;height:36px;object-fit:contain;image-rendering:pixelated;">
+         ── */
+      cell.innerHTML=`
+        ${willAtk?'<div class="ce-atkwarn">!</div>':''}
+        <div class="ce-main">${en.sym}</div>
+        <div class="ce-dir" style="font-size:7px;color:var(--muted)">${en.name.substring(0,8)}</div>
+        <div class="ce-hpbar"><div class="ce-hpfill" style="width:${en.hp/en.maxHp*100}%"></div></div>`;
+    } else if(isPlayer){
+      cell.classList.add('pc');
+      /* ── CARD ART: player cell
+         Replace the ▮ with:
+         <img src="img/player_cursor.png" style="width:32px;height:32px;">
+         ── */
+      cell.innerHTML=`
+        <div class="ce-main" style="color:var(--g);text-shadow:0 0 8px var(--g)">▮</div>
+        <div class="ce-dir" style="color:var(--gdim)">${G.dir===1?'→':'←'}</div>`;
+    } else {
+      cell.innerHTML=`<div class="ce-idx">${i}</div>`;
+    }
+    board.appendChild(cell);
+  }
+
+  // Enemy status bars
+  const esList=document.getElementById('es-list');
+  esList.innerHTML='';
+  G.enemies.filter(e=>e.hp>0).forEach(en=>{
+    const it=document.createElement('div');
+    it.className='es-item'+(en.isBoss?' boss':'');
+    const atk=en.tiles.filter(t=>t.cdLeft===0).map(t=>t.name+' '+t.dmg).join(', ');
+    it.innerHTML=`
+      <span class="es-name">${en.name}</span>
+      <div class="es-bwrap"><div class="es-bar${en.hp/en.maxHp<.35?' low':''}" style="width:${en.hp/en.maxHp*100}%"></div></div>
+      <span class="es-info">${en.hp}/${en.maxHp}</span>
+      ${atk?`<span class="es-atk">${atk}</span>`:''}`;
+    esList.appendChild(it);
+  });
+
+  document.getElementById('php-bar').style.width=(G.hp/G.maxHp*100)+'%';
+  document.getElementById('php-bar').className='ps-bar bar-hp'+(G.hp<=2?' crit':G.hp<=Math.ceil(G.maxHp*.35)?' low':'');
+  document.getElementById('php-num').textContent=G.hp+'/'+G.maxHp;
+  document.getElementById('b-clarity').textContent='◈'+G.clarity;
+
+  renderTiles();
+  renderQueueUI();
+}
+
+function renderTiles(){
+  const row=document.getElementById('tiles-row');
+  row.innerHTML='';
+  G.tiles.forEach((tile,i)=>{
+    const ready=tile.cdLeft===0;
+    const inQ=G.queue.includes(i);
+    const el=document.createElement('div');
+    el.className='tc'+(ready&&!inQ?' tr':tile.cdLeft>0?' tcd':'')+(inQ?' tq':'');
+    const dots=Array.from({length:tile.cd+1},(_,j)=>`<div class="dot${j>=tile.cdLeft?' on':''}"></div>`).join('');
+    el.innerHTML=`
+      <!-- CARD ART: ${tile.defKey}
+           Replace art div content with <img src="img/anchor_${tile.defKey}.png" style="width:36px;height:36px;object-fit:contain;"> -->
+      <div class="tc-art">${tile.sym}</div>
+      <div class="tc-nm">${tile.name}</div>
+      <div class="tc-st">${tile.dmg}dmg RNG${tile.range}${tile.aoe?' AOE':''}</div>
+      <div class="tc-dots">${dots}</div>
+      ${tile.cdLeft>0?`<div class="tc-cdtxt">${tile.cdLeft}</div>`:''}
+      ${inQ?'<div class="tc-qtag">QUEUED</div>':''}`;
+    if(ready&&!inQ)el.onclick=()=>act('queue',i);
+    row.appendChild(el);
+  });
+}
+
+function renderQueueUI(){
+  const cont=document.getElementById('qslots');
+  cont.innerHTML='';
+  const burst=G.queue.reduce((s,i)=>s+G.tiles[i].dmg,0);
+  for(let i=0;i<3;i++){
+    const sl=document.createElement('div');
+    const ti=G.queue[i];
+    if(ti!==undefined){
+      const t=G.tiles[ti];
+      sl.className='qslot fil';
+      sl.textContent=t.sym+' '+t.name;
+    } else {
+      sl.className='qslot emp';
+      sl.textContent=i===0?'—empty—':'';
+    }
+    cont.appendChild(sl);
+  }
+  document.getElementById('qburst').textContent=burst>0?`BURST: ${burst}`:'';
+}
+
+function renderLog(){
+  const el=document.getElementById('b-log');
+  el.innerHTML=G.log.slice(0,14).map(l=>`<div class="ll ${l.c||'n'}">${l.m}</div>`).join('');
+}
+function addLog(m,c){G.log.unshift({m,c:c||'n'});if(G.log.length>40)G.log.pop();}
+function updateBtns(){
+  const dis=G.phase!=='player';
+  ['ba-left','ba-right','ba-turn','ba-exe','ba-wait'].forEach(id=>{
+    const e=document.getElementById(id);if(e)e.disabled=dis;
+  });
+}
+
+// ════════════════════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════════════════════
+function hitCells(pos,dir,range,aoe,bs){
+  const cells=[];
+  if(aoe){for(let i=1;i<=range;i++){cells.push(pos+i);cells.push(pos-i);}}
+  else{for(let i=1;i<=range;i++)cells.push(pos+dir*i);}
+  return cells.filter(c=>c>=0&&c<bs);
+}
+function spawnFloat(text,cellIdx,color){
+  const bd=document.getElementById('game-board');
+  if(!bd)return;
+  const cells=bd.querySelectorAll('.gcell');
+  const cell=cells[cellIdx];
+  if(!cell)return;
+  const r=cell.getBoundingClientRect();
+  const el=document.createElement('div');
+  el.className='flt';
+  el.textContent=text;
+  el.style.cssText=`left:${r.left+r.width/2-16}px;top:${r.top}px;color:${color};`;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),960);
+}
+function shakeBoard(){
+  const bd=document.getElementById('game-board');
+  bd.style.animation='none';
+  bd.offsetHeight; // reflow
+  bd.style.animation='brdshk .38s';
+  setTimeout(()=>bd.style.animation='',400);
+}
+
+// ════════════════════════════════════════════════════════
+//  STATIC / NOISE CANVAS (atmospheric, replaces stars)
+// ════════════════════════════════════════════════════════
+function initNoise(){
+  const cv=document.getElementById('noise-canvas');
+  if(!cv)return;
+  function resize(){cv.width=window.innerWidth;cv.height=window.innerHeight;}
+  resize();
+  window.addEventListener('resize',resize);
+  const ctx=cv.getContext('2d');
+  let fr=0;
+  function draw(){
+    // Draw sparse static dots that slowly drift
+    ctx.clearRect(0,0,cv.width,cv.height);
+    const count=60;
+    for(let i=0;i<count;i++){
+      const x=(Math.sin(fr*.007+i*2.3)*0.5+0.5)*cv.width;
+      const y=(Math.cos(fr*.005+i*1.7)*0.5+0.5)*cv.height;
+      const r=Math.random()*1.5+0.3;
+      const opacity=Math.random()*0.4+0.1;
+      const green=Math.random()>0.7;
+      ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
+      ctx.fillStyle=green?`rgba(51,255,51,${opacity})`:`rgba(255,184,51,${opacity*0.4})`;
+      ctx.fill();
+    }
+    fr++;
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// Victory static burst (replaces confetti)
+function startStaticBurst(){
+  const cv=document.getElementById('static-cvs');
+  cv.width=window.innerWidth; cv.height=window.innerHeight;
+  const ctx=cv.getContext('2d');
+  let fr=0;
+  function draw(){
+    ctx.fillStyle='rgba(3,3,3,0.12)';
+    ctx.fillRect(0,0,cv.width,cv.height);
+    const count=fr<40?fr*8:Math.max(0,320-(fr-40)*6);
+    for(let i=0;i<count;i++){
+      ctx.fillStyle=Math.random()>.6?
+        `rgba(51,255,51,${Math.random()*.8+.1})`:
+        `rgba(255,184,51,${Math.random()*.4+.05})`;
+      ctx.fillRect(
+        Math.random()*cv.width,Math.random()*cv.height,
+        Math.random()*3+1,Math.random()*3+1
+      );
+    }
+    if(++fr<200)requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,cv.width,cv.height);
+  }
+  draw();
+}
+
+// ════════════════════════════════════════════════════════
+//  KEYBOARD
+// ════════════════════════════════════════════════════════
+document.addEventListener('keydown',e=>{
+  const bs=document.getElementById('battle-screen');
+  const os=document.getElementById('offer-screen');
+  if(os.classList.contains('active'))return;
+  if(!bs.classList.contains('active')||G.phase!=='player')return;
+  if(e.key==='ArrowLeft'||e.key==='a'){e.preventDefault();act('left');}
+  if(e.key==='ArrowRight'||e.key==='d'){e.preventDefault();act('right');}
+  if(e.key==='f')act('turn');
+  if(e.key===' '){e.preventDefault();act('exe');}
+  if(e.key==='w')act('wait');
+  const num=parseInt(e.key);
+  if(num>=1&&num<=9)act('queue',num-1);
+});
+
+// ════════════════════════════════════════════════════════
+//  START
+// ════════════════════════════════════════════════════════
+window.addEventListener('load',()=>{
+  // Check sessionStorage for return page
+  try{
+    const ret=sessionStorage.getItem('sw_nightmare_return');
+    if(ret)G.returnPage=ret;
+  }catch(e){}
+  initGame();
+  setTimeout(initNoise,60);
+});
+</script>
+</body>
+</html>

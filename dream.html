@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SECWATCH // THE NIGHT SHIFT</title>
+<!--
+  THE NIGHT SHIFT -- the card game between days.
+  dream.html?night=1|2|3   data: js/dreamData.js   rules: js/dreamEngine.js
+  Look + lane engine from the Nightmare Wood (bwp/lts).
+  See DESIGN_NIGHTSHIFT.md.
+-->
+<link rel="stylesheet" href="css/dream.css">
+</head>
+<body>
+<div class="grain"></div>
+<div class="vignette"></div>
+
+<!-- ═══ CASE FILE (briefing) ═══ -->
+<section id="view-brief" class="view hidden">
+  <div class="eyebrow" id="brief-clock">01/16/94 02:14</div>
+  <h1 id="brief-title">FIRST CONTACT</h1>
+  <p class="where" id="brief-where"></p>
+  <div id="brief-bars" class="bars"></div>
+  <div class="brief-cols">
+    <div class="brief-col">
+      <h3>What you carry in</h3>
+      <p class="hint" id="brief-evidence-hint"></p>
+      <div id="brief-evidence" class="mini-cards"></div>
+    </div>
+    <div class="brief-col">
+      <h3>What it knows about you</h3>
+      <ul id="brief-threats"></ul>
+    </div>
+  </div>
+  <button id="brief-go" class="seal-btn witch">Close your eyes</button>
+</section>
+
+<!-- ═══ DESCENT MAP ═══ -->
+<section id="view-map" class="view hidden">
+  <div class="map-top">
+    <div class="plaque"><span class="label">Lucidity</span><span class="value" id="map-luc">20/20</span></div>
+    <div class="plaque"><span class="label">Clarity</span><span class="value" id="map-clarity">0</span></div>
+    <div class="plaque"><span class="label">Deck</span><span class="value" id="map-deck">0</span></div>
+  </div>
+  <div class="eyebrow">choose how far down you go</div>
+  <h2 id="map-title">THE DESCENT</h2>
+  <div id="map-depths"></div>
+</section>
+
+<!-- ═══ FEED (battle) ═══ -->
+<section id="view-battle" class="view hidden">
+  <canvas id="entity-canvas"></canvas>
+  <div id="hud">
+    <div class="plaque" id="lucidity-plaque">
+      <span class="label">Lucidity</span>
+      <span class="value" id="lucidity-val">20/20</span>
+    </div>
+    <div class="plaque">
+      <span class="label">Focus</span>
+      <div class="candles" id="candles"></div>
+    </div>
+    <div class="plaque">
+      <span class="label" id="feed-label">Feed</span>
+      <div class="mission-pips" id="depth-pips"></div>
+    </div>
+    <div class="plaque">
+      <span class="label">Turn</span>
+      <span class="value" id="turn-val">1</span>
+    </div>
+    <div class="plaque observer hidden" id="observer">OBSERVER LOGGED</div>
+    <button id="end-turn-btn" class="seal-btn witch">End Turn</button>
+  </div>
+
+  <div id="table-container">
+    <div id="table">
+      <div class="lane-row" id="lane-enemy-row"></div>
+      <div class="lane-row" id="lane-ward-row"></div>
+    </div>
+  </div>
+
+  <div id="discard">
+    <div class="stack"></div>
+    <span>deck <b id="deck-count">0</b> &nbsp; discard <b id="discard-count">0</b></span>
+  </div>
+  <div id="log"></div>
+
+  <div id="hand-wrap"><div id="hand"></div></div>
+</section>
+
+<!-- ═══ REWARD ═══ -->
+<section id="view-reward" class="view hidden">
+  <div class="eyebrow" id="reward-eyebrow">the feed goes dark</div>
+  <h2 id="reward-title">Choose what you carry forward</h2>
+  <div id="reward-grid" class="card-grid"></div>
+  <button id="reward-skip" class="text-btn">...or carry nothing new</button>
+</section>
+
+<!-- ═══ TAPE DECK (rest) ═══ -->
+<section id="view-rest" class="view hidden">
+  <div class="eyebrow">a tape deck, still warm</div>
+  <h2>Play it back</h2>
+  <div class="rest-choices">
+    <button id="rest-heal" class="seal-btn witch">Rewind  (+<span id="rest-heal-n">7</span> Lucidity)</button>
+    <button id="rest-shred" class="seal-btn">Erase  (remove a card for good)</button>
+  </div>
+  <div id="rest-grid" class="card-grid small hidden"></div>
+  <button id="rest-leave" class="text-btn hidden">...leave it</button>
+</section>
+
+<!-- ═══ ARCHIVE (shop) ═══ -->
+<section id="view-archive" class="view hidden">
+  <div class="eyebrow">county records -- after hours</div>
+  <h2>The Archive</h2>
+  <p class="where">Clarity: <b id="archive-clarity">0</b> &nbsp;&middot;&nbsp; <span id="archive-price">4</span> each</p>
+  <div id="archive-grid" class="card-grid"></div>
+  <button id="archive-leave" class="text-btn">...walk back out</button>
+</section>
+
+<!-- ═══ WAKING (video interlude) ═══ -->
+<section id="view-interlude" class="view hidden">
+  <div id="interlude-stage">
+    <video id="interlude-video" playsinline></video>
+    <div id="interlude-missing" class="hidden">
+      <p class="tape-id" id="interlude-missing-id">night_1.mp4</p>
+      <p>No tape in <code>videos/</code> for this night yet. Drop a matching .mp4 there and it plays here.</p>
+      <button id="interlude-continue" class="seal-btn witch">Continue</button>
+    </div>
+    <button id="interlude-skip" class="text-btn">skip &rarr;</button>
+  </div>
+</section>
+
+<!-- ═══ END OF NIGHT ═══ -->
+<section id="view-end" class="view hidden">
+  <div class="eyebrow" id="end-eyebrow"></div>
+  <h1 id="end-title"></h1>
+  <div id="end-stats"></div>
+  <p class="summary" id="end-summary"></p>
+  <div class="end-btns">
+    <button id="end-retry" class="seal-btn witch hidden">Fight it  (retry the night)</button>
+    <button id="end-wake" class="seal-btn">Wake up</button>
+  </div>
+  <p class="hint" id="end-hint"></p>
+</section>
+
+<script src="js/swState.js"></script>
+<script src="js/JAMengine.js"></script>
+<script src="js/dreamData.js"></script>
+<script src="js/dreamEngine.js"></script>
+</body>
+</html>

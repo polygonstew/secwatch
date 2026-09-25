@@ -1,231 +1,265 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SECWATCH v2.11b -- DAY 2</title>
-<!-- SECWATCH v2.11b day2.html | /img/ /audio/ | see production_bible.md -->
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --g:#33ff33;--gdim:#1a5c1a;--ghi:#afffaf;
-  --amb:#ffb833;--red:#ff4040;--blue:#33aaff;--cyan:#33ffee;
-  --bg:#050508;--panel:#080c0f;--border:#0e2a1e;
-}
-html,body{width:100%;height:100%;background:var(--bg);color:var(--g);
-  font-family:'Share Tech Mono','Courier New',monospace;
-  font-size:clamp(10px,1.3vw,13px);overflow:hidden;user-select:none;}
-body::before{content:'';position:fixed;inset:0;
-  background:repeating-linear-gradient(to bottom,transparent 0px,transparent 3px,rgba(0,0,0,0.09) 3px,rgba(0,0,0,0.09) 4px);
-  pointer-events:none;z-index:900;}
-body::after{content:'';position:fixed;inset:0;
-  background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,0.75) 100%);
-  pointer-events:none;z-index:899;}
-#layout{width:100%;height:100%;display:grid;grid-template-rows:58% 42%;animation:crtFlicker 14s infinite;}
-#topRow{display:grid;grid-template-columns:63% 37%;border-bottom:1px solid var(--border);min-height:0;}
-#camPanel{position:relative;background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
-#camFrame{flex:1;position:relative;display:flex;align-items:center;justify-content:center;background:#000;overflow:hidden;}
-#camFrame::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(to bottom,transparent 0px,transparent 2px,rgba(0,0,0,0.22) 2px,rgba(0,0,0,0.22) 3px);pointer-events:none;z-index:30;}
-#camFrame::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,0.65) 100%);pointer-events:none;z-index:31;}
-#camFeed{width:100%;height:100%;object-fit:cover;display:none;filter:grayscale(1) brightness(0.82) contrast(1.18) sepia(0.5) hue-rotate(76deg) saturate(1.6);}
-#camFeed.active{display:block;}
-#camFeed.degraded{filter:grayscale(1) brightness(0.65) contrast(1.3) sepia(0.4) hue-rotate(76deg) saturate(1.4);animation:camFlicker 0.11s steps(1) infinite,degradeTear 4.8s ease-in-out infinite;}
-#camNoFeed{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--gdim);letter-spacing:0.12em;z-index:5;}
-#camNoFeed .nf-box{border:1px solid var(--gdim);padding:18px 32px;text-align:center;}
-#camNoFeed.hidden{display:none;}
-#camHUD{position:absolute;inset:0;pointer-events:none;z-index:32;display:flex;flex-direction:column;justify-content:space-between;padding:6px 10px;font-size:clamp(8px,0.95vw,11px);letter-spacing:0.07em;color:var(--g);text-shadow:0 0 5px var(--g);opacity:0;transition:opacity 0.3s;}
-#camHUD.active{opacity:1;}
-.hud-row{display:flex;justify-content:space-between;align-items:center;}
-#hudRec{color:var(--red);animation:blink 1.6s step-end infinite;}
-#hudSig.weak{color:var(--amb);}
-#hudAlert{color:var(--amb);text-shadow:0 0 6px var(--amb);animation:blink 0.65s step-end infinite;letter-spacing:0.14em;opacity:0;}
-#hudAlert.show{opacity:1;}
-#camFrame.signal-loss #camFeed{animation:signalLoss 0.75s ease-in forwards !important;}
-#camAcquire{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:#000;z-index:20;color:var(--g);letter-spacing:0.14em;text-shadow:0 0 8px var(--g);animation:blink 0.85s step-end infinite;}
-#camAcquire.active{display:flex;}
-#camLabel{flex-shrink:0;background:var(--panel);border-bottom:1px solid var(--border);padding:3px 10px;font-size:clamp(8px,0.9vw,10px);letter-spacing:0.1em;color:var(--gdim);display:flex;justify-content:space-between;}
-#camBar{flex-shrink:0;background:var(--panel);border-top:1px solid var(--border);padding:3px 8px;display:flex;gap:6px;flex-wrap:wrap;font-size:clamp(7px,0.85vw,10px);letter-spacing:0.06em;min-height:22px;}
-.cam-btn{color:var(--gdim);padding:1px 4px;border:1px solid transparent;}
-.cam-btn.online{color:var(--g);}.cam-btn.active{color:var(--ghi);border-color:var(--g);text-shadow:0 0 6px var(--g);}.cam-btn.offline{color:var(--red);}
-#commsPanel{background:var(--panel);display:flex;flex-direction:column;overflow:hidden;}
-#commsLabel{flex-shrink:0;border-bottom:1px solid var(--border);padding:3px 10px;font-size:clamp(8px,0.9vw,10px);letter-spacing:0.1em;color:var(--gdim);display:flex;justify-content:space-between;}
-#commsBody{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;padding:8px 10px;display:flex;flex-direction:column;gap:8px;}
-#commsBody::-webkit-scrollbar{display:none;}
-/* incoming call display */
-#incomingDisplay{border:1px solid var(--amb);padding:8px 10px;display:none;}
-#incomingDisplay.active{display:block;}
-.comm-title{color:var(--gdim);font-size:0.85em;letter-spacing:0.1em;margin-bottom:5px;}
-#incomingName{color:var(--amb);text-shadow:0 0 6px var(--amb);animation:blink 0.8s step-end infinite;font-size:1.1em;letter-spacing:0.1em;}
-#incomingStatus{font-size:0.82em;color:var(--gdim);margin-top:3px;}
-#phoneDisplay,#tapeDisplay{border:1px solid var(--border);padding:8px 10px;}
-#phoneNumber{font-size:1.35em;letter-spacing:0.18em;color:var(--ghi);text-shadow:0 0 8px var(--g);min-height:1.4em;}
-#phoneStatus{font-size:0.85em;letter-spacing:0.1em;margin-top:3px;min-height:1em;}
-#phoneStatus.ringing{color:var(--amb);animation:blink 1s step-end infinite;}
-#phoneStatus.connected{color:var(--g);}#phoneStatus.dead{color:var(--red);}
-#tapeName{color:var(--ghi);letter-spacing:0.07em;min-height:1em;font-size:0.92em;}
-#tapeStatus{font-size:0.82em;color:var(--gdim);margin-top:3px;min-height:1em;}
-#tapeBar{margin-top:5px;height:2px;background:var(--gdim);width:0%;transition:width 0.5s linear;}
-#transcript{border:1px solid var(--border);padding:8px 10px;flex:1;font-size:0.88em;line-height:1.6;color:var(--gdim);overflow-y:auto;scrollbar-width:none;min-height:50px;}
-#transcript::-webkit-scrollbar{display:none;}
-#transcript.active{color:var(--g);}
-/* dialog display in comms */
-#dialogDisplay{border:1px solid var(--cyan);padding:8px 10px;display:none;}
-#dialogDisplay.active{display:block;}
-#dialogSpeaker{color:var(--cyan);font-size:0.85em;letter-spacing:0.12em;margin-bottom:5px;text-shadow:0 0 5px var(--cyan);}
-#dialogText{font-size:0.9em;line-height:1.6;color:var(--ghi);}
-#commsHelp{font-size:0.8em;color:var(--gdim);letter-spacing:0.05em;line-height:1.7;border-top:1px solid var(--border);padding:5px 10px;flex-shrink:0;}
-#termPanel{background:var(--bg);border-top:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
-#termLabel{flex-shrink:0;border-bottom:1px solid var(--border);padding:2px 10px;font-size:clamp(7px,0.85vw,9px);letter-spacing:0.1em;color:var(--gdim);display:flex;justify-content:space-between;}
-#termOutput{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--gdim) transparent;padding:4px 10px 2px;}
-.ln{line-height:1.58;letter-spacing:0.022em;white-space:pre-wrap;word-break:break-word;text-shadow:0 0 3px rgba(51,255,51,0.18);}
-.dim{color:var(--gdim);text-shadow:none;}.hi{color:var(--ghi);text-shadow:0 0 6px rgba(51,255,51,0.45);}
-.warn{color:var(--amb);}.err{color:var(--red);}.echo{color:var(--ghi);}
-.sys{color:var(--blue);}.cyan{color:var(--cyan);text-shadow:0 0 4px rgba(51,255,238,0.35);}
-#termInputRow{flex-shrink:0;display:flex;align-items:center;padding:2px 10px 4px;border-top:1px solid var(--border);opacity:0;pointer-events:none;min-height:22px;}
-#termInputRow.on{opacity:1;pointer-events:auto;}
-#termPrompt{white-space:pre;}.cur{display:inline-block;width:0.55em;height:0.92em;background:var(--g);box-shadow:0 0 5px var(--g),0 0 12px rgba(51,255,51,0.35);margin-left:1px;vertical-align:middle;position:relative;top:-1px;animation:blink 1.1s step-end infinite;}
-#termTyped{white-space:pre;min-width:1px;}
-#ghost{position:fixed;opacity:0;width:1px;height:1px;top:-400px;border:none;outline:none;font-size:1px;pointer-events:none;}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-@keyframes crtFlicker{0%,100%{opacity:1}91%{opacity:1}91.3%{opacity:.80}91.7%{opacity:1}96.8%{opacity:1}97.1%{opacity:.87}97.4%{opacity:1}}
-@keyframes camFlicker{0%{opacity:1}50%{opacity:0.88}100%{opacity:1}}
-@keyframes degradeTear{0%,100%{transform:none;}93.4%{transform:translateX(-4px) scaleY(1.007);}93.8%{transform:translateX(3px) scaleY(0.994);}94.2%{transform:none;}}
-@keyframes signalLoss{0%{opacity:1;}20%{opacity:1;filter:grayscale(1) brightness(2.5) contrast(4) sepia(0) saturate(0);}40%{opacity:1;filter:grayscale(1) brightness(0.04) contrast(8);}70%{opacity:0.5;}100%{opacity:0;filter:grayscale(1) brightness(0);}}
-</style>
-</head>
-<body>
-<div id="layout">
-  <div id="topRow">
-    <div id="camPanel">
-      <div id="camLabel">
-        <span>SECWATCH v2.11b  --  CAMERA FEED</span>
-        <span id="camLabelRight">HARGROVE PROPERTIES LLC</span>
-      </div>
-      <div id="camFrame">
-        <img id="camFeed" src="" alt="">
-        <div id="camAcquire">ACQUIRING SIGNAL...</div>
-        <div id="camNoFeed">
-          <div class="nf-box">
-            <div>NO FEED SELECTED</div>
-            <div style="margin-top:6px;font-size:0.85em;color:var(--gdim);">SEC1.EXE  /  SEC2.EXE</div>
-          </div>
-        </div>
-        <div id="camHUD">
-          <div class="hud-row"><span id="hudCamID">--</span><span id="hudAlert"></span><span id="hudLoc">--</span></div>
-          <div class="hud-row"><span id="hudRec">&#9679; REC</span><span id="hudDate">01/16/94&nbsp;&nbsp;06:22</span><span id="hudSig">SIG: --</span></div>
-        </div>
-      </div>
-      <div id="camBar"><span style="color:var(--gdim);letter-spacing:0.08em;">RUN SEC1.EXE OR SEC2.EXE TO INITIALIZE</span></div>
-    </div>
-    <div id="commsPanel">
-      <div id="commsLabel"><span>COMMS / PHONE</span><span id="commsLabelRight">LINE: IDLE</span></div>
-      <div id="commsBody">
-        <!-- incoming call banner -->
-        <div id="incomingDisplay">
-          <div class="comm-title">&#9743; INCOMING CALL</div>
-          <div id="incomingName">EXT. 204  --  PELLEGRINO</div>
-          <div id="incomingStatus">TYPE: ANSWER to pick up</div>
-        </div>
-        <!-- dialog window -->
-        <div id="dialogDisplay">
-          <div id="dialogSpeaker">PELLEGRINO</div>
-          <div id="dialogText"></div>
-        </div>
-        <div id="phoneDisplay">
-          <div class="comm-title">&#9743; TELEPHONE</div>
-          <div id="phoneNumber">&nbsp;</div>
-          <div id="phoneStatus">DIAL [EXT] to call out</div>
-        </div>
-        <div id="tapeDisplay">
-          <div class="comm-title">&#9654; TAPE PLAYER</div>
-          <div id="tapeName">NO TAPE LOADED</div>
-          <div id="tapeStatus">PLAY [tape]</div>
-          <div id="tapeBar"></div>
-        </div>
-        <div id="transcript">READY</div>
-      </div>
-      <div id="commsHelp">ANSWER&nbsp;&nbsp;DIAL [ext]&nbsp;&nbsp;PLAY [tape]&nbsp;&nbsp;STOP&nbsp;&nbsp;HELP</div>
-    </div>
-  </div>
-  <div id="termPanel">
-    <div id="termLabel">
-      <span>TERMINAL  --  DAY 2  --  01/16/94  06:22</span>
-      <span id="termLabelRight">C:\SECWATCH</span>
-    </div>
-    <div id="termOutput"></div>
-    <div id="termInputRow">
-      <span id="termPrompt">C:\SECWATCH&gt;&nbsp;</span>
-      <span id="termTyped"></span>
-      <span class="cur"></span>
-    </div>
-  </div>
-</div>
-<input id="ghost" autocomplete="off" spellcheck="false">
-
-<script>
 'use strict';
 
 /* ════════════════════════════════════════════════════════
-   GAME STATE  --  Day 2
+   STATE
 ════════════════════════════════════════════════════════ */
 const S = {
   cwd:'C:\\SECWATCH', inputMode:'cmd', inputBuf:'',
   activeCamKey:null, activeSite:null,
   sec2Runs:0, tapePlayCount:0,
-  pellegrino_called:false,
-  pellegrino_dialog_done:false,
-  tape06Found:false,
+  pellegrinoAnswered:false,
+  pellegrinoDone:false,
   witnessRead:false,
   overnightVisited:false,
   cam9d2Viewed:false,
+  tape06Played:false,
+  badgeLogRead:false,
   endDay2Triggered:false,
-  /* dialog choice history for branching */
   dialogPath:[],
+  observerLogged:false,
+  _wrongTimestamp:false,
 };
 
 const DATE_STR='01/16/94', TIME_STR='06:22';
 let _res=null;
 
 /* ════════════════════════════════════════════════════════
-   DIALOG TREE
-   Pellegrino calls you at boot. Your answers matter.
+   THREAT LEVEL  --  carries over from Day 1 via sessionStorage
 ════════════════════════════════════════════════════════ */
-const DIALOG = {
+const TL = {
+  bars:{h:0,l:0,s:0,e:0},
+  els:{h:{},l:{},s:{},e:{}},
+  ewRow:null, ewTimer:null,
+
+  init(){
+    this.els.h={fill:document.getElementById('barH'),val:document.getElementById('valH')};
+    this.els.l={fill:document.getElementById('barL'),val:document.getElementById('valL')};
+    this.els.s={fill:document.getElementById('barS'),val:document.getElementById('valS')};
+    this.els.e={fill:document.getElementById('barE'),val:document.getElementById('valE')};
+    this.ewRow=document.getElementById('ewRow');
+    /* restore from day 1 */
+    try{
+      const saved=JSON.parse(sessionStorage.getItem('sw_tl')||'{}');
+      if(saved.h)this.bars.h=saved.h;
+      if(saved.l)this.bars.l=saved.l;
+      if(saved.s)this.bars.s=saved.s;
+      if(saved.e)this.bars.e=saved.e;
+    }catch(e){}
+    /* re-render all bars */
+    ['h','l','s','e'].forEach(b=>this._render(b));
+    if(this.bars.h>=5||this.bars.l>=5||this.bars.s>=5){
+      if(this.ewRow)this.ewRow.classList.add('show');
+      if(!this.ewTimer)this._startEWTimer();
+    }
+    /* carry over observer logged state */
+    if(this.bars.h>=7||this.bars.l>=7||this.bars.s>=7){
+      S.observerLogged=true;
+    }
+    /* if day1 reached tl9, witness.txt will have extra content */
+    if(this.bars.s>=9) S._tl9carried=true;
+  },
+
+  _save(){
+    try{sessionStorage.setItem('sw_tl',JSON.stringify(this.bars));}catch(e){}
+  },
+
+  _render(bar){
+    const v=Math.min(this.bars[bar],10);
+    const el=this.els[bar];
+    if(!el.fill)return;
+    el.fill.style.width=(v*10)+'%';
+    el.val.textContent=v===10?'--':v;
+    if(v>=7){el.fill.classList.add('red');el.fill.classList.remove('amber');el.val.className='int-val err';}
+    else if(v>=4){el.fill.classList.add('amber');el.fill.classList.remove('red');el.val.className='int-val warn';}
+    else{el.fill.classList.remove('amber','red');el.val.className='int-val';}
+  },
+
+  raise(bar,amt=1){
+    const prev=this.bars[bar];
+    this.bars[bar]=Math.min(10,this.bars[bar]+amt);
+    if(this.bars[bar]===prev)return;
+    this._render(bar);
+    this._save();
+    this._check(bar,prev);
+  },
+
+  _check(bar,prev){
+    const v=this.bars[bar];
+    if(v>=3&&prev<3&&bar==='s'){
+      setTimeout(()=>{
+        if(termInputRow&&termInputRow.classList.contains('on')){
+          const d=document.createElement('div');d.className='ln dim';
+          d.textContent='SECWATCH: Anomalous access pattern detected.  Logging for review.';
+          termOutput.insertBefore(d,termInputRow);
+          termOutput.scrollTop=termOutput.scrollHeight;
+        }
+      },3000);
+    }
+    if(v>=5&&prev<5&&bar==='h')S._wrongTimestamp=true;
+    if(v>=5&&prev<5&&bar==='s'){
+      setTimeout(()=>TL._phantomRing(),45000+Math.random()*60000);
+    }
+    if(v>=7&&prev<7){
+      S.observerLogged=true;
+      if(camHUD&&camHUD.classList.contains('active')){
+        hudAlert.textContent='OBSERVER LOGGED';hudAlert.classList.add('show');
+      }
+    }
+    if(v>=9&&prev<9&&bar==='s'){
+      /* update witness.txt with player session data */
+      _updateWitnessTxt();
+    }
+    if(this.bars.h>=5||this.bars.l>=5||this.bars.s>=5){
+      if(this.ewRow)this.ewRow.classList.add('show');
+      if(!this.ewTimer)this._startEWTimer();
+    }
+  },
+
+  _startEWTimer(){
+    this.ewTimer=setInterval(()=>this.raise('e',1),3*60*1000);
+  },
+
+  _phantomRing(){
+    if(S.inputMode!=='cmd')return;
+    const prev=commsLabelR.textContent;
+    phoneNumber.textContent='???';
+    phoneStatus.textContent='INCOMING...';phoneStatus.className='ringing';
+    commsLabelR.textContent='LINE: INCOMING';
+    playAudio('audio/phone_ring.mp3');
+    setTimeout(()=>{
+      stopAudio();
+      phoneStatus.textContent='MISSED CALL';phoneStatus.className='dead';
+      commsLabelR.textContent=prev;
+      if(TL.bars.s>=5)setTimeout(()=>TL._phantomRing(),90000+Math.random()*120000);
+    },3500);
+  },
+
+  onCamOpen(){
+    if(S.observerLogged&&camHUD&&camHUD.classList.contains('active')){
+      hudAlert.textContent='OBSERVER LOGGED';hudAlert.classList.add('show');
+    }
+    if(S._wrongTimestamp&&camHUD&&camHUD.classList.contains('active')){
+      hudDate.textContent='01/14/94\u00a002:17';
+    }
+  },
+};
+
+function _updateWitnessTxt(){
+  const f=FS['C:\\SECWATCH\\WITNESS.TXT'];
+  if(!f||f._updated)return;
+  f._updated=true;
+  const badgeNum=sessionStorage.getItem('sw_badge')||'????';
+  const now=new Date();
+  const ts=now.toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit'});
+  f.content+=`
+You've been here too long.
+
+I can see your session in the access log.
+
+Badge `+badgeNum+`.
+
+`+DATE_STR+`  `+ts+`
+
+You need to understand that reading this
+is the same as being here.
+
+You are here.
+`;
+}
+
+/* ════════════════════════════════════════════════════════
+   CAMERAS  --  Day 2 images show subtle overnight changes
+   cam1_d2: mug moved to floor
+   cam6_d2: Suite 3-C door now closed
+   cam9_d2: cable reel gone from bench
+════════════════════════════════════════════════════════ */
+const CAMS={
+  cam1:{label:'CAM1',loc:'LOBBY',         img:'img/cam1_d2.png', /*anim:'img/cam1_d2.gif',*/ online:true},
+  cam2:{label:'CAM2',loc:'FL1-EAST',      img:'img/cam2.png',                                online:true},
+  cam3:{label:'CAM3',loc:'FL2-WEST',      img:'img/cam3.png',                                online:true},
+  cam4:{label:'CAM4',loc:'FL4-LOBBY',     img:'img/cam4.png',                                online:true},
+  cam5:{label:'CAM5',loc:'PARKING-STRUCT',img:'img/cam5.jpg',                                online:true},
+  cam6:{label:'CAM6',loc:'FL3-CORRIDOR',  img:'img/cam6_d2.png',                             online:false},
+  cam7:{label:'CAM7',loc:'TRAILER-EXT',   img:'img/cam7.png',    /*anim:'img/cam7.gif',*/    online:true},
+  cam8:{label:'CAM8',loc:'PERIMETER-ROAD',img:'img/cam8.png',                                online:true},
+  cam9:{label:'CAM9',loc:'EAST-WALL-80FT',img:'img/cam9_d2.png',                             online:true,degraded:true},
+};
+const SITE_CAMS={hargrove:['cam1','cam2','cam3','cam4','cam5','cam6'],lkco:['cam7','cam8','cam9']};
+
+/* ════════════════════════════════════════════════════════
+   TAPE REGISTRY
+════════════════════════════════════════════════════════ */
+const TAPES={
+  'TAPE_06':{
+    label:'[origin unknown -- not previously in system]',
+    audio:'audio/tape_06.mp3',
+    transcript:[
+      "I don't know when this is.",
+      "I don't have a watch anymore.",
+      "",
+      "The wall is -- it's different now.",
+      "Since we backfilled.",
+      "It's not warm anymore.",
+      "",
+      "It's hot.",
+      "",
+      "I keep thinking about Ricky Meade's truck.",
+      "Still in his driveway.",
+      "Nobody went to get it.",
+      "",
+      "[very long pause]",
+      "",
+      "I shouldn't be this far down.",
+      "",
+      "I can see light.",
+      "",
+      "[tape cuts]",
+    ]
+  }
+};
+
+/* ════════════════════════════════════════════════════════
+   DIALOG TREE  --  Pellegrino calls you at boot
+   Player chooses responses. Path is stored in S.dialogPath.
+   Pellegrino reveals more or less depending on what you admit.
+════════════════════════════════════════════════════════ */
+const DIALOG={
   'open':{
     speaker:'PELLEGRINO',
     text:"Thank God. Listen -- did you file your incident report yet?",
     audio:'audio/pellegrino_d2_open.mp3',
     choices:[
-      {id:1, text:"Not yet, I was just about to.",     next:'q_cam6'},
-      {id:2, text:"I filed it an hour ago.",           next:'q_cam6'},
-      {id:3, text:"There were some things I didn't log.", next:'q_cam6_direct'},
+      {id:1,text:"Not yet. I was just about to.",      next:'q_cam6'},
+      {id:2,text:"I filed it an hour ago.",            next:'q_cam6'},
+      {id:3,text:"There were things I didn't log.",    next:'q_cam6_direct'},
     ]
   },
   'q_cam6':{
     speaker:'PELLEGRINO',
-    text:"The Floor 3 camera. It shows a brief reconnection at 02:19. Did you see a feed?",
+    text:"The Floor 3 camera. Shows a brief reconnection at 02:19. Did you see a feed?",
     audio:'audio/pellegrino_d2_cam6.mp3',
     choices:[
-      {id:1, text:"Yes. Six seconds of footage.",       next:'q_figure', effect:s=>{s.dialogPath.push('admitted_feed');}},
-      {id:2, text:"There was interference. Static.",    next:'q_badge',  effect:s=>{s.dialogPath.push('denied_feed');}},
-      {id:3, text:"I'm not sure what I saw.",           next:'q_figure', effect:s=>{s.dialogPath.push('uncertain');}},
+      {id:1,text:"Yes. Six seconds of footage.",      next:'q_figure', effect:s=>{s.dialogPath.push('admitted_feed');TL.raise('h',1);}},
+      {id:2,text:"There was interference. Static.",   next:'q_badge',  effect:s=>{s.dialogPath.push('denied_feed');}},
+      {id:3,text:"I'm not sure what I saw.",          next:'q_figure', effect:s=>{s.dialogPath.push('uncertain');}},
     ]
   },
   'q_cam6_direct':{
     speaker:'PELLEGRINO',
     text:"[very quiet] Like what.",
+    audio:'audio/pellegrino_d2_cam6_direct.mp3',
     choices:[
-      {id:1, text:"The Floor 3 camera came back on.",   next:'q_figure', effect:s=>{s.dialogPath.push('admitted_feed');}},
-      {id:2, text:"Badge 0047. It accessed the building.", next:'q_badge', effect:s=>{s.dialogPath.push('badge_focus');}},
+      {id:1,text:"The Floor 3 camera came back on.",     next:'q_figure', effect:s=>{s.dialogPath.push('admitted_feed');TL.raise('h',1);}},
+      {id:2,text:"Badge 0047. It accessed the building.",next:'q_badge',  effect:s=>{s.dialogPath.push('badge_focus');TL.raise('h',1);}},
     ]
   },
   'q_figure':{
     speaker:'PELLEGRINO',
     text:"Was it -- did you see anyone in the corridor?",
+    audio:'audio/pellegrino_d2_figure.mp3',
     choices:[
-      {id:1, text:"Yes. At the far end. Standing still.", next:'q_badge', effect:s=>{s.dialogPath.push('confirmed_figure');}},
-      {id:2, text:"The feed cut before I could tell.",    next:'q_badge', effect:s=>{s.dialogPath.push('uncertain_figure');}},
+      {id:1,text:"Yes. Far end. Standing still.",      next:'q_badge', effect:s=>{s.dialogPath.push('confirmed_figure');TL.raise('h',1);}},
+      {id:2,text:"The feed cut before I could tell.",  next:'q_badge', effect:s=>{s.dialogPath.push('uncertain_figure');}},
     ]
   },
   'q_badge':{
@@ -233,70 +267,76 @@ const DIALOG = {
     text:"David Hargrove has been dead since March of 1991.",
     audio:'audio/pellegrino_d2_badgeA.mp3',
     choices:[
-      {id:1, text:"His badge worked. I saw the log.",        next:'q_wall'},
-      {id:2, text:"How did his badge access the system?",    next:'q_wall'},
-      {id:3, text:"Then who was in the building?",           next:'q_wall'},
+      {id:1,text:"His badge worked. I saw the log.",       next:'q_wall', effect:s=>{TL.raise('h',1);}},
+      {id:2,text:"How did his badge access the system?",   next:'q_wall'},
+      {id:3,text:"Then who was in the building?",          next:'q_wall'},
     ]
   },
   'q_wall':{
     speaker:'PELLEGRINO',
-    text:"I need to ask you something and I need you to be straight with me. Did you look at the LKCO site?",
+    text:"I need to ask you something. Did you look at the LKCO site?",
+    audio:'audio/pellegrino_d2_wall.mp3',
     choices:[
-      {id:1, text:"Yes. I looked at all the files.",             next:'q_wall_b', effect:s=>{s.dialogPath.push('read_lkco');}},
-      {id:2, text:"I ran the cameras. I didn't read the files.", next:'close',    effect:s=>{s.dialogPath.push('skipped_lkco');}},
-      {id:3, text:"I found Earl Combs' recordings.",             next:'q_wall_b', effect:s=>{s.dialogPath.push('found_earl');}},
+      {id:1,text:"Yes. I looked at all the files.",              next:'q_wall_b', effect:s=>{s.dialogPath.push('read_lkco');TL.raise('l',1);}},
+      {id:2,text:"I ran the cameras. Didn't read the files.",    next:'close',    effect:s=>{s.dialogPath.push('skipped_lkco');}},
+      {id:3,text:"I found Earl Combs' recordings.",              next:'q_wall_b', effect:s=>{s.dialogPath.push('found_earl');TL.raise('l',1);}},
     ]
   },
   'q_wall_b':{
     speaker:'PELLEGRINO',
     text:"[long pause] Did you read what he wrote? At the end?",
+    audio:'audio/pellegrino_d2_wall_b.mp3',
     choices:[
-      {id:1, text:"COMBS.TXT. Yes. I read it.",                 next:'close', effect:s=>{s.dialogPath.push('read_combs');}},
-      {id:2, text:"I found a file but I didn't open it.",        next:'close', effect:s=>{s.dialogPath.push('avoided_combs');}},
+      {id:1,text:"COMBS.TXT. Yes. I read it.",              next:'close', effect:s=>{s.dialogPath.push('read_combs');TL.raise('l',1);TL.raise('s',1);}},
+      {id:2,text:"I found a file but didn't open it.",      next:'close', effect:s=>{s.dialogPath.push('avoided_combs');}},
     ]
   },
   'close':{
     speaker:'PELLEGRINO',
-    text:"Don't go back in that building. If Aldridge and Carr asks -- tell them the system needs another week. Tell them anything. Just don't go back in.",
+    text:"Don't go back in that building. If Aldridge and Carr asks -- tell them the system needs another week. Just don't go back in.",
     audio:'audio/pellegrino_d2_close.mp3',
     choices:[
-      {id:1, text:"What happened in 1991?",           next:'close_b'},
-      {id:2, text:"What is in the east wall?",        next:'close_c'},
-      {id:3, text:"[say nothing]",                    next:'END'},
+      {id:1,text:"What happened in 1991?",       next:'close_b'},
+      {id:2,text:"What is in the east wall?",    next:'close_c'},
+      {id:3,text:"[say nothing]",                next:'END'},
     ]
   },
   'close_b':{
     speaker:'PELLEGRINO',
-    text:"[very long silence] David found the geology report. He went to see for himself. [pause] We found him on Floor 3. He was -- he was fine. Physically. But he had been writing on the walls. Same thing over and over. [pause] Earl's name.",
+    text:"[very long silence] David found the geology report. He went to see for himself. We found him on Floor 3. Physically fine. But he had been writing on the walls. Same thing over and over. Earl's name.",
+    audio:'audio/pellegrino_d2_close_b.mp3',
     choices:[
-      {id:1, text:"What was he writing?",     next:'close_final'},
-      {id:2, text:"[say nothing]",            next:'END'},
+      {id:1,text:"What was he writing exactly?",  next:'close_final', effect:s=>{TL.raise('h',1);}},
+      {id:2,text:"[say nothing]",                 next:'END'},
     ]
   },
   'close_c':{
     speaker:'PELLEGRINO',
-    text:"[long pause] Earl thought it was something old. Something that was there before the coal. Before the mountain. [pause] He said it had been there before. That it knew how to wait. [quiet] I don't know what that means. I don't want to know.",
+    text:"[long pause] Earl thought it was something old. Before the coal. Before the mountain. He said it had been there before. That it knew how to wait. [very quiet] I don't know what that means. I don't want to know.",
+    audio:'audio/pellegrino_d2_close_c.mp3',
     choices:[
-      {id:1, text:"It's still there.",        next:'close_final'},
-      {id:2, text:"[say nothing]",            next:'END'},
+      {id:1,text:"It's still there.",    next:'close_final', effect:s=>{TL.raise('l',1);TL.raise('e',1);}},
+      {id:2,text:"[say nothing]",        next:'END'},
     ]
   },
   'close_final':{
     speaker:'PELLEGRINO',
     text:"[barely audible] Yes. [click]",
+    audio:'audio/pellegrino_d2_close_final.mp3',
     choices:[
-      {id:1, text:"[line is dead]",           next:'END'},
+      {id:1,text:"[line is dead]",  next:'END'},
     ]
   },
 };
 
 /* ════════════════════════════════════════════════════════
-   DAY 2 FILESYSTEM
+   VIRTUAL FILESYSTEM  --  Day 2
 ════════════════════════════════════════════════════════ */
-const FS = {
+const FS={
   'C:\\SECWATCH':{type:'dir',
     children:['README.TXT','SEC1.EXE','SEC2.EXE','WITNESS.TXT',
               'BADGE.LOG','OVERNIGHT','FLOORS','SITES']},
+
   'C:\\SECWATCH\\README.TXT':{type:'file',content:
 `SECWATCH v2.11b -- Day 2 -- 01/16/94
 
@@ -311,7 +351,7 @@ COMMANDS
   dial / play / stop
   help
 `},
-  /* new overnight file -- automatically appeared */
+
   'C:\\SECWATCH\\WITNESS.TXT':{type:'file',content:
 `[This file was not present at end of previous session]
 [Creation timestamp: 01/16/94  04:47]
@@ -349,6 +389,7 @@ We just know it does.
 
 Don't come back.
 `},
+
   'C:\\SECWATCH\\BADGE.LOG':{type:'file',content:
 `BADGE LOG -- HARGROVE BUSINESS CENTER
 
@@ -364,9 +405,12 @@ Don't come back.
 
 TOTAL OVERNIGHT ACCESSES: 2 entries
 `},
-  'C:\\SECWATCH\\OVERNIGHT':{type:'dir',children:['MOTION.LOG','TAPE_06.MP3','NOTES.TXT']},
+
+  'C:\\SECWATCH\\OVERNIGHT':{type:'dir',
+    children:['MOTION.LOG','TAPE_06.MP3','NOTES.TXT']},
+
   'C:\\SECWATCH\\OVERNIGHT\\MOTION.LOG':{type:'file',content:
-`MOTION LOG -- OVERNIGHT 01/15 to 01/16
+`MOTION LOG -- OVERNIGHT 01/15 TO 01/16
 
 01/16/94  04:22  CAM1  LOBBY           MOTION: YES
 01/16/94  04:22  CAM3  FL2-WEST        MOTION: YES
@@ -378,12 +422,14 @@ TOTAL OVERNIGHT ACCESSES: 2 entries
 NOTE: CAM5 PARKING -- no vehicles recorded
       during any of the above timestamps.
 `},
+
   'C:\\SECWATCH\\OVERNIGHT\\TAPE_06.MP3':{type:'audio',tape:'TAPE_06',content:
 `[AUDIO FILE]
 [This file was not present at end of previous session]
 [Origin: UNKNOWN]
 Type: play TAPE_06 to listen
 `},
+
   'C:\\SECWATCH\\OVERNIGHT\\NOTES.TXT':{type:'file',content:
 `handwritten note -- found under keyboard at shift start
 01/16/94
@@ -400,6 +446,7 @@ Don't go to the east wall.
 
 Don't dig.
 `},
+
   'C:\\SECWATCH\\FLOORS':{type:'dir',children:['CAMS.TXT','FLOOR3.DAT']},
   'C:\\SECWATCH\\FLOORS\\CAMS.TXT':{type:'file',content:
 `CAM1 LOBBY           [ONLINE -- see overnight motion log]
@@ -408,81 +455,118 @@ CAM3 FL2-WEST        [ONLINE -- see overnight motion log]
 CAM4 FL4-LOBBY       [ONLINE]
 CAM5 PARKING-STRUCT  [ONLINE -- 0 vehicles overnight]
 CAM6 FL3-CORRIDOR    [SIGNAL ACTIVE 04:23 -- LOST 04:24]
+
+NOTE: CAM1 feed shows anomaly vs previous session.
+      CAM6 corridor configuration has changed.
 `},
   'C:\\SECWATCH\\FLOORS\\FLOOR3.DAT':{type:'file',content:
 `!! ACCESS RESTRICTED BY COURT ORDER
 !! FLOOR 3 HAS BEEN ACCESSED SINCE YOUR LAST SESSION
+!! Badge #0047 -- 04:23 -- 04:24
 !! See OVERNIGHT/MOTION.LOG
 !! See BADGE.LOG
 `},
+
   'C:\\SECWATCH\\SITES':{type:'dir',children:['LKCO']},
   'C:\\SECWATCH\\SITES\\LKCO':{type:'dir',children:['SITE94.CFG','CAMS.TXT']},
   'C:\\SECWATCH\\SITES\\LKCO\\SITE94.CFG':{type:'file',content:
-`; LKCO SITE CONFIG
+`; LKCO SITE CONFIG -- OVERNIGHT REPORT
 [OVERNIGHT]
 CAM9 EAST-WALL-80FT: MOTION EVENT 04:31
 DURATION: 14 seconds
 NOTE: the cable reel is gone from the bench level
-      it was present in all previous footage
+      it was present in all previous footage since 1983
       no drag marks visible on camera
+      no explanation
 `},
   'C:\\SECWATCH\\SITES\\LKCO\\CAMS.TXT':{type:'file',content:
 `CAM7 TRAILER-EXT-EAST  [ONLINE]
 CAM8 PERIMETER-ROAD    [ONLINE -- nothing on road overnight]
 CAM9 EAST-WALL-80FT    [ONLINE -- see SITE94.CFG for overnight event]
+
+NOTE: CAM9 signal quality unchanged.
+      The cable reel has been at the base of the east wall
+      since at least March 1983.
+      It is not there now.
 `},
 };
 
 /* ════════════════════════════════════════════════════════
-   TAPE REGISTRY  --  Day 2
+   END OF DAY 2 CHECK
 ════════════════════════════════════════════════════════ */
-const TAPES = {
-  'TAPE_06':{
-    label:'[origin unknown -- not previously in system]',
-    audio:'audio/tape_06.mp3',
-    transcript:[
-      "I don't know when this is.",
-      "I don't have a watch anymore.",
-      "",
-      "The wall is -- it's different now.",
-      "Since we backfilled.",
-      "It's not warm anymore.",
-      "",
-      "It's hot.",
-      "",
-      "I keep thinking about Ricky Meade's truck.",
-      "Still in his driveway.",
-      "Nobody went to get it.",
-      "",
-      "[very long pause]",
-      "",
-      "I shouldn't be this far down.",
-      "",
-      "I can see light.",
-      "",
-      "[tape cuts]",
-    ]
+function checkEndDay2(){
+  if(S.endDay2Triggered)return;
+  if(S.pellegrinoDone && S.witnessRead &&
+     S.tape06Played  && S.badgeLogRead){
+    S.endDay2Triggered=true;
+    setTimeout(runEndDay2,2000);
   }
-};
+}
 
-/* ════════════════════════════════════════════════════════
-   CAMERA REGISTRY  --  Day 2 images
-   Note the subtle changes from Day 1:
-   cam1: mug moved,  cam6: one door closed,  cam9: reel gone
-════════════════════════════════════════════════════════ */
-const CAMS = {
-  cam1:{label:'CAM1',loc:'LOBBY',         img:'img/cam1_d2.png',   /*anim:'img/cam1_d2.gif',*/ online:true},
-  cam2:{label:'CAM2',loc:'FL1-EAST',      img:'img/cam2.png',                                  online:true},
-  cam3:{label:'CAM3',loc:'FL2-WEST',      img:'img/cam3.png',                                  online:true},
-  cam4:{label:'CAM4',loc:'FL4-LOBBY',     img:'img/cam4.png',                                  online:true},
-  cam5:{label:'CAM5',loc:'PARKING-STRUCT',img:'img/cam5.jpg',                                  online:true},
-  cam6:{label:'CAM6',loc:'FL3-CORRIDOR',  img:'img/cam6_d2.png',                               online:false,
-    event:{img:'img/cam6_d2.png',ts:'06:22',sig:'SIG: WEAK',alertText:'RECONNECTING',dur:5000}},
-  cam7:{label:'CAM7',loc:'TRAILER-EXT',   img:'img/cam7.png',      /*anim:'img/cam7.gif',*/    online:true},
-  cam8:{label:'CAM8',loc:'PERIMETER-ROAD',img:'img/cam8.png',                                  online:true},
-  cam9:{label:'CAM9',loc:'EAST-WALL-80FT',img:'img/cam9_d2.png',                               online:true,degraded:true},
-};
-const SITE_CAMS={hargrove:['cam1','cam2','cam3','cam4','cam5','cam6'],lkco:['cam7','cam8','cam9']};
+async function runEndDay2(){
+  hideInput();
+  stopAudio();
+  await sleep(1200);
+  await signalLossClose(600);
+  await sleep(800);
+  termOutput.innerHTML='';
+  await sleep(300);
+  ln('');ln('');
+  await lnSlow('  SECWATCH -- DAY 2 COMPLETE','hi',20);
+  await sleep(400);
+  ln('  01/16/94  --  Morning shift closing','hi');
+  await sleep(800);
+  ln('');
+  ln('  Pellegrino has been notified.','dim');
+  await sleep(500);
+  ln('  Aldridge and Carr LLP has not been notified.','warn');
+  await sleep(500);
+  ln('  No official incident report filed for overnight events.','warn');
+  await sleep(800);
+  ln('');
+  ln('  -----------------------------------------------','dim');
+  await sleep(600);
+  await lnSlow('  The system is still running.','dim',20);
+  await sleep(500);
+  await lnSlow("  That's what matters.",'dim',20);
+  await sleep(1600);
+  ln('');
+  /* show what path the player took through dialog */
+  if(S.dialogPath.includes('confirmed_figure')){
+    await lnSlow("  You told him about the figure.",'warn',22);
+    await sleep(400);
+    await lnSlow("  He wasn't surprised.",'warn',22);
+    await sleep(800);
+  }
+  if(S.dialogPath.includes('read_combs')){
+    await lnSlow("  You told him you read COMBS.TXT.",'err',22);
+    await sleep(400);
+    await lnSlow("  There was a long silence after that.",'err',22);
+    await sleep(800);
+  }
+  ln('');
+  await sleep(1000);
+
+  const card=document.createElement('div');
+  card.className='ln hi';
+  Object.assign(card.style,{fontSize:'1.3em',letterSpacing:'0.2em',textAlign:'center',textShadow:'0 0 14px var(--g),0 0 32px rgba(51,255,51,0.5)'});
+  card.textContent='END OF DAY 2';
+  termOutput.appendChild(card);
+  termOutput.scrollTop=termOutput.scrollHeight;
+  await sleep(2200);
+
+  const sub=document.createElement('div');
+  sub.className='ln dim';
+  Object.assign(sub.style,{textAlign:'center',letterSpacing:'0.1em',marginTop:'8px'});
+  sub.textContent='LOADING DAY 3...';
+  termOutput.appendChild(sub);
+  termOutput.scrollTop=termOutput.scrollHeight;
+  await sleep(2800);
+  /* save TL before moving on */
+  try{sessionStorage.setItem('sw_tl',JSON.stringify(TL.bars));}catch(e){}
+  if(typeof SW!=='undefined')SW.setBars(TL.bars);
+  window.location.href='dream.html?night=1';
+}
 
 /* ════════════════════════════════════════════════════════
    DOM REFS
@@ -500,8 +584,6 @@ const hudDate=document.getElementById('hudDate');
 const hudSig=document.getElementById('hudSig');
 const hudAlert=document.getElementById('hudAlert');
 const incomingDisplay=document.getElementById('incomingDisplay');
-const incomingName=document.getElementById('incomingName');
-const incomingStatus=document.getElementById('incomingStatus');
 const dialogDisplay=document.getElementById('dialogDisplay');
 const dialogSpeaker=document.getElementById('dialogSpeaker');
 const dialogText=document.getElementById('dialogText');
@@ -522,25 +604,31 @@ const ghost=document.getElementById('ghost');
 /* ════════════════════════════════════════════════════════
    AUDIO
 ════════════════════════════════════════════════════════ */
-let currentAudio=null,tapeInterval=null;
+let currentAudio=null,tapeInterval=null,phoneTimeout=null;
 function playAudio(src,loop=false){
-  stopAudio();currentAudio=new Audio(src);
-  currentAudio.loop=loop;currentAudio.volume=0.85;
+  stopAudio();
+  currentAudio=new Audio(src);currentAudio.loop=loop;currentAudio.volume=0.85;
   currentAudio.play().catch(()=>{});return currentAudio;
 }
 function stopAudio(){
   if(currentAudio){currentAudio.pause();currentAudio.src='';currentAudio=null;}
-  clearInterval(tapeInterval);tapeBar.style.width='0%';
+  clearInterval(tapeInterval);clearTimeout(phoneTimeout);
+  tapeBar.style.width='0%';
 }
 function setTranscript(lines,cls=''){
   transcript.innerHTML='';transcript.className=cls||'';
-  lines.forEach(l=>{const d=document.createElement('div');d.textContent=l||'\u00a0';d.style.lineHeight='1.6';d.style.fontSize='0.88em';transcript.appendChild(d);});
+  lines.forEach(l=>{
+    const d=document.createElement('div');
+    d.textContent=l||'\u00a0';d.style.lineHeight='1.6';d.style.fontSize='0.88em';
+    transcript.appendChild(d);
+  });
   transcript.scrollTop=0;
 }
 async function runPlayTape(key){
   const tape=TAPES[key];
   if(!tape){ln('  Tape not found: '+key,'err');return;}
   stopAudio();S.tapePlayCount++;
+  if(key==='TAPE_06'){S.tape06Played=true;TL.raise('l',2);TL.raise('e',1);}
   tapeName.textContent=tape.label;tapeStatus.textContent='LOADING...';
   tapeBar.style.width='0%';setTranscript(['[LOADING...]']);await sleep(700);
   tapeStatus.textContent='> PLAYING';setTranscript(tape.transcript,'active');
@@ -556,74 +644,57 @@ async function runPlayTape(key){
 /* ════════════════════════════════════════════════════════
    DIALOG ENGINE
 ════════════════════════════════════════════════════════ */
-let dialogActive=false;
-
 async function runDialog(nodeKey){
   const node=DIALOG[nodeKey];if(!node)return;
-  dialogActive=true;
 
-  /* show in comms panel */
   dialogDisplay.classList.add('active');
   incomingDisplay.classList.remove('active');
   dialogSpeaker.textContent=node.speaker||'PELLEGRINO';
   dialogText.textContent='';
 
-  /* type out the dialog text slowly */
   for(const ch of (node.text||'')){
-    dialogText.textContent+=ch;await sleep(18);
+    dialogText.textContent+=ch;await sleep(16);
   }
 
-  /* play associated audio if available */
   if(node.audio)playAudio(node.audio);
 
-  if(node.choices[0].id===1&&node.choices[0].text==='[line is dead]'){
-    /* auto-advance end node */
-    await sleep(2200);
+  /* auto-advance terminal node */
+  if(node.choices.length===1&&node.choices[0].next==='END'){
+    await sleep(2400);
     dialogDisplay.classList.remove('active');
     commsLabelR.textContent='LINE: DISCONNECTED';
-    dialogActive=false;
-    S.pellegrino_dialog_done=true;
+    S.pellegrinoDone=true;
     ln('');ln('  [LINE DISCONNECTED]','dim');ln('');
     showInput();return;
   }
 
-  /* show choices in terminal */
   ln('');
-  node.choices.forEach(c=>{ln('  ['+c.id+'] '+c.text,'dim');});
+  node.choices.forEach(c=>ln('  ['+c.id+'] '+c.text,'dim'));
   ln('');
 
-  /* wait for numeric choice */
   const chosen=await new Promise(r=>{
-    _res=r;S.inputMode='any';showInput('RESPOND > ');
-    ghost.onkeydown=e=>{
-      const n=parseInt(e.key);
-      if(n>=1&&n<=node.choices.length){
-        const rr=_res;if(!rr)return;
-        _res=null;S.inputMode='cmd';hideInput();rr(n-1);
-      }
-    };
+    _res=r;S.inputMode='dialog';showInput('RESPOND > ');
   });
 
   const choice=node.choices[chosen];
   ln('  > '+choice.text,'echo');ln('');
   if(choice.effect)choice.effect(S);
-
   stopAudio();
 
   if(choice.next==='END'){
     dialogDisplay.classList.remove('active');
     commsLabelR.textContent='LINE: DISCONNECTED';
-    dialogActive=false;S.pellegrino_dialog_done=true;
+    S.pellegrinoDone=true;
     ln('  [LINE DISCONNECTED]','dim');ln('');
     showInput();return;
   }
 
-  await sleep(900);
+  await sleep(800);
   await runDialog(choice.next);
 }
 
 /* ════════════════════════════════════════════════════════
-   CAMERA ENGINE  (same pattern as Day 1)
+   CAMERA ENGINE
 ════════════════════════════════════════════════════════ */
 function buildCamBar(site){
   S.activeSite=site;camBar.innerHTML='';
@@ -631,11 +702,15 @@ function buildCamBar(site){
     const c=CAMS[k];
     const btn=document.createElement('span');
     btn.className='cam-btn '+(c.online?'online':'offline');
-    btn.id='btn_'+k;btn.textContent=c.label+(c.online?'':' [OFF]');
+    btn.id='btn_'+k;
+    btn.textContent=c.label+(c.online?'':' [OFF]');
     camBar.appendChild(btn);
-    const sep=document.createElement('span');sep.style.color='var(--border)';sep.textContent=' | ';camBar.appendChild(sep);
+    const sep=document.createElement('span');
+    sep.style.color='var(--border)';sep.textContent=' | ';
+    camBar.appendChild(sep);
   });
-  const hint=document.createElement('span');hint.style.color='var(--gdim)';
+  const hint=document.createElement('span');
+  hint.style.color='var(--gdim)';
   hint.textContent='TYPE: '+SITE_CAMS[site].map(k=>CAMS[k].label.replace('CAM','')).join(' / ');
   camBar.appendChild(hint);
   camLabelR.textContent=site==='lkco'?'LKCO-04 LETCHER CO.':'HARGROVE BIZ CTR';
@@ -664,13 +739,23 @@ async function acquireFeed(cam){
   if(cam.degraded)camFeed.classList.add('degraded');
   setHUD(cam.label,cam.loc,TIME_STR,cam.degraded?'SIG: WEAK':'SIG: OK');
   camHUD.classList.add('active');
-  /* cam9 day 2 reaction */
+  TL.onCamOpen();
+  /* cam9 day 2 -- cable reel missing reaction */
   if(cam===CAMS.cam9&&!S.cam9d2Viewed){
     S.cam9d2Viewed=true;
+    TL.raise('l',1);TL.raise('e',1);
     await sleep(1200);
-    hudAlert.textContent='CABLE REEL: MISSING';hudAlert.classList.add('show');
+    hudAlert.textContent='CABLE REEL: ABSENT';hudAlert.classList.add('show');
     ln('  CAM9 -- cable reel absent from bench level.','warn');
-    ln('  Present in all previous footage since 1983.','warn');ln('');
+    ln('  Present in all footage since site opened 1971.','warn');ln('');
+  }
+  /* cam1 day 2 -- mug moved reaction */
+  if(cam===CAMS.cam1){
+    TL.raise('h',1);
+    await sleep(1000);
+    ln('  CAM1 -- compare to previous session footage.','warn');
+    ln('  Lobby objects show displacement overnight.','warn');
+    ln('  No authorized access recorded on CAM5 parking.','err');ln('');
   }
 }
 async function signalLossClose(ms=750){
@@ -683,15 +768,15 @@ async function showCam(camKey){
   const cam=CAMS[camKey];if(!cam)return;
   setCamActive(camKey);
   if(!cam.online){
-    /* cam6 day 2 -- brief reconnection attempt */
     ln('  CAM6 -- attempting reconnection...','warn');
     await sleep(1800);
     await acquireFeed(cam);
+    TL.raise('h',1);
     await sleep(3000);
     await signalLossClose(600);
     ln('  CAM6 -- signal lost again.','err');
     ln('  Note: Suite 3-C door is now CLOSED.','warn');
-    ln('  All other doors remain open.','warn');ln('');
+    ln('  All other corridor doors remain open.','warn');ln('');
     return;
   }
   await acquireFeed(cam);
@@ -721,10 +806,17 @@ function resolvePath(n){
   if(u==='..'){const p=S.cwd.split('\\');return p.length<=2?S.cwd:p.slice(0,-1).join('\\');}
   return S.cwd+'\\'+u;
 }
-
 ghost.addEventListener('keydown',e=>{
   if(!termInputRow.classList.contains('on'))return;
   if(S.inputMode==='any'){const r=_res;_res=null;S.inputMode='cmd';hideInput();r();return;}
+  if(S.inputMode==='dialog'){
+    const n=parseInt(e.key);
+    if(n>=1&&n<=9){
+      const r=_res;if(!r)return;
+      _res=null;S.inputMode='cmd';hideInput();r(n-1);
+    }
+    return;
+  }
   if(S.inputMode==='cmd'){
     if(e.key==='Enter'){
       const cmd=S.inputBuf.trim();hideInput();
@@ -751,32 +843,40 @@ async function handleCmd(raw){
       ln('');
       ln('  answer            Pick up incoming call');
       ln('  sec1.exe          Hargrove cameras');
-      ln('  sec2.exe          LKCO cameras');
+      ln('  sec2.exe          LKCO site cameras');
       ln('  dir / cd / type   Browse filesystem');
       ln('  play [tape]       Play TAPE_06');
       ln('  stop              Stop audio');
-      ln('  cls');
+      ln('  cls / help');
       ln('');break;
-    case 'stop':stopAudio();tapeStatus.textContent='STOPPED';commsLabelR.textContent='LINE: IDLE';ln('  Stopped.','dim');break;
+    case 'stop':
+      stopAudio();tapeStatus.textContent='STOPPED';commsLabelR.textContent='LINE: IDLE';
+      ln('  Stopped.','dim');break;
+
     case 'answer':
-      if(!S.pellegrino_called){
+      if(!S.pellegrinoAnswered){
+        S.pellegrinoAnswered=true;
         ln('');ln('  Picking up...','dim');
         incomingDisplay.classList.remove('active');
         commsLabelR.textContent='LINE: CONNECTED';
-        stopAudio();S.pellegrino_called=true;
+        stopAudio();
         hideInput();
         await sleep(600);
         await runDialog('open');
-      }else if(!S.pellegrino_dialog_done){
+      }else if(!S.pellegrinoDone){
         ln('  Call still in progress.','dim');
       }else{
         ln('  No incoming call.','dim');
       }
       break;
+
     case 'play':{
       if(!arg){ln('Usage: play [TAPE_06]','warn');break;}
-      const key=arg.replace('.MP3','');ln('');hideInput();await runPlayTape(key);break;
+      const key=arg.replace('.MP3','');ln('');hideInput();
+      if(typeof SW!=='undefined')SW.find(key);
+      await runPlayTape(key);break;
     }
+
     case 'dir':{
       const node=FS[S.cwd];if(!node||node.type!=='dir'){ln('Path error.','err');break;}
       if(S.cwd==='C:\\SECWATCH\\OVERNIGHT')S.overnightVisited=true;
@@ -788,18 +888,25 @@ async function handleCmd(raw){
       }
       ln('');ln('  '+node.children.length+' item(s)');ln('');break;
     }
+
     case 'cd':{
       if(!arg){ln(S.cwd);break;}
       const t=resolvePath(arg);
       if(FS[t]?.type==='dir'){S.cwd=t;termPrompt.textContent=S.cwd+'> ';termLabelR.textContent=S.cwd;}
       else ln('Invalid directory.','err');break;
     }
+
     case 'type':{
       if(!arg){ln('Usage: type [filename]','warn');break;}
       const fp=S.cwd+'\\'+arg;const f=FS[fp];
       if(!f){ln('File not found: '+arg,'err');break;}
       if(f.type==='audio'){ln('');ln('[AUDIO FILE]  Use: play '+f.tape,'sys');ln('');break;}
-      if(arg==='WITNESS.TXT')S.witnessRead=true;
+      if(typeof SW!=='undefined')SW.find(arg);
+      /* track reads and raise TL */
+      if(arg==='WITNESS.TXT'){S.witnessRead=true;TL.raise('s',1);}
+      if(arg==='BADGE.LOG'){S.badgeLogRead=true;TL.raise('h',1);}
+      if(arg==='FLOOR3.DAT')TL.raise('h',1);
+      if(arg.includes('SITE94.CFG')&&S.cwd.includes('LKCO')){TL.raise('l',1);TL.raise('e',1);}
       ln('');
       for(const line of f.content.split('\n')){
         const c=line.match(/^\[/)?'dim':line.match(/^!!/)?'err':line.startsWith("Don't")||line.startsWith("don't")?'warn':'';
@@ -807,13 +914,21 @@ async function handleCmd(raw){
       }
       ln('');break;
     }
+
     case 'sec1.exe':case'sec1':await runSec1();break;
     case 'sec2.exe':case'sec2':await runSec2();break;
-    default:ln('');ln("'"+parts[0]+"' is not recognized.",'err');ln('Type HELP.','dim');ln('');
+
+    default:
+      ln('');ln("'"+parts[0]+"' is not recognized.",'err');
+      ln('Type HELP.','dim');ln('');
   }
   showInput();
+  checkEndDay2();
 }
 
+/* ════════════════════════════════════════════════════════
+   SEC1 / SEC2
+════════════════════════════════════════════════════════ */
 async function runSec1(){
   ln('');await lnSlow('Initializing HARGROVE cameras -- Day 2...','dim',10);await sleep(260);ln('');
   buildCamBar('hargrove');
@@ -823,7 +938,7 @@ async function runSec1(){
     await lnSlow('  '+c.label+' :: '+c.loc.padEnd(16)+' '+(c.online?'[ONLINE]':'[ERROR ]')+note,c.online?'dim':'err',7);
     await sleep(c.online?50:180);
   }
-  await sleep(260);ln('');ln('  Type: 1 2 3 4 5 6  (6 = FL3)');ln('');
+  await sleep(260);ln('');ln('  Type: 1 2 3 4 5 6  (6=FL3)');ln('');
   await runCamLoop('hargrove');
 }
 async function runSec2(){
@@ -836,7 +951,8 @@ async function runSec2(){
     await lnSlow('  '+c.label+' :: '+c.loc.padEnd(18)+' '+st,c.degraded?'warn':'dim',7);
     await sleep(c.degraded?160:65);
   }
-  await sleep(260);ln('');ln('  NOTE: CAM9 overnight event logged. See SITES/LKCO/SITE94.CFG','warn');
+  await sleep(260);
+  ln('');ln('  NOTE: CAM9 overnight event logged. See SITES/LKCO/SITE94.CFG','warn');
   await sleep(200);ln('');ln('  Type: 7 8 9');ln('');
   await runCamLoop('lkco');
 }
@@ -863,31 +979,52 @@ async function runCamLoop(site){
    BOOT  --  Day 2
 ════════════════════════════════════════════════════════ */
 async function boot(){
+  /* init TL -- restores from Day 1 sessionStorage */
+  TL.init();
+
+  /* save badge for witness.txt update */
+  try{
+    const b=sessionStorage.getItem('sw_badge');
+    if(b){}
+  }catch(e){}
+
   ln('+==========================================================+','hi');
-  ln('|   S E C W A T C H   v 2 . 1 1 b                         |','hi');
+  ln('|   S E C W A T C H   v 2 . 1 1 b                          |','hi');
   ln('|   Hargrove Properties LLC                                |','hi');
-  ln('|   Date: '+DATE_STR+'  /  Time: '+TIME_STR+'                          |','hi');
+  ln('|   Date: '+DATE_STR+'  /  Time: '+TIME_STR+'                         |','hi');
   ln('+==========================================================+','hi');
   await sleep(280);ln('');
   ln('  SYSTEM NOTICE: 3 new events logged overnight.','warn');
   ln('  See WITNESS.TXT and OVERNIGHT directory.','warn');
   await sleep(220);ln('');
-  ln('  Restoring last session...','dim');await sleep(480);
+  ln('  Restoring last session state...','dim');await sleep(500);
   ln('  Session restored.  Day 2 active.','hi');
+
+  /* show carried TL if not all zero */
+  if(TL.bars.h>0||TL.bars.l>0||TL.bars.s>0){
+    await sleep(300);ln('');
+    ln('  Site integrity levels restored from previous session.','dim');
+    if(TL.bars.e>0)ln('  East Wall level: '+TL.bars.e,'warn');
+  }
+
   await sleep(340);ln('');
 
-  /* incoming call from Pellegrino */
+  /* incoming call */
   incomingDisplay.classList.add('active');
-  incomingStatus.textContent='TYPE: ANSWER to pick up';
+  document.getElementById('incomingStatus').textContent='TYPE: ANSWER to pick up';
   commsLabelR.textContent='LINE: INCOMING';
   playAudio('audio/phone_ring.mp3',true);
+
   ln('  !! INCOMING CALL -- EXT. 204 -- PELLEGRINO','warn');
-  ln('  Type ANSWER to pick up. Or explore first.','dim');
+  ln('  Type ANSWER to pick up.  Or explore first.','dim');
   ln('');
+
+  /* if day1 tl9 was reached, witness.txt already has player data */
+  if(S._tl9carried||TL.bars.s>=9){
+    _updateWitnessTxt();
+  }
 
   S.inputMode='cmd';showInput();
 }
+
 boot();
-</script>
-</body>
-</html>

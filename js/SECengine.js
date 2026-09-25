@@ -1,154 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SECWATCH v2.11b -- DAY 1</title>
-<!-- SECWATCH v2.11b day1.html | /img/ /audio/ | see production_bible.md -->
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --g:#33ff33;--gdim:#1a5c1a;--ghi:#afffaf;
-  --amb:#ffb833;--red:#ff4040;--blue:#33aaff;
-  --bg:#050505;--panel:#0a0f0a;--border:#1a3a1a;
-}
-html,body{width:100%;height:100%;background:var(--bg);color:var(--g);
-  font-family:'Share Tech Mono','Courier New',monospace;
-  font-size:clamp(10px,1.3vw,13px);overflow:hidden;user-select:none;}
-body::before{content:'';position:fixed;inset:0;
-  background:repeating-linear-gradient(to bottom,transparent 0px,transparent 3px,rgba(0,0,0,0.08) 3px,rgba(0,0,0,0.08) 4px);
-  pointer-events:none;z-index:900;}
-body::after{content:'';position:fixed;inset:0;
-  background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,0.72) 100%);
-  pointer-events:none;z-index:899;}
-#layout{width:100%;height:100%;display:grid;grid-template-rows:58% 42%;animation:crtFlicker 14s infinite;}
-#topRow{display:grid;grid-template-columns:63% 37%;border-bottom:1px solid var(--border);min-height:0;}
-#camPanel{position:relative;background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
-#camFrame{flex:1;position:relative;display:flex;align-items:center;justify-content:center;background:#000;overflow:hidden;}
-#camFrame::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(to bottom,transparent 0px,transparent 2px,rgba(0,0,0,0.22) 2px,rgba(0,0,0,0.22) 3px);pointer-events:none;z-index:30;}
-#camFrame::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,0.65) 100%);pointer-events:none;z-index:31;}
-#camFeed{width:100%;height:100%;object-fit:cover;display:none;
-  filter:grayscale(1) brightness(0.82) contrast(1.18) sepia(0.5) hue-rotate(76deg) saturate(1.6);}
-#camFeed.active{display:block;}
-#camFeed.degraded{filter:grayscale(1) brightness(0.65) contrast(1.3) sepia(0.4) hue-rotate(76deg) saturate(1.4);
-  animation:camFlicker 0.11s steps(1) infinite,degradeTear 4.8s ease-in-out infinite;}
-#camFeed.surge{filter:grayscale(1) brightness(1.8) contrast(3) sepia(0.2) hue-rotate(76deg) saturate(2);
-  animation:surgeFlicker 0.08s steps(1) infinite;}
-#camNoFeed{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--gdim);letter-spacing:0.12em;z-index:5;}
-#camNoFeed .nf-box{border:1px solid var(--gdim);padding:18px 32px;text-align:center;}
-#camNoFeed.hidden{display:none;}
-#camHUD{position:absolute;inset:0;pointer-events:none;z-index:32;display:flex;flex-direction:column;justify-content:space-between;padding:6px 10px;font-size:clamp(8px,0.95vw,11px);letter-spacing:0.07em;color:var(--g);text-shadow:0 0 5px var(--g);opacity:0;transition:opacity 0.3s;}
-#camHUD.active{opacity:1;}
-.hud-row{display:flex;justify-content:space-between;align-items:center;}
-#hudRec{color:var(--red);animation:blink 1.6s step-end infinite;}
-#hudSig.weak{color:var(--amb);}
-#hudSig.lost{color:var(--red);}
-#hudAlert{color:var(--amb);text-shadow:0 0 6px var(--amb);animation:blink 0.65s step-end infinite;letter-spacing:0.14em;opacity:0;}
-#hudAlert.show{opacity:1;}
-#camFrame.signal-loss #camFeed{animation:signalLoss 0.75s ease-in forwards !important;}
-#camAcquire{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:#000;z-index:20;color:var(--g);letter-spacing:0.14em;text-shadow:0 0 8px var(--g);animation:blink 0.85s step-end infinite;}
-#camAcquire.active{display:flex;}
-#camLabel{flex-shrink:0;background:var(--panel);border-bottom:1px solid var(--border);padding:3px 10px;font-size:clamp(8px,0.9vw,10px);letter-spacing:0.1em;color:var(--gdim);display:flex;justify-content:space-between;}
-#camBar{flex-shrink:0;background:var(--panel);border-top:1px solid var(--border);padding:3px 8px;display:flex;gap:6px;flex-wrap:wrap;font-size:clamp(7px,0.85vw,10px);letter-spacing:0.06em;min-height:22px;}
-.cam-btn{color:var(--gdim);padding:1px 4px;border:1px solid transparent;}
-.cam-btn.online{color:var(--g);}
-.cam-btn.active{color:var(--ghi);border-color:var(--g);text-shadow:0 0 6px var(--g);}
-.cam-btn.offline{color:var(--red);}
-#commsPanel{background:var(--panel);display:flex;flex-direction:column;overflow:hidden;}
-#commsLabel{flex-shrink:0;border-bottom:1px solid var(--border);padding:3px 10px;font-size:clamp(8px,0.9vw,10px);letter-spacing:0.1em;color:var(--gdim);display:flex;justify-content:space-between;}
-#commsBody{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;padding:8px 10px;display:flex;flex-direction:column;gap:8px;}
-#commsBody::-webkit-scrollbar{display:none;}
-#phoneDisplay,#tapeDisplay{border:1px solid var(--border);padding:8px 10px;}
-.comm-title{color:var(--gdim);font-size:0.85em;letter-spacing:0.1em;margin-bottom:5px;}
-#phoneNumber{font-size:1.35em;letter-spacing:0.18em;color:var(--ghi);text-shadow:0 0 8px var(--g);min-height:1.4em;}
-#phoneStatus{font-size:0.85em;letter-spacing:0.1em;margin-top:3px;min-height:1em;}
-#phoneStatus.ringing{color:var(--amb);animation:blink 1s step-end infinite;}
-#phoneStatus.connected{color:var(--g);}
-#phoneStatus.dead{color:var(--red);}
-#tapeName{color:var(--ghi);letter-spacing:0.07em;min-height:1em;font-size:0.92em;}
-#tapeStatus{font-size:0.82em;color:var(--gdim);margin-top:3px;min-height:1em;}
-#tapeBar{margin-top:5px;height:2px;background:var(--gdim);width:0%;transition:width 0.5s linear;}
-#transcript{border:1px solid var(--border);padding:8px 10px;flex:1;font-size:0.88em;line-height:1.55;color:var(--gdim);overflow-y:auto;scrollbar-width:none;min-height:50px;}
-#transcript::-webkit-scrollbar{display:none;}
-#transcript.active{color:var(--g);}
-#commsHelp{font-size:0.8em;color:var(--gdim);letter-spacing:0.05em;line-height:1.7;border-top:1px solid var(--border);padding:5px 10px;flex-shrink:0;}
-#termPanel{background:var(--bg);border-top:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
-#termLabel{flex-shrink:0;border-bottom:1px solid var(--border);padding:2px 10px;font-size:clamp(7px,0.85vw,9px);letter-spacing:0.1em;color:var(--gdim);display:flex;justify-content:space-between;}
-#termOutput{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--gdim) transparent;padding:4px 10px 2px;}
-.ln{line-height:1.58;letter-spacing:0.022em;white-space:pre-wrap;word-break:break-word;text-shadow:0 0 3px rgba(51,255,51,0.18);}
-.dim{color:var(--gdim);text-shadow:none;}.hi{color:var(--ghi);text-shadow:0 0 6px rgba(51,255,51,0.45);}
-.warn{color:var(--amb);text-shadow:0 0 4px rgba(255,184,51,0.35);}.err{color:var(--red);text-shadow:0 0 4px rgba(255,64,64,0.35);}
-.echo{color:var(--ghi);}.sys{color:var(--blue);text-shadow:0 0 4px rgba(51,170,255,0.35);}
-#termInputRow{flex-shrink:0;display:flex;align-items:center;padding:2px 10px 4px;border-top:1px solid var(--border);opacity:0;pointer-events:none;min-height:22px;}
-#termInputRow.on{opacity:1;pointer-events:auto;}
-#termPrompt{white-space:pre;}.cur{display:inline-block;width:0.55em;height:0.92em;background:var(--g);box-shadow:0 0 5px var(--g),0 0 12px rgba(51,255,51,0.35);margin-left:1px;vertical-align:middle;position:relative;top:-1px;animation:blink 1.1s step-end infinite;}
-#termTyped{white-space:pre;min-width:1px;}
-#ghost{position:fixed;opacity:0;width:1px;height:1px;top:-400px;border:none;outline:none;font-size:1px;pointer-events:none;}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-@keyframes crtFlicker{0%,100%{opacity:1}91%{opacity:1}91.3%{opacity:.80}91.7%{opacity:1}96.8%{opacity:1}97.1%{opacity:.87}97.4%{opacity:1}}
-@keyframes camFlicker{0%{opacity:1}50%{opacity:0.88}100%{opacity:1}}
-@keyframes surgeFlicker{0%{opacity:1}33%{opacity:0.6}66%{opacity:1}100%{opacity:0.7}}
-@keyframes degradeTear{0%,100%{transform:translateX(0) scaleY(1);}93%{transform:translateX(0) scaleY(1);}93.4%{transform:translateX(-4px) scaleY(1.007);}93.8%{transform:translateX(3px) scaleY(0.994);}94.2%{transform:translateX(0) scaleY(1);}}
-@keyframes signalLoss{0%{opacity:1;transform:none;}15%{opacity:1;transform:translateY(-4px) scaleX(1.02);filter:grayscale(1) brightness(2.5) contrast(4) sepia(0) saturate(0);}35%{opacity:1;transform:translateY(3px);filter:grayscale(1) brightness(0.04) contrast(8);}60%{opacity:0.6;transform:translateX(-3px);filter:grayscale(1) brightness(1.3) contrast(2) sepia(0.5) hue-rotate(76deg) saturate(2);}85%{opacity:0.3;filter:grayscale(1) brightness(0.08) contrast(5);}100%{opacity:0;filter:grayscale(1) brightness(0);}}
-</style>
-</head>
-<body>
-<div id="layout">
-  <div id="topRow">
-    <div id="camPanel">
-      <div id="camLabel">
-        <span>SECWATCH v2.11b  --  CAMERA FEED</span>
-        <span id="camLabelRight">HARGROVE PROPERTIES LLC</span>
-      </div>
-      <div id="camFrame">
-        <img id="camFeed" src="" alt="">
-        <div id="camAcquire">ACQUIRING SIGNAL...</div>
-        <div id="camNoFeed">
-          <div class="nf-box">
-            <div>NO FEED SELECTED</div>
-            <div style="margin-top:6px;font-size:0.85em;color:var(--gdim);">SEC1.EXE  /  SEC2.EXE</div>
-          </div>
-        </div>
-        <div id="camHUD">
-          <div class="hud-row"><span id="hudCamID">--</span><span id="hudAlert">MOTION DETECTED</span><span id="hudLoc">--</span></div>
-          <div class="hud-row"><span id="hudRec">&#9679; REC</span><span id="hudDate">01/15/94&nbsp;&nbsp;23:51</span><span id="hudSig">SIG: --</span></div>
-        </div>
-      </div>
-      <div id="camBar"><span style="color:var(--gdim);letter-spacing:0.08em;">RUN SEC1.EXE OR SEC2.EXE TO INITIALIZE</span></div>
-    </div>
-    <div id="commsPanel">
-      <div id="commsLabel"><span>COMMS / PHONE</span><span id="commsLabelRight">LINE: IDLE</span></div>
-      <div id="commsBody">
-        <div id="phoneDisplay">
-          <div class="comm-title">&#9743; INTERNAL TELEPHONE</div>
-          <div id="phoneNumber">&nbsp;</div>
-          <div id="phoneStatus">TYPE: DIAL [EXT]</div>
-        </div>
-        <div id="tapeDisplay">
-          <div class="comm-title">&#9654; TAPE PLAYER</div>
-          <div id="tapeName">NO TAPE LOADED</div>
-          <div id="tapeStatus">TYPE: PLAY [TAPE_XX]</div>
-          <div id="tapeBar"></div>
-        </div>
-        <div id="transcript">TRANSCRIPT WILL APPEAR HERE</div>
-      </div>
-      <div id="commsHelp">DIAL [ext]&nbsp;&nbsp;PLAY [tape]&nbsp;&nbsp;STOP&nbsp;&nbsp;HELP</div>
-    </div>
-  </div>
-  <div id="termPanel">
-    <div id="termLabel"><span>TERMINAL  --  DAY 1  --  01/15/94</span><span id="termLabelRight">C:\SECWATCH</span></div>
-    <div id="termOutput"></div>
-    <div id="termInputRow">
-      <span id="termPrompt">C:\SECWATCH&gt;&nbsp;</span>
-      <span id="termTyped"></span>
-      <span class="cur"></span>
-    </div>
-  </div>
-</div>
-<input id="ghost" autocomplete="off" spellcheck="false">
-
-<script>
 'use strict';
 
 /* ════════════════════════════════════════════════════════
@@ -166,9 +15,283 @@ const S = {
   tape04Unlocked:false, tape05Unlocked:false,
   notesUnlocked:false,
   endDay1Triggered:false,
+  /* threat level */
+  tl:{h:0,l:0,s:0,e:0},
+  observerLogged:false,
+  /* badge unlock flags */
+  badge0047Active:false,
+  badge0088Active:false,
+  badge0023Active:false,
 };
+
+/* special badge numbers */
+const SPECIAL_BADGES = {
+  '0047':{
+    name:'D. HARGROVE',
+    onLogin: async function(){
+      await sleep(600);
+      ln('  WARNING: Badge #0047 was deactivated 03/15/91.','err');
+      await sleep(400);
+      ln('  Employee of record: D. HARGROVE -- DECEASED','err');
+      await sleep(800);
+      ln('  Access granted.','warn');
+      S.badge0047Active = true;
+      TL.raise('h',2,'badge 0047 used');
+      TL.raise('s',1,'badge 0047 used');
+    }
+  },
+  '0088':{
+    name:'E. COMBS',
+    onLogin: async function(){
+      await sleep(600);
+      ln('  WARNING: Badge #0088 -- LKCO site foreman.','warn');
+      await sleep(400);
+      ln('  Last recorded use: 03/11/83  07:14','warn');
+      await sleep(800);
+      ln('  ...Access granted.','hi');
+      S.badge0088Active = true;
+      TL.raise('l',2,'badge 0088 used');
+      /* unlock 1983 LKCO filesystem view */
+      FS['C:\\SECWATCH\\SITES\\LKCO\\NOTES_1983.TXT'] = {type:'file',content:
+`[This file predates the SECWATCH network connection]
+[Recovered from local LKCO-04 node storage]
+[Date: 03/10/83]
+
+I am leaving this here for whoever logs in next.
+
+The system will still be running.
+I made sure of that before I came down.
+
+If you are reading this you found the site.
+You found the files.
+You know what is in the east wall.
+
+There is nothing to be done about it.
+The only thing that helps is the system running.
+We don't know why. It started in 1962.
+The man before me figured it out.
+He left notes. I found his notes.
+Now I am leaving mine.
+
+If you go down to the bench:
+  Stay back from the base of the wall.
+  Do not touch it.
+  Do not let it feel you listening.
+  Come back up before the light changes.
+
+The eleventh time I went down I understood
+what it was. What it has always been.
+The twelfth time is different.
+
+I am going for the twelfth time tomorrow.
+
+-- E. Combs
+   03/10/83
+`};
+      if(!FS['C:\\SECWATCH\\SITES\\LKCO'].children.includes('NOTES_1983.TXT')){
+        FS['C:\\SECWATCH\\SITES\\LKCO'].children.push('NOTES_1983.TXT');
+      }
+    }
+  },
+  '0023':{
+    name:'MAINTENANCE',
+    onLogin: async function(){
+      await sleep(400);
+      ln('  Badge #0023 -- Maintenance clearance.','dim');
+      await sleep(400);
+      ln('  Access granted.  Limited permissions apply.','hi');
+      S.badge0023Active = true;
+      /* unlock personal directory */
+      FS['C:\\SECWATCH\\PERSONAL'] = {type:'dir',
+        children:['STROUD_NOTES.TXT']};
+      FS['C:\\SECWATCH\\PERSONAL\\STROUD_NOTES.TXT'] = {type:'file',content:
+`Personal notes -- M. Stroud, Bldg Security
+NOT FOR OFFICIAL RECORD
+
+03/12/91 -- I went to Floor 3 today.
+Pellegrino told me not to. I went anyway.
+The corridor is the same as the other floors.
+Except all the doors are open.
+
+I went into 3-C.
+I don't know how long I was in there.
+My recorder cut out.
+
+When I came back down I checked the clock.
+I had been up there for four hours.
+I thought it was twenty minutes.
+
+I'm not filing a report.
+I'm not telling Pellegrino.
+
+The smell in that room is like something
+that has been warm for a very long time.
+
+I'm not going back up there.
+
+[Note appended same day, different handwriting]:
+We found Stroud on the morning of 03/16/91.
+He was on Floor 3.
+He was fine.
+He did not remember writing the above.
+-- R.P.
+`};
+      if(!FS['C:\\SECWATCH'].children.includes('PERSONAL')){
+        FS['C:\\SECWATCH'].children.push('PERSONAL');
+      }
+    }
+  },
+  '1983':{
+    name:'[UNRECOGNIZED]',
+    onLogin: async function(){
+      await sleep(300);
+      ln('  Badge #1983 -- not in employee database.','warn');
+      await sleep(1200);
+      const d=document.createElement('div');
+      d.className='ln err';d.textContent='  Badge not recognized.';
+      termOutput.appendChild(d);termOutput.scrollTop=termOutput.scrollHeight;
+      await sleep(800);
+      d.textContent='  Badge not recognized.  Access granted.';
+      termOutput.scrollTop=termOutput.scrollHeight;
+      await sleep(400);
+      /* unlock C:\BEFORE */
+      FS['C:\\BEFORE'] = {type:'dir',children:['_']};
+      FS['C:\\BEFORE\\_'] = {type:'file',content:
+`37.1954 N  82.9371 W
+
+do not go there
+
+it is already gone
+`};
+      if(!FS['C:\\SECWATCH'].children.includes('BEFORE')){
+        /* appears as a root dir */
+        FS['C:\\SECWATCH'].children.push('BEFORE');
+      }
+      TL.raise('s',3,'badge 1983');
+      TL.raise('e',2,'badge 1983');
+    }
+  },
+};
+
 const DATE_STR='01/15/94', TIME_STR='23:51';
 let _res=null;
+
+/* ════════════════════════════════════════════════════════
+   THREAT LEVEL ENGINE
+   TL.raise(bar, amount)
+   bars: 'h'=HARGROVE  'l'=LKCO  's'=SYSTEM  'e'=EAST WALL
+════════════════════════════════════════════════════════ */
+const TL = {
+  bars:{h:0,l:0,s:0,e:0},
+  els:{h:{},l:{},s:{},e:{}},
+  ewRow:null, ewTimer:null,
+
+  init(){
+    this.els.h={fill:document.getElementById('barH'),val:document.getElementById('valH')};
+    this.els.l={fill:document.getElementById('barL'),val:document.getElementById('valL')};
+    this.els.s={fill:document.getElementById('barS'),val:document.getElementById('valS')};
+    this.els.e={fill:document.getElementById('barE'),val:document.getElementById('valE')};
+    this.ewRow=document.getElementById('ewRow');
+  },
+
+  _render(bar){
+    const v=Math.min(this.bars[bar],10);
+    const el=this.els[bar];
+    if(!el.fill)return;
+    el.fill.style.width=(v*10)+'%';
+    el.val.textContent=v===10?'--':v;
+    if(v>=7){el.fill.classList.add('red');el.fill.classList.remove('amber');el.val.className='int-val err';}
+    else if(v>=4){el.fill.classList.add('amber');el.fill.classList.remove('red');el.val.className='int-val warn';}
+    else{el.fill.classList.remove('amber','red');el.val.className='int-val';}
+  },
+
+  raise(bar,amt=1){
+    const prev=this.bars[bar];
+    this.bars[bar]=Math.min(10,this.bars[bar]+amt);
+    if(this.bars[bar]===prev)return;
+    this._render(bar);
+    this._check(bar,prev);
+  },
+
+  _check(bar,prev){
+    const v=this.bars[bar];
+
+    /* level 3 SYSTEM -- terminal message */
+    if(v>=3&&prev<3&&bar==='s'){
+      setTimeout(()=>{
+        if(termInputRow&&termInputRow.classList.contains('on')){
+          const d=document.createElement('div');d.className='ln dim';
+          d.textContent='SECWATCH: Anomalous access pattern detected.  Logging for review.';
+          termOutput.insertBefore(d,termInputRow);
+          termOutput.scrollTop=termOutput.scrollHeight;
+        }
+      },3000);
+    }
+
+    /* level 5 HARGROVE -- wrong timestamp shows on cams */
+    if(v>=5&&prev<5&&bar==='h'){S._wrongTimestamp=true;}
+
+    /* level 5 SYSTEM -- phantom ring, starts repeating */
+    if(v>=5&&prev<5&&bar==='s'){
+      setTimeout(()=>TL._phantomRing(),45000+Math.random()*60000);
+    }
+
+    /* level 6 LKCO -- FOREMAN.LOG gets extra line */
+    if(v>=6&&prev<6&&bar==='l'){
+      const fl=FS['C:\\SECWATCH\\SITES\\LKCO\\FOREMAN.LOG'];
+      if(fl&&!fl.content.includes('[it is not gone]')){
+        fl.content=fl.content.replace('Last entry.','Last entry.\n\n  [it is not gone]');
+      }
+    }
+
+    /* level 7 any bar -- OBSERVER LOGGED on HUD */
+    if(v>=7&&prev<7){
+      S.observerLogged=true;
+      if(camHUD&&camHUD.classList.contains('active')){
+        hudAlert.textContent='OBSERVER LOGGED';hudAlert.classList.add('show');
+      }
+    }
+
+    /* show east wall row when any bar hits 5 */
+    if(this.bars.h>=5||this.bars.l>=5||this.bars.s>=5){
+      if(this.ewRow)this.ewRow.classList.add('show');
+      if(!this.ewTimer)this._startEWTimer();
+    }
+
+    /* level 9 SYSTEM -- store flag for day 2 witness.txt */
+    if(v>=9&&prev<9&&bar==='s'){
+      try{sessionStorage.setItem('sw_tl9','1');}catch(e){}
+    }
+  },
+
+  _startEWTimer(){
+    this.ewTimer=setInterval(()=>this.raise('e',1),3*60*1000);
+  },
+
+  _phantomRing(){
+    if(S.inputMode!=='cmd')return;
+    const prev=commsLabelR.textContent;
+    phoneNumber.textContent='???';
+    phoneStatus.textContent='INCOMING...';phoneStatus.className='ringing';
+    commsLabelR.textContent='LINE: INCOMING';
+    playAudio('audio/phone_ring.mp3');
+    setTimeout(()=>{
+      stopAudio();
+      phoneStatus.textContent='MISSED CALL';phoneStatus.className='dead';
+      commsLabelR.textContent=prev;
+      if(TL.bars.s>=5)setTimeout(()=>TL._phantomRing(),90000+Math.random()*120000);
+    },3500);
+  },
+
+  onCamOpen(){
+    if(S.observerLogged&&camHUD&&camHUD.classList.contains('active')){
+      hudAlert.textContent='OBSERVER LOGGED';hudAlert.classList.add('show');
+    }
+    if(S._wrongTimestamp&&camHUD&&camHUD.classList.contains('active')){
+      hudDate.textContent='01/14/94\u00a002:17';
+    }
+  },
+};
 
 /* ════════════════════════════════════════════════════════
    CAMERA REGISTRY
@@ -181,7 +304,7 @@ const CAMS = {
   cam2:{label:'CAM2',loc:'FL1-EAST',        img:'img/cam2.png',  /*anim:'img/cam2.gif',*/  online:true},
   cam3:{label:'CAM3',loc:'FL2-WEST',        img:'img/cam3.png',  /*anim:'img/cam3.gif',*/  online:true},
   cam4:{label:'CAM4',loc:'FL4-LOBBY',       img:'img/cam4.png',  /*anim:'img/cam4.gif',*/  online:true},
-  cam5:{label:'CAM5',loc:'PARKING-STRUCT',  img:'img/cam5.jpg',  /*anim:'img/cam5.gif',*/  online:true},
+  cam5:{label:'CAM5',loc:'PARKING-STRUCT',  img:'img/cam5.jpg',  anim:'img/cam5.gif',  online:true},
   cam6:{
     label:'CAM6',loc:'FL3-CORRIDOR',
     img:'img/cam6.jpg', /*anim:'img/cam6.gif',*/
@@ -190,7 +313,7 @@ const CAMS = {
   },
   cam7:{
     label:'CAM7',loc:'TRAILER-EXT-EAST',
-    img:'img/cam7.png', /*anim:'img/cam7.gif',*/
+    img:'img/cam7.png', anim:'img/cam7.gif',
     online:true,
     event:{
       img:'img/cam7_door_open.png',ts:'02:17',sig:'SIG: OK',alertText:'MOTION REPLAY',dur:5500,
@@ -198,17 +321,17 @@ const CAMS = {
       onPlay:s=>{s.trailerEventPlayed=true;}
     }
   },
-  cam8:{label:'CAM8',loc:'PERIMETER-ROAD',  img:'img/cam8.png',  /*anim:'img/cam8.gif',*/  online:true},
+  cam8:{label:'CAM8',loc:'PERIMETER-ROAD',  img:'img/cam8.png',  anim:'img/cam8.gif',  online:true},
   cam9:{
     label:'CAM9',loc:'EAST-WALL-80FT',
-    img:'img/cam9.png', /*anim:'img/cam9.gif',*/
+    img:'img/cam9.png', anim:'img/cam9.gif',
     online:true, degraded:true,
     event:{
       img:'img/cam9_event1.png',
-      /* surgeSrc:'img/cam9_surge.gif', -- uncomment when gif is ready */
+      surgeSrc:'img/cam9_surge.gif',
       ts:'02:19',sig:'SIG: ???',alertText:'MOTION DETECTED',dur:9000,
       triggerFn:s=>s.sec2Runs>=3&&s.logReads>=1&&!s.cam9EventPlayed,
-      onPlay:s=>{s.cam9EventPlayed=true;}
+      onPlay:s=>{s.cam9EventPlayed=true;TL.raise('l',3);TL.raise('e',2);}
     }
   },
 };
@@ -292,12 +415,13 @@ const FS = {
 
 COMMANDS
   sec1.exe / sec2.exe   Camera interfaces
-  type [file]           Display file
+  type / read [file]    Display file
   dir / cd [dir]        Browse directories
   dial [ext]            Dial phone extension
   play [tape]           Play tape file
   stop                  Stop audio
-  scandisk / cls / help
+  scandisk              Run once after login to check for filesystem changes
+  cls / help
 `},
   'C:\\SECWATCH\\DISPATCH.TXT':{type:'file',content:
 `FROM:  R. Pellegrino  ext.204
@@ -425,36 +549,47 @@ CONTACT=ext.107 (LKCO maintenance relay)
 ; Do not excavate east wall.
 `},
   'C:\\SECWATCH\\SITES\\LKCO\\FOREMAN.LOG':{type:'file',content:
-`SITE FOREMAN LOG -- LKCO-04 / E.COMBS
-------------------------------------------
-02/14/83 MON  Crew of 14. East seam thin.
-              Coffee machine broke. Percolator.
-02/16/83 WED  Crew of 14. East wall hit soft
-              layer at 78ft. Not a void.
-              Sent two men to probe. Came back
-              quiet. Said nothing. Were quiet
-              all afternoon.
-02/17/83 THU  Crew of 13. Ricky Meade called in.
-              Sent check. He wasn't home.
-              Truck still there.
-02/22/83 TUE  Crew of 11. Three more out.
-02/24/83 THU  Crew of 9.
-              There is something in the east wall.
-              It is not a void and not geology.
-              I backfilled it. Still in there.
-02/28/83 MON  Crew of 6. Nobody goes near
-              the east wall now. Nobody said
-              anything. They just don't go.
-03/04/83 SAT  East wall crew was 6.
-              East wall crew is 0.
-              I am the crew.
-03/08/83 WED  I can hear it from the trailer.
-              Not a sound. The feeling before.
-03/10/83 FRI  Did not tell Hargrove about the wall.
-03/11/83 SAT  Equipment out. Going to stay.
-              Want to make sure it knows we're gone.
-              Last entry.
-------------------------------------------
+`------------------------------------------------------------
+OFFICIAL SITE LOG: HARGROVE BIZ CTR / LKCO-04 STRIP SITE
+FOREMAN: COMBS, E. (ID: 8842)
+PERIOD: 01/10/94 - 01/15/94
+------------------------------------------------------------
+
+01/10/94:
+Routine maintenance on CAM9 (East Wall). Heavy precipitation causing 
+minor runoff issues. Ground team reports "humming" near the old 
+mine shaft entrance. Likely a transformer issue. Pellegrino notified.
+
+01/12/94:
+Suite 3-C lock is failing again. This is the third time this week. 
+I’ve propped it with a folding chair for now. I don't care what 
+corporate says, that floor smells like ozone and wet copper. 
+It’s giving the night shift headaches.
+
+01/13/94:
+Chloe didn't come home last night. Her friends said they were 
+going up to the LKCO ridge to "see the lights." I told her a 
+thousand times that ground is unstable. If she’s hiding in the 
+tunnels, I’ll find her myself. 
+
+01/14/94:
+I spent six hours at the East Wall. The concrete is 88 degrees. 
+Ambient temperature is 28. There is no electrical wiring in that 
+section of the foundation. I put my ear to the slab. It’s not a 
+hum. It’s a pulse. 
+
+01/15/94 (FINAL ENTRY):
+I saw David Hargrove on CAM6 tonight. He was wearing the same 
+suit he was buried in. He didn't use a key. He just walked 
+through the door into 3-C. 
+
+I’m going down to the East Wall one last time. I’m taking the 
+heavy flashlight and the master badge. If Chloe is where I 
+think she is, she isn't "missing." She's just on the other side.
+
+Pellegrino: If you find this, don't turn off the terminal. 
+If the SECWATCH cycle breaks, the wall stops holding. 
+------------------------------------------------------------
   [Badge #0088 last: 03/11/83 07:14]
   [E.Combs whereabouts: UNKNOWN    ]
 `},
@@ -520,32 +655,15 @@ NOTE: CAM9 signal degraded.
   'C:\\SECWATCH\\SITES\\LKCO\\COMBS.TXT':{type:'file',content:
 `03/11/83  07:14
 
-it knows the equipment is gone
-it knows i am alone
+it is not a wall.
+it is a scab.
+we kept picking at it until the earth started to bleed.
+chloe is calling from the vents.
+she says it is warm in the deep.
+DO NOT LOOK AT THE CRACKS.
+KEEP THE SYSTEM RUNNING.
 
-i told it through the wall
-i do not know if it understood
-
-the camera on the east wall has been watching it
-since february
-i think it has been watching back
-
-i am going to go down to the bench one more time
-and tell it this land belongs to hargrove now
-and hargrove does not know it is there
-and that should be enough
-it has been enough before
-
-i will leave this running in case i do not
-come back up
-
-i am not afraid
-i have been down there eleven times now
-you stop being afraid
-
-the wall is warm
-
-03/11/83  07:
+03/11/83  07:14
 `},
 };
 
@@ -555,6 +673,10 @@ the wall is warm
 ════════════════════════════════════════════════════════ */
 function checkEndDay1() {
   if (S.endDay1Triggered) return;
+  
+  // ADD THIS LINE: Prevent the day from ending while audio is playing
+  if (currentAudio) return; 
+
   if (S.cam6EventPlayed && S.cam9EventPlayed &&
       S.ghostFileIn && S.logReads >= 1 && S.tapePlayCount >= 1) {
     S.endDay1Triggered = true;
@@ -620,6 +742,7 @@ async function runEndDay1() {
   termOutput.appendChild(sub);
   termOutput.scrollTop=termOutput.scrollHeight;
   await sleep(2800);
+  if(typeof SW!=='undefined')SW.setBars(TL.bars);
   window.location.href='day2.html';
 }
 
@@ -685,6 +808,7 @@ function setTranscript(lines,cls=''){
 async function runDial(ext){
   const entry=PHONES[ext];
   S.dialAttempts++;
+  if(entry)if(typeof SW!=='undefined')SW.find('EXT_'+ext);
   phoneNumber.textContent=ext.padStart(3,'0');
   commsLabelR.textContent='LINE: DIALING';
   playAudio('audio/phone_dial.mp3');
@@ -727,7 +851,7 @@ async function runDial(ext){
   await sleep(300);
   playAudio(entry.audio);
   await new Promise(r=>{
-    if(currentAudio){currentAudio.onended=r;phoneTimeout=setTimeout(r,30000);}
+    if(currentAudio){currentAudio.onended=r;} 
     else r();
   });
   stopAudio();playAudio('audio/phone_hangup.mp3');
@@ -741,6 +865,10 @@ async function runPlayTape(key){
   if(!tape){ln('  Tape not found: '+key,'err');return;}
   stopAudio();
   S.tapePlayCount++;
+  if(typeof SW!=='undefined')SW.find(key);
+  if(key==='TAPE_03')TL.raise('l',1);
+  if(key==='TAPE_04')TL.raise('h',2);
+  if(key==='TAPE_05')TL.raise('l',1);
   tapeName.textContent=tape.label;
   tapeStatus.textContent='LOADING...';
   tapeBar.style.width='0%';
@@ -753,10 +881,17 @@ async function runPlayTape(key){
     if(!currentAudio||!currentAudio.duration)return;
     tapeBar.style.width=(currentAudio.currentTime/currentAudio.duration*100)+'%';
   },500);
-  if(a){await new Promise(r=>{a.onended=r;setTimeout(r,90000);});}
-  clearInterval(tapeInterval);
-  tapeStatus.textContent='STOPPED';
-  tapeBar.style.width='100%';
+  if(a){
+    a.onended = () => {
+      clearInterval(tapeInterval);
+      tapeStatus.textContent='STOPPED';
+      tapeBar.style.width='100%';
+      
+      // ADD THESE TWO LINES:
+      currentAudio = null; 
+      checkEndDay1(); 
+    };
+  }
 }
 
 /* ════════════════════════════════════════════════════════
@@ -776,10 +911,21 @@ function buildCamBar(site){
     sep.style.color='var(--border)';sep.textContent=' | ';
     camBar.appendChild(sep);
   });
+  
+  // NEW: Add a clickable EXIT button for tablet users
+  const exitBtn = document.createElement('span');
+  exitBtn.className = 'cam-btn';
+  exitBtn.id = 'btn_exit';
+  exitBtn.style.color = 'var(--amb)';
+  exitBtn.textContent = '[EXIT]';
+  camBar.appendChild(exitBtn);
+
   const hint=document.createElement('span');
   hint.style.color='var(--gdim)';
+  hint.style.marginLeft='8px';
   hint.textContent='TYPE: '+SITE_CAMS[site].map(k=>CAMS[k].label.replace('CAM','')).join(' / ');
   camBar.appendChild(hint);
+  
   camLabelR.textContent=site==='lkco'?'LKCO-04 LETCHER CO.':'HARGROVE BIZ CTR';
 }
 
@@ -819,6 +965,7 @@ async function acquireFeed(cam){
   const sig=cam.degraded?'SIG: WEAK':'SIG: OK';
   setHUD(cam.label,cam.loc,TIME_STR,sig);
   camHUD.classList.add('active');
+  TL.onCamOpen();
 
   if(cam.degraded&&S.cam9Viewed===1){playAudio('audio/cam9_static.mp3');}
 }
@@ -887,6 +1034,7 @@ async function showCam(camKey){
 
 async function runCam6Event(){
   S.cam6EventPlayed=true;
+  TL.raise('h',2);TL.raise('s',1);
   const cam=CAMS.cam6,evt=cam.event;
   camNoFeed.classList.add('hidden');
   camAcquire.textContent='RECONNECTING...';
@@ -927,9 +1075,11 @@ async function lnSlow(text,cls='',ms=12){
 function showInput(p){
   termPrompt.textContent=p||S.cwd+'> ';
   termTyped.textContent=S.inputBuf='';
+  ghost.value=''; // ADD THIS: Clears the hidden mobile input
   termInputRow.classList.add('on');
   termLabelR.textContent=S.cwd;
-  ghost.style.pointerEvents='auto';ghost.focus();
+  ghost.style.pointerEvents='auto';
+  setTimeout(() => ghost.focus(), 50); // Small delay helps mobile keyboards pop up
 }
 function hideInput(){termInputRow.classList.remove('on');ghost.style.pointerEvents='none';}
 function resolvePath(n){
@@ -937,31 +1087,90 @@ function resolvePath(n){
   if(u==='..'){const p=S.cwd.split('\\');return p.length<=2?S.cwd:p.slice(0,-1).join('\\');}
   return S.cwd+'\\'+u;
 }
+/*
+    ghost.addEventListener('keydown',e=>{
+      if(!termInputRow.classList.contains('on'))return;
+      if(S.inputMode==='any'){const r=_res;_res=null;S.inputMode='cmd';hideInput();r();return;}
+      if(S.inputMode==='login'){
+        if(/^\d$/.test(e.key)&&S.inputBuf.length<4){S.inputBuf+=e.key;termTyped.textContent=S.inputBuf;}
+        else if(e.key==='Backspace'){S.inputBuf=S.inputBuf.slice(0,-1);termTyped.textContent=S.inputBuf;}
+        else if(e.key==='Enter'&&S.inputBuf.length>=1){
+          const v=S.inputBuf;hideInput();ln('BADGE #: '+v,'echo');
+          const r=_res;_res=null;S.inputMode='cmd';r(v);}
+        return;
+      }
+      if(S.inputMode==='cmd'){
+        if(e.key==='Enter'){
+          const cmd=S.inputBuf.trim();hideInput();
+          if(cmd)ln(S.cwd+'> '+cmd,'echo');
+          S.inputBuf='';
+          if(cmd)handleCmd(cmd);else showInput();
+        }else if(e.key==='Backspace'){S.inputBuf=S.inputBuf.slice(0,-1);termTyped.textContent=S.inputBuf;}
+        else if(e.key.length===1){S.inputBuf+=e.key;termTyped.textContent=S.inputBuf;}
+      }
+    });
+    document.addEventListener('click',()=>{if(termInputRow.classList.contains('on'))ghost.focus();});
+    document.addEventListener('keydown',()=>{const d=new Audio();d.volume=0;d.play().catch(()=>{});},{once:true});
+*/
 
-ghost.addEventListener('keydown',e=>{
-  if(!termInputRow.classList.contains('on'))return;
-  if(S.inputMode==='any'){const r=_res;_res=null;S.inputMode='cmd';hideInput();r();return;}
-  if(S.inputMode==='login'){
-    if(/^\d$/.test(e.key)&&S.inputBuf.length<4){S.inputBuf+=e.key;termTyped.textContent=S.inputBuf;}
-    else if(e.key==='Backspace'){S.inputBuf=S.inputBuf.slice(0,-1);termTyped.textContent=S.inputBuf;}
-    else if(e.key==='Enter'&&S.inputBuf.length>=1){
-      const v=S.inputBuf;hideInput();ln('BADGE #: '+v,'echo');
-      const r=_res;_res=null;S.inputMode='cmd';r(v);}
-    return;
-  }
-  if(S.inputMode==='cmd'){
-    if(e.key==='Enter'){
-      const cmd=S.inputBuf.trim();hideInput();
-      if(cmd)ln(S.cwd+'> '+cmd,'echo');
-      S.inputBuf='';
-      if(cmd)handleCmd(cmd);else showInput();
-    }else if(e.key==='Backspace'){S.inputBuf=S.inputBuf.slice(0,-1);termTyped.textContent=S.inputBuf;}
-    else if(e.key.length===1){S.inputBuf+=e.key;termTyped.textContent=S.inputBuf;}
+// 1. NEW: Captures text from mobile virtual keyboards
+ghost.addEventListener('input', e => {
+  if (!termInputRow.classList.contains('on')) return;
+  if (S.inputMode === 'cmd' || S.inputMode === 'login') {
+    // Sync our visual buffer directly with the hidden input's value
+    S.inputBuf = ghost.value;
+    termTyped.textContent = S.inputBuf;
   }
 });
-document.addEventListener('click',()=>{if(termInputRow.classList.contains('on'))ghost.focus();});
-document.addEventListener('keydown',()=>{const d=new Audio();d.volume=0;d.play().catch(()=>{});},{once:true});
 
+// 2. UPDATED: Handles 'Enter' and terminal navigation
+ghost.addEventListener('keydown', e => {
+  if (!termInputRow.classList.contains('on')) return;
+  
+  if (S.inputMode === 'any') {
+    const r=_res;_res=null;S.inputMode='cmd';hideInput();r();return;
+  }
+  
+  if (e.key === 'Enter') {
+    e.preventDefault(); // Stops mobile keyboards from doing weird things
+    if (S.inputMode === 'login') {
+      const v = S.inputBuf; hideInput(); ln('BADGE #: ' + v, 'echo');
+      const r = _res; _res = null; S.inputMode = 'cmd'; r(v);
+    } else if (S.inputMode === 'cmd') {
+      const cmd = S.inputBuf.trim(); hideInput();
+      if (cmd) ln(S.cwd + '> ' + cmd, 'echo');
+      S.inputBuf = '';
+      ghost.value = ''; // Clear it out
+      if (cmd) handleCmd(cmd); else showInput();
+    }
+  }
+});
+document.addEventListener('click', () => { if(termInputRow.classList.contains('on')) ghost.focus(); });
+document.addEventListener('touchstart', () => { if(termInputRow.classList.contains('on')) ghost.focus(); }, {passive: true});
+document.addEventListener('keydown', () => { const d=new Audio(); d.volume=0; d.play().catch(()=>{}); }, {once:true});
+// NEW: Make the Camera Bar fully touch/click interactive
+camBar.addEventListener('click', e => {
+  // Only register clicks if the player is currently inside SEC1 or SEC2
+  if (S.inputMode !== 'any' || !_res) return;
+  
+  const btn = e.target.closest('.cam-btn');
+  if (!btn) return; // They clicked the background, not a button
+
+  // If they clicked the [EXIT] button
+  if (btn.id === 'btn_exit') {
+    const rr = _res; _res = null; S.inputMode = 'cmd'; hideInput(); rr('exit');
+    return;
+  }
+
+  // If they clicked a camera button (extract '1' from 'btn_cam1')
+  const camId = btn.id.replace('btn_cam', '');
+  const nums = SITE_CAMS[S.activeSite].map(k => k.replace('cam', ''));
+  
+  // If the camera is valid for this site, trigger it
+  if (nums.includes(camId)) {
+    const rr = _res; _res = null; S.inputMode = 'cmd'; hideInput(); rr(camId);
+  }
+});
 /* ════════════════════════════════════════════════════════
    COMMANDS
 ════════════════════════════════════════════════════════ */
@@ -979,7 +1188,7 @@ async function handleCmd(raw){
       ln('  sec1.exe / sec2.exe  Camera interfaces');
       ln('  dir                  List directory');
       ln('  cd [name]            Change directory (cd .. = up)');
-      ln('  type [file]          Display file');
+      ln('  type / read [file]   Display file');
       ln('  dial [ext]           Dial phone (try: 204, 107, 099, 311)');
       ln('  play [tape]          Play tape (TAPE_01 through TAPE_05)');
       ln('  stop                 Stop audio');
@@ -991,7 +1200,10 @@ async function handleCmd(raw){
       ln('  Audio stopped.','dim');break;
     case 'dial':
       if(!arg){ln('Usage: dial [extension]','warn');break;}
-      ln('');hideInput();await runDial(arg.replace(/\D/g,''));break;
+      ln('');hideInput();
+      if(arg==='099')TL.raise('s',2);
+      if(arg==='311'){TL.raise('s',2);TL.raise('e',1);}
+      await runDial(arg.replace(/\D/g,''));break;
     case 'play':{
       if(!arg){ln('Usage: play [TAPE_01 .. TAPE_05]','warn');break;}
       const key=arg.replace('.MP3','').replace('.WAV','');
@@ -1037,16 +1249,22 @@ async function handleCmd(raw){
       else ln('Invalid directory or access denied.','err');
       break;
     }
+    case 'read':
     case 'type':{
-      if(!arg){ln('Usage: type [filename]','warn');break;}
+      if(!arg){ln('Usage: type (or read) [filename]','warn');break;}
       const fp=S.cwd+'\\'+arg;const f=FS[fp];
       if(!f){ln('File not found: '+arg,'err');break;}
+      // ... the rest of the file reading logic stays exactly the same
       if(f.type==='dir'){ln('Is a directory.','warn');break;}
       if(f.type==='audio'){ln('');ln('[AUDIO FILE]  Use: play '+f.tape,'sys');ln('');break;}
-      /* track reads */
-      if(arg==='FOREMAN.LOG')S.logReads++;
-      if(arg==='BADGE.LOG')S.badgeLogRead=true;
-      if(arg.includes('INCIDENT.RPT')&&S.cwd.includes('SECWATCH')&&!S.cwd.includes('LKCO'))S.incidentRptRead=true;
+      if(typeof SW!=='undefined')SW.find(arg);
+      /* track reads + threat level */
+      if(arg==='FOREMAN.LOG'){S.logReads++;TL.raise('l',1);}
+      if(arg==='BADGE.LOG'){S.badgeLogRead=true;TL.raise('h',1);}
+      if(arg.includes('INCIDENT.RPT')&&S.cwd.includes('SECWATCH')&&!S.cwd.includes('LKCO')){S.incidentRptRead=true;TL.raise('h',1);}
+      if(arg==='COMBS.TXT'){TL.raise('l',2);TL.raise('s',1);}
+      if(arg==='GEOL.RPT')TL.raise('l',1);
+      if(arg==='EXCAVATION.LOG')TL.raise('l',1);
       ln('');
       for(const line of f.content.split('\n')){
         const c=line.startsWith('!!')?'err':line.includes('[REDACTED]')?'warn':line.match(/^;/)?'dim':line.match(/^\s*\[.*\]\s*$/)?'hi':(line.startsWith('it ')||line.startsWith('i ')||line.startsWith('the wall'))?'warn':'';
@@ -1127,9 +1345,120 @@ async function runScandisk(){
 }
 
 /* ════════════════════════════════════════════════════════
+   INTRO SEQUENCE
+════════════════════════════════════════════════════════ */
+const INTRO_LINES = [
+  {text:'The following is a transcript of a SECWATCH security terminal', cls:''},
+  {text:'session recorded January 15-16, 1994.', cls:''},
+  {text:'', cls:''},
+  {text:'The session log was recovered during a routine audit of', cls:'dim'},
+  {text:'Hargrove Properties LLC systems in March 1994.', cls:'dim'},
+  {text:'', cls:''},
+  {text:'No employee matching the badge number used during this session', cls:'warn'},
+  {text:'has been identified.', cls:'warn'},
+  {text:'', cls:''},
+  {text:'The Hargrove Business Center has been vacant since', cls:'dim'},
+  {text:'January 17, 1994.  No tenant ever occupied the building.', cls:'dim'},
+  {text:'', cls:''},
+  {text:'Earl Combs, site foreman, was reported missing March 1983.', cls:'dim'},
+  {text:'His case remains open.', cls:'dim'},
+  {text:'', cls:''},
+  {text:'The following session contains the last recorded activity', cls:'warn'},
+  {text:'on the SECWATCH network.', cls:'warn'},
+  {text:'', cls:''},
+  {text:'The system has been running continuously since this date.', cls:'err'},
+  {text:'', cls:''},
+  {text:'We do not know why it is still running.', cls:'err'},
+  {text:'We have been advised not to turn it off.', cls:'err'},
+];
+
+async function runIntro(){
+  const overlay = document.getElementById('introOverlay');
+  const textEl  = document.getElementById('introText');
+  const contEl  = document.getElementById('introContinue');
+
+  for(const item of INTRO_LINES){
+    const span = document.createElement('span');
+    span.className = 'il' + (item.cls ? ' '+item.cls : '');
+    span.textContent = item.text || '\u00a0';
+    textEl.appendChild(span);
+    await sleep(30);
+    span.classList.add('vis');
+    await sleep(item.text ? 120 : 60);
+  }
+
+  await sleep(600);
+  contEl.classList.add('vis');
+
+  // UPDATE THIS BLOCK: Add touch and click listeners
+  await new Promise(r => {
+    const handler = () => {
+      document.removeEventListener('keydown', handler);
+      document.removeEventListener('click', handler);
+      document.removeEventListener('touchstart', handler);
+      r();
+    };
+    document.addEventListener('keydown', handler);
+    document.addEventListener('click', handler);
+    document.addEventListener('touchstart', handler, {passive: true});
+  });
+
+  /* fade out */
+  overlay.style.transition='opacity 0.6s';
+  overlay.style.opacity='0';
+  await sleep(620);
+  overlay.classList.add('done');
+}
+/* ════════════════════════════════════════════════════════
+   SYSTEM WHISPERS (TIMED HINTS)
+════════════════════════════════════════════════════════ */
+function startWhispers() {
+  // 4 mins: Atmospheric
+  setTimeout(() => {
+    if (S.endDay1Triggered) return;
+    ln(''); ln('  you are here still...', 'err'); ln('');
+  }, 4 * 60 * 1000);
+
+  // 7 mins: Hint to look at LKCO cameras
+  setTimeout(() => {
+    if (S.endDay1Triggered) return;
+    if (S.sec2Runs === 0) {
+      ln(''); ln('  they are waiting in the dark at letcher county. run sec2.exe.', 'warn'); ln('');
+    }
+  }, 7 * 60 * 1000);
+
+  // 11 mins: Hint for the LKCO 'dir' ghost file injection
+  setTimeout(() => {
+    if (S.endDay1Triggered) return;
+    if (!S.ghostFileIn) {
+      ln(''); ln('  the files at LKCO hide things. check the directory again. and again.', 'dim'); ln('');
+    }
+  }, 11 * 60 * 1000);
+
+  // 15 mins: Hint for the tapes
+  setTimeout(() => {
+    if (S.endDay1Triggered) return;
+    if (S.tapePlayCount === 0) {
+      ln(''); ln('  earl left his voice behind. play the tapes.', 'dim'); ln('');
+    }
+  }, 15 * 60 * 1000);
+
+  // 20 mins: Final atmospheric push
+  setTimeout(() => {
+    if (S.endDay1Triggered) return;
+    ln(''); ln('  the wall is warm. it knows you are watching.', 'err'); ln('');
+  }, 20 * 60 * 1000);
+}
+/* ════════════════════════════════════════════════════════
    BOOT
 ════════════════════════════════════════════════════════ */
 async function boot(){
+  /* init TL bars */
+  TL.init();
+
+  /* intro first */
+  await runIntro();
+
   await lnSlow('Award Modular BIOS v4.51PG','dim',6);await sleep(55);
   ln('Copyright (C) 1984-93, Award Software Inc.','dim');ln('','dim');await sleep(85);
   ln('CPU : Intel 486 DX2/66  66MHz','dim');await sleep(45);
@@ -1158,16 +1487,28 @@ async function boot(){
   ln('  Review all logs before resuming operations.','warn');
   ln('');await sleep(240);
   ln('  Enter Employee Badge Number to continue.');ln('');
+
+  /* badge login with special badge support */
   S.employeeID=await new Promise(r=>{_res=r;S.inputMode='login';showInput('  BADGE #: ');});
-  ln('');await lnSlow('  Verifying badge #'+S.employeeID+'...','',13);await sleep(400);
-  ln('  Access granted.','hi');await sleep(200);
+
+  ln('');
+  await lnSlow('  Verifying badge #'+S.employeeID+'...','',13);
+  await sleep(400);
+
+  const special = SPECIAL_BADGES[S.employeeID];
+  if(special){
+    await special.onLogin();
+  } else {
+    ln('  Access granted.','hi');
+  }
+
+  await sleep(200);
   ln(S.playerName?'  Welcome back, '+S.playerName+'.':'  Stay sharp tonight.');
   await sleep(240);ln('');
   ln('  HELP for commands.  SEC1.EXE / SEC2.EXE for cameras.','dim');
   ln('  DIAL 204 for Pellegrino.  CD SITES\\LKCO for the strip site.','dim');
-  ln('');S.inputMode='cmd';showInput();
+  ln('');
+  startWhispers();
+  S.inputMode='cmd';showInput();
 }
 boot();
-</script>
-</body>
-</html>

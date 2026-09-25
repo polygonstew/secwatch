@@ -1,0 +1,3 @@
+Drop night_1.mp4, night_2.mp4, night_3.mp4 here.
+They play when you wake from each night of the Night Shift.
+Missing ones show a "no tape" card with a Continue button.

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SECWATCH v2.11b -- DAY 1</title>
+<!-- SECWATCH v2.11b day1.html | /img/ /audio/ | see production_bible.md -->
+<!--
+  You found the source. Good.
+  Most people don't look.
+
+  37.1954° N, 82.9371° W
+
+  You should not go there.
+  Earl went there.
+  You know what happened to Earl.
+
+  Leave this running.
+-->
+<link rel="stylesheet" href="css/style.css">
+<script src="js/swState.js"></script>
+<script>SW.newRun();</script>
+</head>
+<body>
+
+<!-- INTRO OVERLAY -->
+<div id="introOverlay">
+  <div id="introText"></div>
+  <div id="introContinue">[ PRESS ANY KEY TO CONTINUE ]</div>
+</div>
+
+<div id="layout">
+  <div id="topRow">
+    <div id="camPanel">
+      <div id="camLabel">
+        <span>SECWATCH v2.11b  --  CAMERA FEED</span>
+        <span id="camLabelRight">HARGROVE PROPERTIES LLC</span>
+      </div>
+      <div id="camFrame">
+        <img id="camFeed" src="" alt="">
+        <div id="camAcquire">ACQUIRING SIGNAL...</div>
+        <div id="camNoFeed">
+          <div class="nf-box">
+            <div>NO FEED SELECTED</div>
+            <div style="margin-top:6px;font-size:0.85em;color:var(--gdim);">SEC1.EXE  /  SEC2.EXE</div>
+          </div>
+        </div>
+        <div id="camHUD">
+          <div class="hud-row"><span id="hudCamID">--</span><span id="hudAlert">MOTION DETECTED</span><span id="hudLoc">--</span></div>
+          <div class="hud-row"><span id="hudRec">&#9679; REC</span><span id="hudDate">01/15/94&nbsp;&nbsp;23:51</span><span id="hudSig">SIG: --</span></div>
+        </div>
+      </div>
+      <div id="camBar"><span style="color:var(--gdim);letter-spacing:0.08em;">RUN SEC1.EXE OR SEC2.EXE TO INITIALIZE</span></div>
+    </div>
+    <div id="commsPanel">
+      <div id="commsLabel"><span>COMMS / PHONE</span><span id="commsLabelRight">LINE: IDLE</span></div>
+      <div id="commsBody">
+        <div id="phoneDisplay">
+          <div class="comm-title">&#9743; INTERNAL TELEPHONE</div>
+          <div id="phoneNumber">&nbsp;</div>
+          <div id="phoneStatus">TYPE: DIAL [EXT]</div>
+        </div>
+        <div id="tapeDisplay">
+          <div class="comm-title">&#9654; TAPE PLAYER</div>
+          <div id="tapeName">NO TAPE LOADED</div>
+          <div id="tapeStatus">TYPE: PLAY [TAPE_XX]</div>
+          <div id="tapeBar"></div>
+        </div>
+        <div id="transcript">TRANSCRIPT WILL APPEAR HERE</div>
+
+        <!-- SITE INTEGRITY PANEL -->
+        <div id="integrityPanel">
+          <div class="int-title">&#9632; SITE INTEGRITY</div>
+          <div class="int-row">
+            <span class="int-label">HARGROV</span>
+            <div class="int-bar-track"><div class="int-bar-fill" id="barH"></div></div>
+            <span class="int-val" id="valH">0</span>
+          </div>
+          <div class="int-row">
+            <span class="int-label">LKCO</span>
+            <div class="int-bar-track"><div class="int-bar-fill" id="barL"></div></div>
+            <span class="int-val" id="valL">0</span>
+          </div>
+          <div class="int-row">
+            <span class="int-label">SYSTEM</span>
+            <div class="int-bar-track"><div class="int-bar-fill" id="barS"></div></div>
+            <span class="int-val" id="valS">0</span>
+          </div>
+          <div class="int-row" id="ewRow">
+            <span class="int-label" style="color:var(--red);">EAST WALL</span>
+            <div class="int-bar-track"><div class="int-bar-fill red" id="barE"></div></div>
+            <span class="int-val err" id="valE">0</span>
+          </div>
+        </div>
+      </div>
+      <div id="commsHelp">DIAL [ext]&nbsp;&nbsp;PLAY [tape]&nbsp;&nbsp;STOP&nbsp;&nbsp;HELP</div>
+    </div>
+  </div>
+  <div id="termPanel">
+    <div id="termLabel"><span>TERMINAL  --  DAY 1  --  01/15/94</span><span id="termLabelRight">C:\SECWATCH</span></div>
+    <div id="termOutput"></div>
+    <div id="termInputRow">
+      <span id="termPrompt">C:\SECWATCH&gt;&nbsp;</span>
+      <span id="termTyped"></span>
+      <span class="cur"></span>
+    </div>
+  </div>
+</div>
+<input id="ghost" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="none">
+
+<script src="js/SECengine.js"></script>
+
+</body>
+</html>

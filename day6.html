@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HOMESAFE v3.2 -- DAY 6</title>
+<!-- SECWATCH day6_final.html | /img/ /audio/ | see production_bible.md -->
+<!--
+  402 Hargrove Drive.
+  The back door was unlocked.
+  Like the Meade house.
+  Like the LKCO trailer.
+  The properties associated with this thing
+  have a way of being accessible when they need to be.
+-->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Special+Elite&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#04060a;--panel:#070d14;--border:#0e1e2e;
+  --g:#4488cc;--gdim:#1a3a5c;--ghi:#88bbee;
+  --amb:#ffb833;--red:#ff4444;--grn:#33cc66;
+  --paper:#e8e0cc;--ink:#1a1006;--inkf:#3d2c10;
+  --modal:#0a0e14;
+}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--g);
+  font-family:'Share Tech Mono','Courier New',monospace;
+  font-size:clamp(10px,1.3vw,13px);overflow:hidden;user-select:none;}
+/* scanlines */
+body::before{content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(to bottom,transparent 0px,transparent 3px,rgba(0,0,0,0.07) 3px,rgba(0,0,0,0.07) 4px);
+  pointer-events:none;z-index:900;}
+body::after{content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,0.75) 100%);
+  pointer-events:none;z-index:899;}
+
+/* ── layout ── */
+#layout{width:100%;height:100%;display:grid;grid-template-rows:auto 1fr auto;animation:crtFlicker 18s infinite;}
+
+/* ── header bar ── */
+#sysBar{
+  background:var(--panel);border-bottom:1px solid var(--border);
+  padding:4px 12px;display:flex;justify-content:space-between;align-items:center;
+  font-size:clamp(8px,0.9vw,10px);letter-spacing:0.1em;
+}
+#sysBarLeft{color:var(--gdim);}
+#sysBarRight{color:var(--amb);}
+#sysBarLed{display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:var(--grn);box-shadow:0 0 5px var(--grn);margin-right:6px;animation:blink 2s step-end infinite;}
+
+/* ── main content area ── */
+#main{display:grid;grid-template-columns:1fr 380px;min-height:0;overflow:hidden;}
+
+/* ── LEFT: terminal panel ── */
+#termPanel{background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+#termLabel{flex-shrink:0;border-bottom:1px solid var(--border);padding:3px 12px;
+  font-size:clamp(7px,0.85vw,9px);letter-spacing:0.1em;color:var(--gdim);
+  display:flex;justify-content:space-between;}
+#termOutput{flex:1;overflow-y:auto;overflow-x:hidden;
+  scrollbar-width:thin;scrollbar-color:var(--gdim) transparent;padding:6px 12px 2px;}
+.ln{line-height:1.6;letter-spacing:0.022em;white-space:pre-wrap;word-break:break-word;}
+.dim{color:var(--gdim);}
+.hi{color:var(--ghi);text-shadow:0 0 6px rgba(136,187,238,0.4);}
+.warn{color:var(--amb);}
+.err{color:var(--red);}
+.echo{color:var(--ghi);}
+.sys{color:var(--grn);}
+.doc{color:var(--paper);background:rgba(232,224,204,0.05);border-left:2px solid var(--gdim);
+  padding:2px 8px;margin:2px 0;}
+#termInputRow{flex-shrink:0;display:flex;align-items:center;padding:3px 12px 5px;
+  border-top:1px solid var(--border);opacity:0;pointer-events:none;min-height:22px;}
+#termInputRow.on{opacity:1;pointer-events:auto;}
+#termPrompt{white-space:pre;color:var(--g);}
+.cur{display:inline-block;width:0.55em;height:0.92em;background:var(--g);
+  margin-left:1px;vertical-align:middle;position:relative;top:-1px;animation:blink 1.1s step-end infinite;}
+#termTyped{white-space:pre;min-width:1px;color:var(--ghi);}
+#ghost{position:fixed;opacity:0;width:1px;height:1px;top:-400px;border:none;outline:none;font-size:1px;pointer-events:none;}
+
+/* ── RIGHT: status panel ── */
+#statusPanel{background:var(--panel);display:flex;flex-direction:column;overflow:hidden;}
+#statusLabel{flex-shrink:0;border-bottom:1px solid var(--border);padding:3px 12px;
+  font-size:clamp(8px,0.9vw,10px);letter-spacing:0.1em;color:var(--gdim);
+  display:flex;justify-content:space-between;}
+#statusBody{flex:1;overflow-y:auto;scrollbar-width:none;padding:10px 12px;display:flex;flex-direction:column;gap:10px;}
+#statusBody::-webkit-scrollbar{display:none;}
+
+/* property info card */
+.info-card{border:1px solid var(--border);padding:9px 11px;}
+.info-title{font-size:0.85em;letter-spacing:0.12em;color:var(--gdim);margin-bottom:6px;}
+.info-row{display:flex;justify-content:space-between;font-size:0.85em;margin-bottom:3px;}
+.info-key{color:var(--gdim);}
+.info-val{color:var(--g);}
+.info-val.alert{color:var(--amb);}
+.info-val.danger{color:var(--red);}
+
+/* zone status */
+.zone-list{display:flex;flex-direction:column;gap:4px;}
+.zone-row{display:flex;align-items:center;gap:8px;font-size:0.82em;}
+.zone-led{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.zone-led.clear{background:var(--grn);}
+.zone-led.tripped{background:var(--red);animation:blink 0.6s step-end infinite;}
+.zone-led.off{background:var(--gdim);}
+.zone-name{color:var(--gdim);flex:1;}
+.zone-status{color:var(--g);}
+.zone-status.trip{color:var(--red);}
+
+/* log entries */
+.log-entry{border:1px solid var(--border);padding:7px 9px;font-size:0.82em;}
+.log-entry+.log-entry{border-top:none;}
+.log-time{color:var(--gdim);font-size:0.85em;display:block;margin-bottom:2px;}
+.log-badge{color:var(--amb);}
+.log-badge.dead{color:var(--red);}
+.log-action{color:var(--g);}
+
+/* integrity bars */
+#integrityPanel{border:1px solid var(--border);padding:7px 10px;font-size:clamp(8px,0.9vw,10px);letter-spacing:0.06em;}
+.int-title{color:var(--gdim);margin-bottom:5px;letter-spacing:0.1em;}
+.int-row{display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:0.9em;}
+.int-label{color:var(--gdim);width:52px;flex-shrink:0;}
+.int-bar-track{flex:1;height:6px;background:var(--gdim);position:relative;overflow:hidden;}
+.int-bar-fill{position:absolute;left:0;top:0;height:100%;background:var(--g);width:0%;transition:width 1.2s ease,background 0.8s ease;}
+.int-bar-fill.amber{background:var(--amb);}
+.int-bar-fill.red{background:var(--red);}
+.int-val{color:var(--gdim);width:18px;text-align:right;flex-shrink:0;}
+.int-val.warn{color:var(--amb);}
+.int-val.err{color:var(--red);}
+#ewRow{display:none;}
+#ewRow.show{display:flex;}
+
+/* help */
+#statusHelp{flex-shrink:0;font-size:0.8em;color:var(--gdim);letter-spacing:0.05em;
+  line-height:1.7;border-top:1px solid var(--border);padding:5px 12px;}
+
+/* ── BOTTOM STATUS BAR ── */
+#bottomBar{background:var(--panel);border-top:1px solid var(--border);
+  padding:3px 12px;display:flex;justify-content:space-between;align-items:center;
+  font-size:clamp(7px,0.85vw,9px);letter-spacing:0.08em;color:var(--gdim);}
+
+/* ── DOCUMENT MODAL ── */
+#docModal{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:800;
+  display:none;align-items:center;justify-content:center;}
+#docModal.open{display:flex;}
+.doc-inner{
+  background:var(--paper);max-width:600px;width:90%;max-height:85vh;
+  overflow-y:auto;padding:28px 32px;position:relative;
+  font-family:'Special Elite',cursive;color:var(--ink);
+  box-shadow:0 20px 60px rgba(0,0,0,0.9);
+}
+.doc-title{font-size:18px;font-weight:bold;border-bottom:2px solid var(--ink);
+  padding-bottom:8px;margin-bottom:14px;letter-spacing:0.04em;}
+.doc-meta{font-size:9px;color:var(--inkf);font-family:'Share Tech Mono',monospace;
+  margin-bottom:16px;line-height:1.7;letter-spacing:0.05em;}
+.doc-body{font-size:11.5px;line-height:1.8;color:#2a1a08;}
+.doc-body p{margin-bottom:10px;}
+.doc-body .redacted{background:#1a1208;color:#1a1208;padding:0 3px;user-select:none;}
+.doc-stamp{position:absolute;bottom:20px;right:20px;border:3px solid #8a2020;
+  color:#8a2020;font-family:'Share Tech Mono',monospace;font-size:11px;
+  padding:4px 10px;transform:rotate(-8deg);letter-spacing:0.2em;opacity:0.65;}
+.doc-close{position:absolute;top:12px;right:14px;background:none;border:none;
+  font-size:18px;cursor:pointer;color:var(--inkf);padding:4px 8px;font-family:inherit;}
+.doc-close:hover{color:var(--ink);}
+
+/* photo overlay */
+#photoModal{position:fixed;inset:0;background:rgba(0,0,0,0.97);z-index:900;
+  display:none;align-items:center;justify-content:center;flex-direction:column;gap:20px;}
+#photoModal.open{display:flex;}
+.photo-frame{
+  border:8px solid #2a2010;
+  background:#1a1208;
+  padding:4px;
+  max-width:500px;width:90%;
+  position:relative;
+  box-shadow:0 0 60px rgba(0,0,0,0.9);
+}
+/* The photograph itself */
+.photo-img{
+  width:100%;aspect-ratio:4/3;
+  background:#1a1208;
+  position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+}
+/* PHOTOGRAPH ART AREA
+   Replace this div's contents with:
+   <img src="img/hargrove_photograph.png" style="width:100%;height:100%;object-fit:cover;filter:sepia(0.4) contrast(1.2) brightness(0.9);">
+   The photograph should show the east wall bench, Earl facing the wall, 1983.
+   Whatever is behind Earl should be genuinely ambiguous -- just outside frame,
+   or a shape the eye cannot resolve. The player should not be able to see it clearly.
+   This is intentional. */
+.photo-scene{
+  width:100%;height:100%;
+  background:linear-gradient(175deg,#1a1810 0%,#0e0c08 60%,#080604 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:6px;
+}
+.photo-desc{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  color:rgba(200,180,140,0.5);letter-spacing:0.1em;text-align:center;
+  padding:0 16px;
+}
+.photo-caption{font-family:'Special Elite',cursive;font-size:8px;
+  color:rgba(180,160,120,0.7);text-align:center;padding:6px 8px;
+  border-top:1px solid rgba(100,80,40,0.3);}
+.photo-back{font-family:'Special Elite',cursive;font-size:10px;color:#c0a870;
+  font-style:italic;text-align:center;max-width:440px;line-height:1.6;}
+.photo-note{
+  font-family:'Special Elite',cursive;font-size:12px;color:rgba(180,160,120,0.8);
+  font-style:italic;text-align:center;max-width:460px;line-height:1.7;
+}
+.photo-close{
+  background:transparent;border:1px solid var(--gdim);color:var(--gdim);
+  font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:0.15em;
+  padding:8px 24px;cursor:pointer;transition:all 0.2s;
+}
+.photo-close:hover{border-color:var(--g);color:var(--g);}
+
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes crtFlicker{0%,100%{opacity:1}92%{opacity:1}92.3%{opacity:.82}92.7%{opacity:1}97.1%{opacity:1}97.4%{opacity:.88}97.7%{opacity:1}}
+</style>
+<script src="js/swState.js"></script>
+</head>
+<body>
+
+<div id="layout">
+
+  <!-- SYSTEM BAR -->
+  <div id="sysBar">
+    <div id="sysBarLeft">
+      <span id="sysBarLed"></span>
+      HOMESAFE SECURITY SYSTEMS  v3.2  --  402 HARGROVE DRIVE  --  WHITESBURG KY
+    </div>
+    <div id="sysBarRight" id="sysBarRight">ARMED  /  MOTION: NONE  /  01/17/94  19:44</div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+
+    <!-- TERMINAL -->
+    <div id="termPanel">
+      <div id="termLabel">
+        <span>HOMESAFE TERMINAL  --  DAY 6  --  01/17/94</span>
+        <span id="termLabelRight">LOCAL</span>
+      </div>
+      <div id="termOutput"></div>
+      <div id="termInputRow">
+        <span id="termPrompt">HOMESAFE&gt;&nbsp;</span>
+        <span id="termTyped"></span>
+        <span class="cur"></span>
+      </div>
+    </div>
+
+    <!-- STATUS PANEL -->
+    <div id="statusPanel">
+      <div id="statusLabel"><span>PROPERTY STATUS</span><span id="statusLabelRight">ZONE MONITOR</span></div>
+      <div id="statusBody">
+
+        <div class="info-card">
+          <div class="info-title">&#9632; PROPERTY INFO</div>
+          <div class="info-row"><span class="info-key">OWNER</span><span class="info-val">HARGROVE ESTATE</span></div>
+          <div class="info-row"><span class="info-key">ADDRESS</span><span class="info-val">402 HARGROVE DR</span></div>
+          <div class="info-row"><span class="info-key">STATUS</span><span class="info-val alert">VACANT</span></div>
+          <div class="info-row"><span class="info-key">SINCE</span><span class="info-val">03/16/91</span></div>
+          <div class="info-row"><span class="info-key">MANAGER</span><span class="info-val">R. PELLEGRINO</span></div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-title">&#9632; ZONE STATUS</div>
+          <div class="zone-list" id="zoneList">
+            <div class="zone-row"><div class="zone-led clear"></div><span class="zone-name">FRONT DOOR</span><span class="zone-status">SECURE</span></div>
+            <div class="zone-row"><div class="zone-led off" id="backLed"></div><span class="zone-name">BACK DOOR</span><span class="zone-status" id="backStatus" style="color:var(--gdim)">---</span></div>
+            <div class="zone-row"><div class="zone-led clear"></div><span class="zone-name">STUDY WINDOW</span><span class="zone-status">SECURE</span></div>
+            <div class="zone-row"><div class="zone-led clear"></div><span class="zone-name">BASEMENT</span><span class="zone-status">SECURE</span></div>
+            <div class="zone-row"><div class="zone-led off" id="safeLed"></div><span class="zone-name">SAFE ROOM</span><span class="zone-status" id="safeStatus" style="color:var(--gdim)">---</span></div>
+          </div>
+        </div>
+
+        <div class="info-card" id="recentLog">
+          <div class="info-title">&#9632; RECENT ACCESS LOG</div>
+          <div class="log-entry">
+            <span class="log-time">01/16/94  04:52</span>
+            <span class="log-badge dead">Badge #0047</span> —
+            <span class="log-action">ENTRY / EXIT  [2 min]</span>
+          </div>
+          <div class="log-entry">
+            <span class="log-time">12/28/93  03:17</span>
+            <span class="log-badge dead">Badge #0047</span> —
+            <span class="log-action">ENTRY / EXIT  [1 min]</span>
+          </div>
+          <div class="log-entry">
+            <span class="log-time">09/04/93  02:41</span>
+            <span class="log-badge dead">Badge #0047</span> —
+            <span class="log-action">ENTRY / EXIT  [4 min]</span>
+          </div>
+        </div>
+
+        <div id="integrityPanel">
+          <div class="int-title">&#9632; SITE INTEGRITY</div>
+          <div class="int-row">
+            <span class="int-label">HARGROV</span>
+            <div class="int-bar-track"><div class="int-bar-fill" id="barH"></div></div>
+            <span class="int-val" id="valH">0</span>
+          </div>
+          <div class="int-row">
+            <span class="int-label">LKCO</span>
+            <div class="int-bar-track"><div class="int-bar-fill" id="barL"></div></div>
+            <span class="int-val" id="valL">0</span>
+          </div>
+          <div class="int-row">
+            <span class="int-label">SYSTEM</span>
+            <div class="int-bar-track"><div class="int-bar-fill" id="barS"></div></div>
+            <span class="int-val" id="valS">0</span>
+          </div>
+          <div class="int-row" id="ewRow">
+            <span class="int-label" style="color:var(--red);">EAST WALL</span>
+            <div class="int-bar-track"><div class="int-bar-fill red" id="barE"></div></div>
+            <span class="int-val err" id="valE">0</span>
+          </div>
+        </div>
+
+      </div>
+      <div id="statusHelp">LOG &nbsp;SAFE [code] &nbsp;OPEN [doc] &nbsp;PHOTO &nbsp;HELP</div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM BAR -->
+  <div id="bottomBar">
+    <span id="bottomLeft">HOMESAFE v3.2  (C) 1991 SecureLife Corp.</span>
+    <span id="bottomRight">SYSTEM ACTIVE  --  MONITORING ALL ZONES</span>
+  </div>
+
+</div>
+
+<input id="ghost" autocomplete="off" spellcheck="false">
+
+<!-- DOCUMENT MODAL -->
+<div id="docModal">
+  <div class="doc-inner">
+    <button class="doc-close" onclick="closeDoc()">&#10005;</button>
+    <div class="doc-title" id="docTitle"></div>
+    <div class="doc-meta" id="docMeta"></div>
+    <div class="doc-body" id="docBody"></div>
+    <div class="doc-stamp" id="docStamp"></div>
+  </div>
+</div>
+
+<!-- PHOTOGRAPH MODAL -->
+<div id="photoModal">
+  <div class="photo-frame">
+    <div class="photo-img">
+      <!-- PHOTOGRAPH ART AREA
+           Replace the .photo-scene div with your image:
+           <img src="img/hargrove_photograph.png" style="width:100%;height:100%;object-fit:cover;filter:sepia(0.4) contrast(1.15) brightness(0.88);">
+           The image: east wall bench, 1983. Earl facing the wall.
+           Something behind him that the eye cannot resolve. -->
+      <div class="photo-scene">
+        <div class="photo-desc">EAST WALL — KELLY BRANCH SITE FOUR — 1983</div>
+        <div class="photo-desc" style="margin-top:10px;font-size:8px;color:rgba(180,160,120,0.3)">
+          [photograph loads here]<br>img/hargrove_photograph.png
+        </div>
+      </div>
+    </div>
+    <div class="photo-caption">Found in safe — no date printed — Kodak backing 1982-1984</div>
+  </div>
+  <div class="photo-note" id="photoNote">
+    There is something in the photograph behind Earl.
+  </div>
+  <button class="photo-close" onclick="closePhoto()">[ STOP LOOKING ]</button>
+</div>
+
+<script>
+'use strict';
+
+/* ════════════════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════════════════ */
+const S = {
+  cwd:'LOCAL', inputMode:'cmd', inputBuf:'',
+  logRead:false,
+  safeOpened:false,
+  safeAttempts:0,
+  landGrantRead:false,
+  letterRead:false,
+  photoViewed:false,
+  fullLogRead:false,
+  endDay6Triggered:false,
+  observerLogged:false,
+  _ewTimer:null,
+};
+
+const DATE_STR='01/17/94', TIME_STR='19:44';
+let _res=null;
+
+/* ════════════════════════════════════════════════════════
+   THREAT LEVEL — carries from Day 5
+════════════════════════════════════════════════════════ */
+const TL = {
+  bars:{h:0,l:0,s:0,e:0},
+  ewRow:null, ewTimer:null,
+
+  init(){
+    this._els={
+      h:{fill:document.getElementById('barH'),val:document.getElementById('valH')},
+      l:{fill:document.getElementById('barL'),val:document.getElementById('valL')},
+      s:{fill:document.getElementById('barS'),val:document.getElementById('valS')},
+      e:{fill:document.getElementById('barE'),val:document.getElementById('valE')},
+    };
+    this.ewRow=document.getElementById('ewRow');
+    try{
+      const saved=JSON.parse(sessionStorage.getItem('sw_tl')||'{}');
+      ['h','l','s','e'].forEach(b=>{if(saved[b])this.bars[b]=saved[b];});
+    }catch(e){}
+    ['h','l','s','e'].forEach(b=>this._render(b));
+    if(this.bars.h>=5||this.bars.l>=5||this.bars.s>=5){
+      this.ewRow&&this.ewRow.classList.add('show');
+      if(!this.ewTimer)this._startEW();
+    }
+    if(this.bars.h>=7||this.bars.l>=7||this.bars.s>=7) S.observerLogged=true;
+  },
+
+  _save(){try{sessionStorage.setItem('sw_tl',JSON.stringify(this.bars));}catch(e){}},
+
+  _render(b){
+    const v=Math.min(this.bars[b],10);
+    const el=this._els[b];if(!el||!el.fill)return;
+    el.fill.style.width=(v*10)+'%';
+    el.val.textContent=v===10?'--':v;
+    if(v>=7){el.fill.classList.add('red');el.fill.classList.remove('amber');el.val.className='int-val err';}
+    else if(v>=4){el.fill.classList.add('amber');el.fill.classList.remove('red');el.val.className='int-val warn';}
+    else{el.fill.classList.remove('amber','red');el.val.className='int-val';}
+  },
+
+  raise(b,amt=1){
+    const prev=this.bars[b];
+    this.bars[b]=Math.min(10,this.bars[b]+amt);
+    if(this.bars[b]===prev)return;
+    this._render(b);this._save();this._check(b,prev);
+  },
+
+  _check(b,prev){
+    const v=this.bars[b];
+    if(v>=7&&prev<7){S.observerLogged=true;}
+    if(this.bars.h>=5||this.bars.l>=5||this.bars.s>=5){
+      this.ewRow&&this.ewRow.classList.add('show');
+      if(!this.ewTimer)this._startEW();
+    }
+  },
+
+  _startEW(){this.ewTimer=setInterval(()=>this.raise('e',1),3*60*1000);},
+};
+
+/* ════════════════════════════════════════════════════════
+   FULL SECURITY LOG (all badge 0047 entries since death)
+════════════════════════════════════════════════════════ */
+const FULL_LOG=`HOMESAFE ACCESS LOG -- 402 HARGROVE DRIVE
+REPORTING PERIOD: 03/16/91 TO PRESENT
+
+!! NOTE: Badge #0047 (D. HARGROVE) deceased 03/16/91
+!! Badge was reported destroyed by R. Pellegrino 03/18/91
+
+03/16/91  ESTATE SEALED  --  R. Pellegrino (authorized)
+
+04/02/91  03:14  Badge #0047  BACK DOOR  ENTRY
+04/02/91  03:16  Badge #0047  BACK DOOR  EXIT  [2 min]
+
+07/18/91  02:58  Badge #0047  BACK DOOR  ENTRY
+07/18/91  03:01  Badge #0047  BACK DOOR  EXIT  [3 min]
+
+11/30/91  04:22  Badge #0047  BACK DOOR  ENTRY
+11/30/91  04:23  Badge #0047  BACK DOOR  EXIT  [1 min]
+
+03/15/92  03:44  Badge #0047  BACK DOOR  ENTRY
+03/15/92  03:47  Badge #0047  BACK DOOR  EXIT  [3 min]
+
+08/29/92  02:11  Badge #0047  BACK DOOR  ENTRY
+08/29/92  02:15  Badge #0047  BACK DOOR  EXIT  [4 min]
+
+12/09/92  03:02  Badge #0047  BACK DOOR  ENTRY
+12/09/92  03:03  Badge #0047  BACK DOOR  EXIT  [1 min]
+
+05/17/93  04:38  Badge #0047  BACK DOOR  ENTRY
+05/17/93  04:41  Badge #0047  BACK DOOR  EXIT  [3 min]
+
+09/04/93  02:41  Badge #0047  BACK DOOR  ENTRY
+09/04/93  02:45  Badge #0047  BACK DOOR  EXIT  [4 min]
+
+12/28/93  03:17  Badge #0047  BACK DOOR  ENTRY
+12/28/93  03:18  Badge #0047  BACK DOOR  EXIT  [1 min]
+
+01/16/94  04:52  Badge #0047  BACK DOOR  ENTRY
+01/16/94  04:54  Badge #0047  BACK DOOR  EXIT  [2 min]
+
+NOTE: No interior zones tripped during any access.
+NOTE: Safe zone: no access recorded.
+NOTE: No camera coverage of interior.
+NOTE: Hargrove Estate has been notified.
+      No action taken per Estate instruction.
+
+END OF LOG  --  01/17/94`;
+
+/* ════════════════════════════════════════════════════════
+   DOCUMENTS IN THE SAFE
+════════════════════════════════════════════════════════ */
+const DOCS = {
+  'DEED':{
+    title:'HARGROVE LAND GRANT -- LKCO-04',
+    meta:'LETCHER COUNTY DEED RECORDS\nGranted: November 14, 1887\nGrantor: Commonwealth of Kentucky\nGrantee: Charles R. Hargrove\nStatus: Active / Held by Hargrove Estate\nCase ref: LCDR-1887-0441',
+    body:`<p>...the parcel known as Kelly Branch, eastern section, comprising approximately four hundred and twelve acres of mixed hardwood and coal-bearing terrain in Letcher County, Commonwealth of Kentucky, hereby granted in fee simple to CHARLES R. HARGROVE of Whitesburg, Kentucky.</p>
+<p>Survey conducted October-November 1887 by T.J. Combs and associates. Eastern boundary terminates at coordinates where surveyor's instruments gave inconsistent readings. Surveyor declined to proceed. Eastern boundary marked by agreed convention only.</p>
+<p>All mineral rights included. Surface rights included. Any and all subsurface formations, voids, anomalies, or features therein are included in this grant.</p>
+<p style="font-style:italic;color:#6a4020;font-size:10px;">Note in margin, different hand, undated: "T.J. Combs explained the eastern boundary situation to C.R.H. in full. C.R.H. accepted terms with full knowledge. The arrangement is in place."</p>`,
+    stamp:'RECORDED 1887',
+  },
+  'LETTER':{
+    title:"LETTER: JAMES HARGROVE TO DAVID HARGROVE",
+    meta:'Found in envelope, unsealed\nDate: September 1989\nHandwritten, 3 pages\nTranscribed for digital record',
+    body:`<p>David,</p>
+<p>I'll start with the thing I should have told you when you were old enough to understand, and didn't because I was afraid you'd react exactly the way you have.</p>
+<p>The land in Letcher County has a — situation. I'm going to use that word because I've never found a better one. Your grandfather didn't have one either. His father is the one who figured out it existed. His name was Thomas and he died in 1924 at 91 years old in a chair on his front porch and he was the most normal man I ever heard described by people who knew him, so whatever it is down there it doesn't necessarily end badly if you manage it right.</p>
+<p>Managing it right means two things.</p>
+<p>First, the Combs family handles the active part. They go down. They maintain the understanding, I guess you'd call it. They've been doing it since Thomas made the arrangement in 1887. I don't know the details of how it works. I know it works. The current one is Earl Combs and he is a professional and a serious man and you should leave him alone to do his job.</p>
+<p>Second, we own the land and we don't sell it. We don't transfer it. We don't let it sit idle. We maintain the cameras and we keep the access clear and we make sure the Combs family can always get in. That's it. That's our part. It is not complicated.</p>
+<p>What you are doing with these people, David — these Threshold people — your mother told me about them and I am telling you to stop. They don't know what they're dealing with and they are going to get someone hurt. Maybe you.</p>
+<p>I need you to come home and talk to me. I need you to hear the rest of what I know. There isn't much. But there's enough. There's enough that you need to hear it.</p>
+<p>Please, son.</p>
+<p>Dad</p>
+<p style="font-size:10px;color:#6a4020;font-style:italic;">September 1989</p>
+<p style="margin-top:14px;font-size:10px;color:#8a2020;border-top:1px solid #c0a060;padding-top:10px;font-family:'Share Tech Mono',monospace;">David never went home.<br>James Hargrove died March 19, 1991.<br>Three days after his son.</p>`,
+    stamp:'SEALED 1989',
+  },
+};
+
+/* ════════════════════════════════════════════════════════
+   PHOTO DESCRIPTION — types out progressively
+════════════════════════════════════════════════════════ */
+const PHOTO_STAGES=[
+  "The photograph is face-up.",
+  "It was taken at the east wall bench. 1983. Shot from approximately where CAM9 is mounted.",
+  "Earl Combs is in the frame. Near the base of the wall. He is facing it.",
+  "There is something in the photograph behind Earl.",
+  "You cannot look at it directly.\nEvery time your gaze moves toward the center of it\nyour eyes arrive somewhere else in the image.",
+  "Not dramatically. Not like a trick.\nJust — your attention slides off.",
+  "You have been looking at this photograph for four minutes.",
+  "You can describe the east wall. You can describe Earl.\nYou can describe the cable reel in the lower left.",
+  "The space between Earl and the wall is where it is\nand you cannot tell me what shape it is.",
+  "The back of the photograph has handwriting.\nDavid Hargrove's handwriting.",
+  "It says:\n\nI understand now.",
+];
+
+/* ════════════════════════════════════════════════════════
+   END OF DAY 6
+════════════════════════════════════════════════════════ */
+function checkEnd(){
+  if(S.endDay6Triggered)return;
+  if(S.fullLogRead&&S.letterRead&&S.photoViewed){
+    S.endDay6Triggered=true;
+    setTimeout(runEnd,2000);
+  }
+}
+
+async function runEnd(){
+  hideInput();
+  await sleep(1000);
+  ln('');ln('  -----------------------------------------------','dim');
+  await sleep(500);
+  await lnSlow('  The security log shows your entry.','dim',18);
+  await sleep(400);
+  ln('  Badge: UNRECOGNIZED.  Access: GRANTED.','warn');
+  await sleep(1000);
+  await lnSlow('  You lock the safe.','dim',18);
+  await sleep(400);
+  await lnSlow('  The combination you used was in a 1987 deed record.','dim',18);
+  await sleep(400);
+  await lnSlow('  You were never supposed to be in this county.','warn',22);
+  await sleep(1200);
+  ln('');
+  await lnSlow('  The back door locks behind you.','dim',18);
+  await sleep(500);
+  await lnSlow("  You didn't lock it.",'err',22);
+  await sleep(1800);
+  termOutput.innerHTML='';await sleep(400);
+  ln('');ln('');
+  await lnSlow('  HOMESAFE -- DAY 6 COMPLETE','hi',20);
+  await sleep(800);
+  ln('  01/17/94  --  Evening','hi');
+  await sleep(600);ln('');
+  ln('  Documents recovered:','dim');
+  await sleep(300);
+  if(S.landGrantRead)ln('    + 1887 Land Grant -- eastern boundary noted','sys');
+  if(S.letterRead)ln('    + Letter, James to David, 1989 -- the arrangement documented','sys');
+  if(S.photoViewed)ln('    + Photograph -- east wall, 1983, Earl Combs','sys');
+  await sleep(1000);ln('');
+  await lnSlow("  James Hargrove tried to stop his son.",'dim',18);
+  await sleep(500);
+  await lnSlow("  David went to Floor 3 anyway.",'warn',22);
+  await sleep(500);
+  await lnSlow("  That's who David was.",'dim',18);
+  await sleep(1800);
+  try{sessionStorage.setItem('sw_tl',JSON.stringify(TL.bars));}catch(e){}
+  const sub=document.createElement('div');
+  sub.className='ln dim';
+  Object.assign(sub.style,{textAlign:'center',letterSpacing:'0.1em',marginTop:'14px'});
+  sub.textContent='LOADING DAY 7...';
+  termOutput.appendChild(sub);termOutput.scrollTop=termOutput.scrollHeight;
+  await sleep(2800);
+  window.location.href='day7.html';
+}
+
+/* ════════════════════════════════════════════════════════
+   DOM REFS
+════════════════════════════════════════════════════════ */
+const termOutput=document.getElementById('termOutput');
+const termInputRow=document.getElementById('termInputRow');
+const termPrompt=document.getElementById('termPrompt');
+const termTyped=document.getElementById('termTyped');
+const termLabelR=document.getElementById('termLabelRight');
+const ghost=document.getElementById('ghost');
+const backLed=document.getElementById('backLed');
+const backStatus=document.getElementById('backStatus');
+const safeLed=document.getElementById('safeLed');
+const safeStatus=document.getElementById('safeStatus');
+
+/* ════════════════════════════════════════════════════════
+   TERMINAL ENGINE
+════════════════════════════════════════════════════════ */
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+function ln(text='',cls=''){
+  const d=document.createElement('div');
+  d.className='ln'+(cls?' '+cls:'');
+  d.textContent=text;
+  termOutput.appendChild(d);
+  termOutput.scrollTop=termOutput.scrollHeight;
+}
+async function lnSlow(text,cls='',ms=13){
+  const d=document.createElement('div');
+  d.className='ln'+(cls?' '+cls:'');d.textContent='';
+  termOutput.appendChild(d);
+  for(const ch of text){d.textContent+=ch;termOutput.scrollTop=termOutput.scrollHeight;await sleep(ms);}
+}
+function showInput(){
+  termTyped.textContent=S.inputBuf='';
+  termInputRow.classList.add('on');
+  ghost.style.pointerEvents='auto';ghost.focus();
+}
+function hideInput(){termInputRow.classList.remove('on');ghost.style.pointerEvents='none';}
+
+ghost.addEventListener('keydown',e=>{
+  if(!termInputRow.classList.contains('on'))return;
+  if(S.inputMode==='cmd'){
+    if(e.key==='Enter'){
+      const cmd=S.inputBuf.trim();hideInput();
+      if(cmd)ln('HOMESAFE> '+cmd,'echo');
+      S.inputBuf='';
+      if(cmd)handleCmd(cmd);else showInput();
+    }else if(e.key==='Backspace'){S.inputBuf=S.inputBuf.slice(0,-1);termTyped.textContent=S.inputBuf;}
+    else if(e.key.length===1){S.inputBuf+=e.key;termTyped.textContent=S.inputBuf;}
+  }
+});
+document.addEventListener('click',()=>{if(termInputRow.classList.contains('on'))ghost.focus();});
+document.addEventListener('keydown',()=>{const d=new Audio();d.volume=0;d.play().catch(()=>{});},{once:true});
+
+/* ════════════════════════════════════════════════════════
+   DOCUMENT & PHOTO MODAL
+════════════════════════════════════════════════════════ */
+function openDoc(id){
+  const doc=DOCS[id];if(!doc)return;
+  document.getElementById('docTitle').textContent=doc.title;
+  document.getElementById('docMeta').innerHTML=doc.meta.replace(/\n/g,'<br>');
+  document.getElementById('docBody').innerHTML=doc.body;
+  document.getElementById('docStamp').textContent=doc.stamp;
+  document.getElementById('docModal').classList.add('open');
+  if(id==='DEED')S.landGrantRead=true;
+  if(id==='LETTER'){S.letterRead=true;TL.raise('h',2);}
+}
+function closeDoc(){
+  document.getElementById('docModal').classList.remove('open');
+  showInput();checkEnd();
+}
+document.getElementById('docModal').addEventListener('click',e=>{
+  if(e.target===document.getElementById('docModal'))closeDoc();
+});
+
+let _photoStage=0,_photoTimer=null;
+async function showPhoto(){
+  if(!S.safeOpened){ln('  Safe is locked.','warn');showInput();return;}
+  S.photoViewed=true;
+  TL.raise('h',2);TL.raise('s',1);
+  _photoStage=0;
+  const noteEl=document.getElementById('photoNote');
+  noteEl.textContent=PHOTO_STAGES[0];
+  document.getElementById('photoModal').classList.add('open');
+  _photoTimer=setInterval(()=>{
+    _photoStage++;
+    if(_photoStage<PHOTO_STAGES.length){
+      noteEl.textContent=PHOTO_STAGES[_photoStage];
+    }else{
+      clearInterval(_photoTimer);
+    }
+  },4000);
+}
+function closePhoto(){
+  clearInterval(_photoTimer);
+  document.getElementById('photoModal').classList.remove('open');
+  ln('');
+  ln('  You can describe the east wall.','dim');
+  ln('  You can describe Earl.','dim');
+  ln('  You cannot tell me what is behind him.','warn');
+  ln('');
+  showInput();checkEnd();
+}
+
+/* ════════════════════════════════════════════════════════
+   COMMANDS
+════════════════════════════════════════════════════════ */
+async function handleCmd(raw){
+  const parts=raw.trim().split(/\s+/);
+  const cmd=parts[0].toLowerCase();
+  const arg=parts.slice(1).join(' ').toUpperCase();
+
+  switch(cmd){
+    case 'help':case'?':
+      ln('');
+      ln('  log           Full security access log');
+      ln('  log full      All 28 entries since 03/91');
+      ln('  zone          Zone sensor status');
+      ln('  safe [code]   Attempt safe combination');
+      ln('  open deed     1887 land grant (if safe open)');
+      ln('  open letter   Letter from James to David (if safe open)');
+      ln('  photo         The photograph (if safe open)');
+      ln('  cls / help');
+      ln('');break;
+
+    case 'cls':termOutput.innerHTML='';break;
+
+    case 'zone':
+      ln('');
+      ln('  ZONE STATUS -- 402 HARGROVE DRIVE');
+      ln('');
+      ln('  FRONT DOOR      SECURE','sys');
+      ln('  BACK DOOR       '+(!S.logRead?'---':'TRIPPED 19:44 -- YOU'),'warn');
+      ln('  STUDY WINDOW    SECURE','sys');
+      ln('  BASEMENT        SECURE','sys');
+      ln('  SAFE ROOM       '+(S.safeOpened?'OPEN':'SECURE'),S.safeOpened?'warn':'sys');
+      ln('');break;
+
+    case 'log':
+      if(arg==='FULL'){
+        S.fullLogRead=true;TL.raise('h',2);
+        ln('');
+        for(const line of FULL_LOG.split('\n')){
+          const cls=line.startsWith('!!')?'warn':line.startsWith('NOTE')?'dim':line.includes('Badge #0047')?'err':'';
+          ln(line,cls);
+        }
+        ln('');
+      } else {
+        S.logRead=true;TL.raise('h',1);
+        backLed.className='zone-led tripped';
+        backStatus.textContent='TRIPPED';
+        backStatus.style.color='var(--red)';
+        ln('');
+        ln('  SECURITY LOG -- RECENT ENTRIES','hi');
+        ln('');
+        ln('  01/16/94  04:52  Badge #0047  BACK DOOR  ENTRY/EXIT  [2 min]','err');
+        ln('  !! Badge #0047 -- D. HARGROVE -- DECEASED 03/16/91','err');
+        ln('');
+        ln('  12/28/93  03:17  Badge #0047  BACK DOOR  ENTRY/EXIT  [1 min]','err');
+        ln('  09/04/93  02:41  Badge #0047  BACK DOOR  ENTRY/EXIT  [4 min]','err');
+        ln('');
+        ln('  Type LOG FULL for complete record since 03/91.','dim');
+        ln('  28 entries. All Badge #0047.','warn');
+        ln('');
+      }break;
+
+    case 'safe':{
+      if(!arg){
+        ln('  Usage: safe [3-number code]  e.g.  safe 33-78-91','warn');
+        break;
+      }
+      S.safeAttempts++;
+      const code=arg.replace(/[^0-9\-]/g,'');
+      if(code==='33-78-91'||code==='337891'||arg==='33 78 91'){
+        if(S.safeOpened){ln('  Safe is already open.','dim');break;}
+        playClick();
+        S.safeOpened=true;
+        TL.raise('h',1);
+        safeLed.className='zone-led tripped';
+        safeStatus.textContent='OPEN';
+        safeStatus.style.color='var(--amb)';
+        ln('');
+        await lnSlow('  Safe unlocking...','dim',14);await sleep(800);
+        ln('  OPEN.','hi');
+        await sleep(400);
+        ln('');
+        ln('  Contents:','dim');
+        ln('    1887 LAND GRANT  --  type: open deed','sys');
+        ln('    LETTER (sealed envelope, opened)  --  type: open letter','sys');
+        ln('    PHOTOGRAPH (face-up)  --  type: photo','sys');
+        ln('');
+      } else {
+        ln('  Incorrect combination.  '+(3-Math.min(S.safeAttempts,3))+' attempt(s) before lockout.','err');
+        if(S.safeAttempts>=3)ln('  Hint: survey depth / anomaly depth / incident year','dim');
+      }
+      break;
+    }
+
+    case 'open':{
+      if(!S.safeOpened){ln('  Safe is locked.','warn');break;}
+      if(!arg){ln('  open deed / open letter','dim');break;}
+      if(arg==='DEED'||arg==='LAND'||arg==='GRANT'){openDoc('DEED');hideInput();return;}
+      if(arg==='LETTER'||arg==='JAMES'||arg==='ENVELOPE'){openDoc('LETTER');hideInput();return;}
+      if(arg==='PHOTO'||arg==='PHOTOGRAPH'){await showPhoto();return;}
+      ln('  Not found: '+arg,'err');
+      break;
+    }
+
+    case 'photo':
+      await showPhoto();return;
+
+    default:
+      ln('');ln("'"+parts[0]+"' not recognized.",'err');ln('Type HELP.','dim');ln('');
+  }
+  showInput();checkEnd();
+}
+
+/* ════════════════════════════════════════════════════════
+   AUDIO (minimal — house ambient implied)
+════════════════════════════════════════════════════════ */
+let _ambient=null;
+function startAmbient(){
+  /* house_ambient.mp3 — refrigerator hum, clock ticking */
+  _ambient=new Audio('audio/house_ambient.mp3');
+  _ambient.loop=true;_ambient.volume=0.3;
+  _ambient.play().catch(()=>{});
+}
+function playClick(){
+  /* safe_click.mp3 — mechanical safe opening */
+  const a=new Audio('audio/safe_click.mp3');
+  a.volume=0.7;a.play().catch(()=>{});
+}
+
+/* ════════════════════════════════════════════════════════
+   BOOT
+════════════════════════════════════════════════════════ */
+async function boot(){
+  TL.init();
+
+  ln('HOMESAFE SECURITY SYSTEMS','hi');
+  ln('Version 3.2  --  SecureLife Corporation  --  1991','dim');
+  ln('');
+  await sleep(300);
+  ln('Connecting to 402 Hargrove Drive...','dim');
+  await sleep(800);
+  ln('Property node: ONLINE','sys');
+  await sleep(300);
+  ln('Zone monitor: ACTIVE','sys');
+  await sleep(300);
+  ln('Access log: LOADED','sys');
+  await sleep(500);
+  ln('');
+  ln('  ALERT: Back door tripped -- unrecognized entry -- 19:44','err');
+  ln('  ALERT: That entry is you.','warn');
+  ln('');
+  await sleep(600);
+  ln('  The house is maintained.','dim');
+  ln('  Nobody has lived here since March 1991.','dim');
+  ln('  The lights are on.','dim');
+  ln('  The heat is on.','dim');
+  await sleep(800);ln('');
+  ln('  Type LOG to see the access history.','dim');
+  ln('  The safe combination is somewhere in the county records.','dim');
+  ln('  Type HELP for commands.','dim');
+  ln('');
+
+  /* show carried TL if notable */
+  if(TL.bars.e>0){
+    await sleep(300);
+    ln('  NOTE: East Wall level '+(TL.bars.e>=10?'--':TL.bars.e)+' carried from previous session.','warn');
+    ln('');
+  }
+
+  startAmbient();
+  S.inputMode='cmd';showInput();
+}
+
+boot();
+</script>
+</body>
+</html>

@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SECWATCH v2.11b -- DAY 7</title>
+<!-- SECWATCH day7_final.html | /img/ /audio/ | see production_bible.md -->
+<!--
+  The date is wrong.
+  03/11/83  07:08
+  You are logged in as Badge #0088.
+  Six minutes before his last entry.
+  You are Earl.
+-->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --g:#33ff33;--gdim:#1a5c1a;--ghi:#afffaf;
+  --amb:#ffb833;--red:#ff4040;--blue:#33aaff;
+  --bg:#050505;--panel:#0a0f0a;--border:#1a3a1a;
+}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--g);
+  font-family:'Share Tech Mono','Courier New',monospace;
+  font-size:clamp(10px,1.3vw,13px);overflow:hidden;user-select:none;}
+body::before{content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(to bottom,transparent 0px,transparent 3px,rgba(0,0,0,0.08) 3px,rgba(0,0,0,0.08) 4px);
+  pointer-events:none;z-index:900;}
+body::after{content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,0.72) 100%);
+  pointer-events:none;z-index:899;}
+
+#layout{width:100%;height:100%;display:grid;grid-template-rows:58% 42%;animation:crtFlicker 14s infinite;}
+#topRow{display:grid;grid-template-columns:63% 37%;border-bottom:1px solid var(--border);min-height:0;}
+
+/* CAMERA */
+#camPanel{position:relative;background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+#camFrame{flex:1;position:relative;display:flex;align-items:center;justify-content:center;background:#000;overflow:hidden;}
+#camFrame::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(to bottom,transparent 0px,transparent 2px,rgba(0,0,0,0.22) 2px,rgba(0,0,0,0.22) 3px);pointer-events:none;z-index:30;}
+#camFrame::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,0.65) 100%);pointer-events:none;z-index:31;}
+#camFeed{width:100%;height:100%;object-fit:cover;display:none;
+  filter:grayscale(1) brightness(0.82) contrast(1.18) sepia(0.5) hue-rotate(76deg) saturate(1.6);}
+#camFeed.active{display:block;}
+#camFeed.degraded{filter:grayscale(1) brightness(0.65) contrast(1.3) sepia(0.4) hue-rotate(76deg) saturate(1.4);
+  animation:camFlicker 0.11s steps(1) infinite,degradeTear 4.8s ease-in-out infinite;}
+#camNoFeed{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--gdim);letter-spacing:0.12em;z-index:5;}
+#camNoFeed .nf-box{border:1px solid var(--gdim);padding:18px 32px;text-align:center;}
+#camNoFeed.hidden{display:none;}
+#camHUD{position:absolute;inset:0;pointer-events:none;z-index:32;display:flex;flex-direction:column;justify-content:space-between;padding:6px 10px;font-size:clamp(8px,0.95vw,11px);letter-spacing:0.07em;color:var(--g);text-shadow:0 0 5px var(--g);opacity:0;transition:opacity 0.3s;}
+#camHUD.active{opacity:1;}
+.hud-row{display:flex;justify-content:space-between;align-items:center;}
+#hudRec{color:var(--red);animation:blink 1.6s step-end infinite;}
+#hudSig.weak{color:var(--amb);}
+#hudAlert{color:var(--amb);text-shadow:0 0 6px var(--amb);animation:blink 0.65s step-end infinite;letter-spacing:0.14em;opacity:0;}
+#hudAlert.show{opacity:1;}
+#camFrame.signal-loss #camFeed{animation:signalLoss 0.75s ease-in forwards !important;}
+#camAcquire{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:#000;z-index:20;color:var(--g);letter-spacing:0.14em;text-shadow:0 0 8px var(--g);animation:blink 0.85s step-end infinite;}
+#camAcquire.active{display:flex;}
+#camLabel{flex-shrink:0;background:var(--panel);border-bottom:1px solid var(--border);padding:3px 10px;font-size:clamp(8px,0.9vw,10px);letter-spacing:0.1em;color:var(--gdim);display:flex;justify-content:space-between;}
+#camBar{flex-shrink:0;background:var(--panel);border-top:1px solid var(--border);padding:3px 8px;display:flex;gap:6px;flex-wrap:wrap;font-size:clamp(7px,0.85vw,10px);letter-spacing:0.06em;min-height:22px;}
+.cam-btn{color:var(--gdim);padding:1px 4px;border:1px solid transparent;}
+.cam-btn.online{color:var(--g);}
+.cam-btn.active{color:var(--ghi);border-color:var(--g);text-shadow:0 0 6px var(--g);}
+
+/* COMMS */
+#commsPanel{background:var(--panel);display:flex;flex-direction:column;overflow:hidden;}
+#commsLabel{flex-shrink:0;border-bottom:1px solid var(--border);padding:3px 10px;font-size:clamp(8px,0.9vw,10px);letter-spacing:0.1em;color:var(--gdim);display:flex;justify-content:space-between;}
+#commsBody{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;padding:8px 10px;display:flex;flex-direction:column;gap:8px;}
+#commsBody::-webkit-scrollbar{display:none;}
+#tapeDisplay{border:1px solid var(--border);padding:8px 10px;}
+.comm-title{color:var(--gdim);font-size:0.85em;letter-spacing:0.1em;margin-bottom:5px;}
+#tapeName{color:var(--ghi);letter-spacing:0.07em;min-height:1em;font-size:0.92em;}
+#tapeStatus{font-size:0.82em;color:var(--gdim);margin-top:3px;min-height:1em;}
+#tapeBar{margin-top:5px;height:2px;background:var(--gdim);width:0%;transition:width 0.5s linear;}
+#transcript{border:1px solid var(--border);padding:8px 10px;flex:1;font-size:0.88em;line-height:1.55;color:var(--gdim);overflow-y:auto;scrollbar-width:none;min-height:50px;}
+#transcript::-webkit-scrollbar{display:none;}
+#transcript.active{color:var(--g);}
+
+/* integrity bars */
+#integrityPanel{border:1px solid var(--border);padding:7px 10px;font-size:clamp(8px,0.9vw,10px);letter-spacing:0.06em;}
+.int-title{color:var(--gdim);margin-bottom:5px;letter-spacing:0.1em;}
+.int-row{display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:0.9em;}
+.int-label{color:var(--gdim);width:52px;flex-shrink:0;}
+.int-bar-track{flex:1;height:6px;background:var(--gdim);position:relative;overflow:hidden;}
+.int-bar-fill{position:absolute;left:0;top:0;height:100%;background:var(--g);width:0%;transition:width 1.2s ease,background 0.8s ease;}
+.int-bar-fill.amber{background:var(--amb);}
+.int-bar-fill.red{background:var(--red);}
+.int-val{color:var(--gdim);width:18px;text-align:right;flex-shrink:0;}
+.int-val.warn{color:var(--amb);}
+.int-val.err{color:var(--red);}
+#ewRow{display:none;}
+#ewRow.show{display:flex;}
+
+#commsHelp{font-size:0.8em;color:var(--gdim);letter-spacing:0.05em;line-height:1.7;border-top:1px solid var(--border);padding:5px 10px;flex-shrink:0;}
+
+/* TERMINAL */
+#termPanel{background:var(--bg);border-top:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+#termLabel{flex-shrink:0;border-bottom:1px solid var(--border);padding:2px 10px;font-size:clamp(7px,0.85vw,9px);letter-spacing:0.1em;color:var(--gdim);display:flex;justify-content:space-between;}
+#termOutput{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--gdim) transparent;padding:4px 10px 2px;}
+.ln{line-height:1.58;letter-spacing:0.022em;white-space:pre-wrap;word-break:break-word;text-shadow:0 0 3px rgba(51,255,51,0.18);}
+.dim{color:var(--gdim);text-shadow:none;}
+.hi{color:var(--ghi);text-shadow:0 0 6px rgba(51,255,51,0.45);}
+.warn{color:var(--amb);text-shadow:0 0 4px rgba(255,184,51,0.35);}
+.err{color:var(--red);text-shadow:0 0 4px rgba(255,64,64,0.35);}
+.echo{color:var(--ghi);}
+.sys{color:var(--blue);text-shadow:0 0 4px rgba(51,170,255,0.35);}
+#termInputRow{flex-shrink:0;display:flex;align-items:center;padding:2px 10px 4px;border-top:1px solid var(--border);opacity:0;pointer-events:none;min-height:22px;}
+#termInputRow.on{opacity:1;pointer-events:auto;}
+#termPrompt{white-space:pre;}
+.cur{display:inline-block;width:0.55em;height:0.92em;background:var(--g);box-shadow:0 0 5px var(--g),0 0 12px rgba(51,255,51,0.35);margin-left:1px;vertical-align:middle;position:relative;top:-1px;animation:blink 1.1s step-end infinite;}
+#termTyped{white-space:pre;min-width:1px;}
+#ghost{position:fixed;opacity:0;width:1px;height:1px;top:-400px;border:none;outline:none;font-size:1px;pointer-events:none;}
+
+/* final choice overlay */
+#choiceOverlay{position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:800;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
+#choiceOverlay.open{display:flex;}
+.choice-text{font-size:clamp(10px,1.1vw,12px);color:var(--gdim);letter-spacing:0.06em;line-height:2;text-align:center;max-width:500px;}
+.choice-text.bold{color:var(--g);text-shadow:0 0 8px var(--g);}
+.choice-btn{background:transparent;border:1px solid var(--gdim);color:var(--gdim);font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:0.2em;padding:10px 28px;cursor:pointer;transition:all 0.2s;}
+.choice-btn:hover{border-color:var(--g);color:var(--g);box-shadow:0 0 12px rgba(51,255,51,0.15);}
+.choice-btn.logout{border-color:var(--gdim);}
+.choice-btn.watch{border-color:var(--amb);color:var(--amb);}
+.choice-btn.watch:hover{border-color:var(--amb);box-shadow:0 0 12px rgba(255,184,51,0.2);}
+.choice-divider{width:1px;height:30px;background:var(--border);}
+
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes crtFlicker{0%,100%{opacity:1}91%{opacity:1}91.3%{opacity:.80}91.7%{opacity:1}96.8%{opacity:1}97.1%{opacity:.87}97.4%{opacity:1}}
+@keyframes camFlicker{0%{opacity:1}50%{opacity:0.88}100%{opacity:1}}
+@keyframes degradeTear{0%,100%{transform:translateX(0) scaleY(1);}93.4%{transform:translateX(-4px) scaleY(1.007);}93.8%{transform:translateX(3px) scaleY(0.994);}94.2%{transform:translateX(0) scaleY(1);}}
+@keyframes signalLoss{0%{opacity:1;transform:none;}15%{opacity:1;transform:translateY(-4px) scaleX(1.02);filter:grayscale(1) brightness(2.5) contrast(4);}35%{opacity:1;transform:translateY(3px);filter:grayscale(1) brightness(0.04) contrast(8);}60%{opacity:0.6;}85%{opacity:0.3;}100%{opacity:0;filter:grayscale(1) brightness(0);}}
+</style>
+<script src="js/swState.js"></script>
+</head>
+<body>
+
+<div id="layout">
+  <div id="topRow">
+
+    <!-- CAMERA -->
+    <div id="camPanel">
+      <div id="camLabel">
+        <span>SECWATCH v2.11b  --  CAMERA FEED</span>
+        <span id="camLabelRight">LKCO-04  --  1983 NODE</span>
+      </div>
+      <div id="camFrame">
+        <img id="camFeed" src="" alt="">
+        <div id="camAcquire">ACQUIRING SIGNAL...</div>
+        <div id="camNoFeed">
+          <div class="nf-box">
+            <div>NO FEED SELECTED</div>
+            <div style="margin-top:6px;font-size:0.85em;color:var(--gdim);">SEC2.EXE</div>
+          </div>
+        </div>
+        <div id="camHUD">
+          <div class="hud-row"><span id="hudCamID">--</span><span id="hudAlert"></span><span id="hudLoc">--</span></div>
+          <div class="hud-row"><span id="hudRec">&#9679; REC</span><span id="hudDate">03/11/83&nbsp;&nbsp;07:08</span><span id="hudSig">SIG: --</span></div>
+        </div>
+      </div>
+      <div id="camBar"><span style="color:var(--gdim);letter-spacing:0.08em;">SEC2.EXE FOR LKCO CAMERAS</span></div>
+    </div>
+
+    <!-- COMMS -->
+    <div id="commsPanel">
+      <div id="commsLabel"><span>COMMS / LKCO-04</span><span id="commsLabelRight">1983 NODE</span></div>
+      <div id="commsBody">
+
+        <div id="tapeDisplay">
+          <div class="comm-title">&#9654; TAPE PLAYER</div>
+          <div id="tapeName">NO TAPE LOADED</div>
+          <div id="tapeStatus">PLAY [tape]</div>
+          <div id="tapeBar"></div>
+        </div>
+
+        <div id="transcript">SECWATCH v1.8c -- 1981 HARDWARE<br>LAST SYNC: 03/11/83</div>
+
+        <div id="integrityPanel">
+          <div class="int-title">&#9632; SITE INTEGRITY</div>
+          <div class="int-row">
+            <span class="int-label">HARGROV</span>
+            <div class="int-bar-track"><div class="int-bar-fill" id="barH"></div></div>
+            <span class="int-val" id="valH">0</span>
+          </div>
+          <div class="int-row">
+            <span class="int-label">LKCO</span>
+            <div class="int-bar-track"><div class="int-bar-fill" id="barL"></div></div>
+            <span class="int-val" id="valL">0</span>
+          </div>
+          <div class="int-row">
+            <span class="int-label">SYSTEM</span>
+            <div class="int-bar-track"><div class="int-bar-fill" id="barS"></div></div>
+            <span class="int-val" id="valS">0</span>
+          </div>
+          <div class="int-row" id="ewRow">
+            <span class="int-label" style="color:var(--red);">EAST WALL</span>
+            <div class="int-bar-track"><div class="int-bar-fill red" id="barE"></div></div>
+            <span class="int-val err" id="valE">0</span>
+          </div>
+        </div>
+
+      </div>
+      <div id="commsHelp">PLAY [tape] &nbsp;&nbsp; SEC2.EXE &nbsp;&nbsp; LOGOUT</div>
+    </div>
+
+  </div>
+
+  <!-- TERMINAL -->
+  <div id="termPanel">
+    <div id="termLabel">
+      <span id="termLabelLeft">TERMINAL  --  LKCO-04  --  03/11/83  07:08</span>
+      <span id="termLabelRight">C:\SECWATCH</span>
+    </div>
+    <div id="termOutput"></div>
+    <div id="termInputRow">
+      <span id="termPrompt">C:\SECWATCH&gt;&nbsp;</span>
+      <span id="termTyped"></span>
+      <span class="cur"></span>
+    </div>
+  </div>
+</div>
+
+<input id="ghost" autocomplete="off" spellcheck="false">
+
+<!-- FINAL CHOICE OVERLAY -->
+<div id="choiceOverlay">
+  <div class="choice-text bold">07:14</div>
+  <div class="choice-text">Earl walks into frame.</div>
+  <div class="choice-text">He stands at the base of the wall.</div>
+  <div class="choice-text">He does not turn around.</div>
+  <div class="choice-text" style="margin-top:8px;">He waits.</div>
+  <div style="display:flex;gap:20px;margin-top:20px;">
+    <button class="choice-btn logout" onclick="doLogout()">[ LOG OUT ]<br><span style="font-size:9px;letter-spacing:0.1em;">leave the system running</span></button>
+    <div class="choice-divider"></div>
+    <button class="choice-btn watch" onclick="doWatch()">[ KEEP WATCHING ]<br><span style="font-size:9px;letter-spacing:0.1em;">see what happens at 07:14</span></button>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ════════════════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════════════════ */
+const S = {
+  cwd:'C:\\SECWATCH', inputMode:'cmd', inputBuf:'',
+  activeCamKey:null,
+  youRead:false,
+  notesRead:false,
+  incidentRead:false,
+  cam9Watching:false,
+  finalTriggered:false,
+  observerLogged:false,
+};
+
+/* date is WRONG — this is the horror */
+const DATE_STR='03/11/83', TIME_STR='07:08';
+let _res=null;
+
+/* ════════════════════════════════════════════════════════
+   THREAT LEVEL — carries from Day 6, saves at end
+════════════════════════════════════════════════════════ */
+const TL = {
+  bars:{h:0,l:0,s:0,e:0},
+  ewRow:null, ewTimer:null,
+  _els:{},
+
+  init(){
+    this._els={
+      h:{fill:document.getElementById('barH'),val:document.getElementById('valH')},
+      l:{fill:document.getElementById('barL'),val:document.getElementById('valL')},
+      s:{fill:document.getElementById('barS'),val:document.getElementById('valS')},
+      e:{fill:document.getElementById('barE'),val:document.getElementById('valE')},
+    };
+    this.ewRow=document.getElementById('ewRow');
+    try{
+      const saved=JSON.parse(sessionStorage.getItem('sw_tl')||'{}');
+      ['h','l','s','e'].forEach(b=>{if(saved[b])this.bars[b]=saved[b];});
+    }catch(e){}
+    ['h','l','s','e'].forEach(b=>this._render(b));
+    if(this.bars.h>=5||this.bars.l>=5||this.bars.s>=5){
+      this.ewRow&&this.ewRow.classList.add('show');
+      if(!this.ewTimer)this._startEW();
+    }
+    if(this.bars.h>=7||this.bars.l>=7||this.bars.s>=7)S.observerLogged=true;
+  },
+
+  _save(){try{sessionStorage.setItem('sw_tl',JSON.stringify(this.bars));}catch(e){}},
+
+  _render(b){
+    const v=Math.min(this.bars[b],10);
+    const el=this._els[b];if(!el||!el.fill)return;
+    el.fill.style.width=(v*10)+'%';
+    /* east wall at 10 shows -- */
+    el.val.textContent=(b==='e'&&v===10)?'--':v===10?'--':v;
+    if(b==='e'&&v===10){
+      el.fill.classList.add('red');el.val.className='int-val err';
+      el.val.textContent='--';return;
+    }
+    if(v>=7){el.fill.classList.add('red');el.fill.classList.remove('amber');el.val.className='int-val err';}
+    else if(v>=4){el.fill.classList.add('amber');el.fill.classList.remove('red');el.val.className='int-val warn';}
+    else{el.fill.classList.remove('amber','red');el.val.className='int-val';}
+  },
+
+  raise(b,amt=1){
+    const prev=this.bars[b];
+    this.bars[b]=Math.min(10,this.bars[b]+amt);
+    if(this.bars[b]===prev)return;
+    this._render(b);this._save();
+    if(b!=='e'&&this.bars[b]>=7&&prev<7)S.observerLogged=true;
+    if(this.bars.h>=5||this.bars.l>=5||this.bars.s>=5){
+      this.ewRow&&this.ewRow.classList.add('show');
+      if(!this.ewTimer)this._startEW();
+    }
+  },
+
+  _startEW(){this.ewTimer=setInterval(()=>this.raise('e',1),3*60*1000);},
+};
+
+/* ════════════════════════════════════════════════════════
+   1983 FILESYSTEM — pre-redaction, pre-Pellegrino cleanup
+════════════════════════════════════════════════════════ */
+const FS = {
+  'C:\\SECWATCH':{type:'dir',
+    children:['YOU.TXT','README.TXT','SEC2.EXE',
+              'FOREMAN.LOG','INCIDENT.RPT','GEOL.RPT',
+              'NOTES_14PG.TXT','PHOTO.DAT','SITES']},
+
+  'C:\\SECWATCH\\README.TXT':{type:'file',content:
+`SECWATCH v1.8c -- LKCO-04 Site Terminal
+1981 Hardware / Battery Backup Active
+Last boot: 03/11/83
+
+This terminal has been left running.
+I want there to be a record.
+
+-- E. Combs  03/11/83  07:08
+`},
+
+  'C:\\SECWATCH\\YOU.TXT':{type:'file',content:
+`03/11/83  07:08
+
+I know you've been here.
+
+I left this for whoever sits down at this terminal
+after everything happens.
+
+I need you to know that I understood what I was doing.
+
+I need you to know the arrangement holds
+as long as someone tends it.
+
+I've been down there eleven times.
+I know what it is.
+I know it better than it knows itself.
+
+The twelfth time is the last time.
+That's the term.
+Eleven times you learn it.
+The twelfth time you become part of it.
+
+I am going for the twelfth time in six minutes.
+
+After that there's nobody left who knows the arrangement.
+The Hargrove boy found the geology report.
+He'll go to Floor 3. I can't stop that from here.
+
+What I can do is leave this running.
+
+If you're reading this, you found it.
+That means you're the one.
+
+Not chosen. Not special.
+Just the one who found it.
+
+The arrangement needs a new custodian.
+
+You don't have to go underground.
+You don't have to make any deal.
+
+You just have to leave the system running.
+
+That's all I ask.
+That's all it takes.
+
+For now.
+
+-- E. Combs
+   03/11/83  07:08
+`},
+
+  'C:\\SECWATCH\\FOREMAN.LOG':{type:'file',content:
+`SITE FOREMAN LOG -- LKCO-04 / E.COMBS
+------------------------------------------
+[Full log. Nothing removed. Nothing sealed.]
+
+02/14/83  MON  Crew of 14.
+02/16/83  WED  East wall hit soft layer at 78ft.
+               Sent two men down. They came back quiet.
+02/17/83  THU  Crew of 13. Ricky Meade not in.
+               Truck still there. He was not home.
+02/22/83  TUE  Crew of 11.
+02/24/83  THU  Crew of 9.
+               There is something in the east wall.
+               Not geology. I backfilled it.
+               It is still in there.
+02/28/83  MON  Crew of 6. Nobody goes near the wall.
+               Nobody said why. They just don't go.
+03/04/83  SAT  East wall crew is 0. I am the crew.
+03/08/83  WED  I can hear it from the trailer at night.
+               Not a sound. The feeling before a sound.
+03/10/83  FRI  Did not tell Hargrove about the wall.
+               He does not need to know.
+03/11/83  SAT  Equipment out. Going to stay.
+               Want to make sure it knows we're gone.
+               Last entry.
+
+[Badge #0088 last recorded: 03/11/83  07:14]
+[E.Combs whereabouts: UNKNOWN              ]
+------------------------------------------
+`},
+
+  'C:\\SECWATCH\\GEOL.RPT':{type:'file',content:
+`GEOLOGICAL SURVEY -- LKCO-04
+Appalachian Land Survey Co. / November 1982
+
+Surveyor's note (unredacted):
+
+When we reached the eastern bench at 76 feet
+one of my team set down his instruments and
+said he needed air. He did not come back down.
+
+The anomalous reading at 78 feet is not consistent
+with void, pocket, seam, water table, gas pocket,
+or any formation I have catalogued in 31 years.
+
+It is not consistent with anything.
+
+My compass gave four different readings in the
+same spot over fifteen minutes. My transit
+leveled and then unleveled. My altimeter read
+twelve feet below sea level at the base of a
+Appalachian mountain.
+
+We did not probe directly.
+We will not be returning.
+We are not including the compass readings in
+the formal report. The formal report says only:
+anomalous reading, survey team declined to probe.
+
+That is accurate.
+
+I have been doing this work since 1951.
+I have never declined to probe.
+
+-- G. Alcorn, Survey Lead
+   April 14, 1983
+`},
+
+  'C:\\SECWATCH\\NOTES_14PG.TXT':{type:'file',content:
+`[14 pages handwritten notes -- E.Combs]
+[Found in LKCO trailer by sheriff, 03/14/83]
+[Transcribed 03/16/83 -- R.Pellegrino]
+[SEALED -- Case No. 83-LCSO-0447]
+
+...sealed by court order...
+
+[In the version you are reading now,
+ the court order has not happened yet.
+ Earl wrote these last night.
+ They are not sealed.
+ They are just notes.]
+
+Page 1:
+The first time I went down was March 3rd.
+I had been telling myself for two weeks it was
+just bad geology. I went down to prove it.
+
+I stayed maybe four minutes.
+That was enough to know it wasn't geology.
+
+Page 3:
+Harold -- my daddy -- said the twelfth time was
+different for him. He came back up. He was fine.
+He just wasn't oriented the same way after.
+He'd look east a lot. Not toward anything.
+Just east.
+
+He died in 1971. In his sleep. Peacefully.
+I think about that.
+
+Page 6:
+The awareness is the thing that's hard to describe.
+Not awareness like an animal. More like -- you know
+how you can tell when a room has someone in it
+before you see them?
+
+It's like that except you're the room.
+
+Page 9:
+The ninth time I understood what the deal is.
+Not a bargain. Not a contract.
+Just -- you go down, you acknowledge what's there,
+you let it know the situation above.
+It doesn't want anything. It doesn't hunger.
+It just needs to know. The way you check
+that a door is still closed.
+
+I am the door check.
+
+Page 11:
+I tried to explain to it that we were done here.
+Not in words. More like how you explain something
+to a very old dog. Slowly. With your whole body.
+
+I think it understood. I think that's what the
+deal has always been. Same as before, it says
+in the deed notes. There was a before.
+
+Page 14:
+I know what the twelfth time means now.
+I've known since the ninth.
+
+It's not death. I don't think it's death.
+It's more like -- the understanding becomes so
+complete that the distinction between me and
+what's down there stops being a useful concept.
+
+I'm not afraid.
+The wall is warm.
+
+03/11/83  07:02
+`},
+
+  'C:\\SECWATCH\\PHOTO.DAT':{type:'file',content:
+`[PHOTOGRAPH -- PHYSICAL DOCUMENT]
+[Found face-down in trailer, 03/14/83]
+[Filed with sheriff's report]
+[Not reproduced digitally]
+
+The photograph shows the east wall bench.
+Shot from approximately where CAM9 is mounted.
+
+Earl Combs is at the base of the wall, facing it.
+
+There is something behind him.
+
+The deputy who catalogued the evidence
+wrote in his notes:
+"Photo shows foreman at wall. Something else
+ in frame. Could not describe for report.
+ Suggest external review."
+
+External review was not conducted.
+
+The photograph remains in evidence storage.
+Case No. 83-LCSO-0447.
+Evidence Room B, shelf 3.
+
+Nobody has requested it since 1983.
+`},
+
+  'C:\\SECWATCH\\INCIDENT.RPT':{type:'file',content:
+`INCIDENT REPORT -- LKCO-04
+ORIGINAL -- UNSEALED VERSION
+
+Date: 03/16/83
+Filed by: R.Pellegrino, Hargrove Properties
+
+Sheriff's wellness check 03/14/83 requested by
+R.Pellegrino after no contact from site foreman
+for 3 days.
+
+Trailer: OCCUPIED (heat, lights, terminal running)
+E.Combs: NOT PRESENT
+Equipment: STAGED FOR REMOVAL as planned
+14 pages handwritten notes: IN TRAILER
+  [Notes are dated through 03/11/83 07:02]
+  [Terminal has active session logged in as #0088]
+  [Session started: 03/11/83  07:04]
+  [Session remains active at time of discovery]
+
+One photograph found face-down on table.
+Deputy could not describe contents for report.
+
+East wall bench: NOT SEARCHED.
+The deputy asked if they should search it.
+I said no.
+I have been to this site.
+I know what is down there.
+It was not searched.
+
+E.Combs whereabouts: UNKNOWN.
+
+Note appended 03/16/83:
+Earl. If this is somehow you. I am sorry.
+I should have listened in March when you told me
+to get the equipment out faster.
+I should have asked what was wrong.
+I didn't ask because I didn't want to know.
+I know now.
+I am sorry.
+-- R.Pellegrino
+
+NOTE: The formal version of this report
+      has significant redactions.
+      This is what it said before I redacted it.
+      I did the redacting myself.
+      I redacted it because some things
+      should not be in a public document.
+      I stand by that.
+      -- R.P.
+`},
+
+  'C:\\SECWATCH\\SITES':{type:'dir',children:['LKCO']},
+  'C:\\SECWATCH\\SITES\\LKCO':{type:'dir',children:['CAMS.TXT','FOREMAN.LOG']},
+  'C:\\SECWATCH\\SITES\\LKCO\\CAMS.TXT':{type:'file',content:
+`CAM7  TRAILER-EXT-EAST   [ONLINE]
+CAM8  PERIMETER-ROAD     [ONLINE]
+CAM9  EAST-WALL-80FT     [ONLINE / SIGNAL DEGRADED]
+
+NOTE: CAM9 has always had degraded signal.
+      This is normal.
+      The degradation is not equipment failure.
+      We tested the equipment.
+      The equipment is fine.
+`},
+  'C:\\SECWATCH\\SITES\\LKCO\\FOREMAN.LOG':{type:'file',content:`[See C:\\SECWATCH\\FOREMAN.LOG for full log]`},
+};
+
+/* ════════════════════════════════════════════════════════
+   CAMERA REGISTRY — 1983 versions
+   cam9_1983.png: cable reel PRESENT, Earl walks in at 07:14
+════════════════════════════════════════════════════════ */
+const CAMS = {
+  cam7:{label:'CAM7',loc:'TRAILER-EXT-EAST', img:'img/cam7.png',   online:true},
+  cam8:{label:'CAM8',loc:'PERIMETER-ROAD',   img:'img/cam8.png',   online:true},
+  cam9:{label:'CAM9',loc:'EAST-WALL-80FT',
+    img:'img/cam9_1983.png', /* same framing as cam9.png but cable reel present, newer-looking */
+    online:true, degraded:true,
+    isFinal:true},
+};
+const LKCO_KEYS=['cam7','cam8','cam9'];
+
+/* ════════════════════════════════════════════════════════
+   FINAL SEQUENCE
+════════════════════════════════════════════════════════ */
+async function runFinalCam9(){
+  if(S.finalTriggered)return;
+  S.finalTriggered=true;
+
+  const cam=CAMS.cam9;
+  /* show feed */
+  camFeed.classList.remove('active','degraded');
+  camFeed.src='';
+  camNoFeed.classList.add('hidden');
+  camAcquire.classList.add('active');
+  camHUD.classList.remove('active');
+
+  const src=cam.img;
+  await new Promise(r=>{const t=new Image();t.onload=t.onerror=r;t.src=src;});
+  await sleep(1800);
+  camAcquire.classList.remove('active');
+  camFeed.src=src;
+  camFeed.classList.add('active','degraded');
+
+  hudCamID.textContent=cam.label;
+  hudLoc.textContent=cam.loc;
+  hudDate.textContent=DATE_STR+'\u00a007:08';
+  hudSig.textContent='SIG: WEAK';
+  hudSig.className='weak';
+  hudAlert.textContent='';
+  camHUD.classList.add('active');
+
+  if(S.observerLogged){
+    hudAlert.textContent='OBSERVER LOGGED';
+    hudAlert.classList.add('show');
+  }
+
+  /* wait — clock counts toward 07:14 */
+  ln('');
+  ln('  CAM9 -- east wall bench -- 80 feet.','dim');
+  ln('  Cable reel visible bottom left.','dim');
+  await sleep(1000);
+  ln('  It is 07:08.','dim');
+  await sleep(2000);
+  ln('  07:09.','dim');
+  await sleep(3000);
+  ln('  07:10.','dim');
+  await sleep(3000);
+  ln('  07:11.','dim');
+  await sleep(3000);
+  ln('  07:12.','dim');
+  await sleep(3000);
+  ln('  07:13.','dim');
+  await sleep(3000);
+
+  /* play footstep audio if available */
+  try{
+    const a=new Audio('audio/earl_walking.mp3');
+    a.volume=0.7;a.play().catch(()=>{});
+  }catch(e){}
+
+  hudDate.textContent=DATE_STR+'\u00a007:14';
+  await sleep(1200);
+
+  /* Earl walks into frame — swap to the final image */
+  /* cam9_1983.png should show Earl walking toward the wall
+     If you have a separate walking image:
+     camFeed.src='img/cam9_earl_walking.png'; */
+  ln('  07:14.','warn');
+  await sleep(400);
+  ln('  Earl Combs enters the frame from the left.','warn');
+  await sleep(800);
+  ln('  Work clothes.','dim');
+  await sleep(600);
+  ln('  He walks to the base of the wall.','dim');
+  await sleep(1000);
+  ln('  He stands there.','dim');
+  await sleep(800);
+  ln('  He does not turn around.','dim');
+  await sleep(1500);
+  ln('  He waits.','dim');
+  await sleep(4000);
+
+  /* show choice overlay */
+  document.getElementById('choiceOverlay').classList.add('open');
+}
+
+async function doLogout(){
+  document.getElementById('choiceOverlay').classList.remove('open');
+  await sleep(400);
+
+  /* signal loss — Earl is gone */
+  camFrame.classList.add('signal-loss');
+  await sleep(800);
+  camFeed.classList.remove('active','degraded');
+  camFeed.src='';
+  camNoFeed.classList.remove('hidden');
+  camHUD.classList.remove('active');
+  camFrame.classList.remove('signal-loss');
+
+  await sleep(600);
+  termOutput.innerHTML='';
+  await sleep(400);
+
+  ln('');
+  await lnSlow('  SECWATCH: Badge #0088 session ended.','dim',14);
+  await sleep(500);
+  await lnSlow('  Last recorded position: EAST WALL BENCH.','dim',14);
+  await sleep(800);
+  await lnSlow('  Badge #0088 status: [updating]','dim',14);
+  await sleep(1200);
+
+  /* the badge status update */
+  const statusLine=document.createElement('div');
+  statusLine.className='ln warn';
+  statusLine.textContent='  Badge #0088 status: ACTIVE';
+  termOutput.appendChild(statusLine);
+  termOutput.scrollTop=termOutput.scrollHeight;
+
+  await sleep(2000);
+  ln('');
+  ln('  -----------------------------------------------','dim');
+  await sleep(600);
+
+  /* Show final TL bars */
+  ln('  SITE INTEGRITY AT SESSION END:','dim');
+  await sleep(300);
+  ln('  HARGROVE  '+TL.bars.h+'/10','warn');
+  ln('  LKCO      '+TL.bars.l+'/10','warn');
+  ln('  SYSTEM    '+TL.bars.s+'/10','warn');
+
+  const ewVal=TL.bars.e>=10?'--':TL.bars.e;
+  const ewLine=document.createElement('div');
+  ewLine.className='ln err';
+  ewLine.textContent='  EAST WALL  '+ewVal+'/10';
+  if(TL.bars.e>=10)ewLine.textContent='  EAST WALL  [██████████]  --';
+  termOutput.appendChild(ewLine);
+  termOutput.scrollTop=termOutput.scrollHeight;
+
+  await sleep(1600);
+  ln('');
+  await lnSlow('  The system has been left running.','dim',18);
+  await sleep(500);
+  await lnSlow("  That's what matters.",'dim',18);
+  await sleep(1200);
+  ln('');
+
+  /* save final state */
+  TL.bars.e=Math.min(10,TL.bars.e+2);
+  TL._render('e');
+  TL._save();
+
+  const endCard=document.createElement('div');
+  endCard.className='ln hi';
+  Object.assign(endCard.style,{
+    fontSize:'1.4em',letterSpacing:'0.25em',textAlign:'center',
+    textShadow:'0 0 14px var(--g),0 0 32px rgba(51,255,51,0.5)',
+    marginTop:'16px'
+  });
+  endCard.textContent='END OF DAY 7';
+  termOutput.appendChild(endCard);
+  termOutput.scrollTop=termOutput.scrollHeight;
+
+  await sleep(1600);
+  const sub=document.createElement('div');
+  sub.className='ln dim';
+  Object.assign(sub.style,{textAlign:'center',letterSpacing:'0.12em',marginTop:'8px'});
+  sub.textContent='leave it running';
+  termOutput.appendChild(sub);
+  termOutput.scrollTop=termOutput.scrollHeight;
+
+  /* no redirect — the game is done — the system is running */
+}
+
+async function doWatch(){
+  document.getElementById('choiceOverlay').classList.remove('open');
+  await sleep(400);
+
+  /* final signal loss */
+  camFrame.classList.add('signal-loss');
+  await sleep(800);
+  camFeed.classList.remove('active','degraded');
+  camFeed.src='';
+  camNoFeed.classList.remove('hidden');
+  camHUD.classList.remove('active');
+  camFrame.classList.remove('signal-loss');
+
+  await sleep(600);
+
+  ln('');
+  await lnSlow('  SECWATCH: Badge #0088 session ended.','dim',14);
+  await sleep(500);
+  await lnSlow('  Last recorded position: EAST WALL BENCH.','dim',14);
+  await sleep(800);
+  await lnSlow('  Badge #0088 status: [updating]','dim',14);
+  await sleep(1200);
+  const statusLine=document.createElement('div');
+  statusLine.className='ln warn';
+  statusLine.textContent='  Badge #0088 status: ACTIVE';
+  termOutput.appendChild(statusLine);
+  termOutput.scrollTop=termOutput.scrollHeight;
+  await sleep(800);
+
+  ln('');
+  await sleep(800);
+
+  /* The wall knows */
+  await lnSlow('  SECWATCH: Secondary anomaly detected.','warn',14);
+  await sleep(500);
+  await lnSlow('  SECWATCH: Terminal has been observed.','warn',14);
+  await sleep(1000);
+  ln('');
+
+  const wallLine=document.createElement('div');
+  wallLine.className='ln err';
+  wallLine.textContent='  SECWATCH: The wall sends its regards.';
+  wallLine.style.textShadow='0 0 10px rgba(255,64,64,0.5)';
+  termOutput.appendChild(wallLine);
+  termOutput.scrollTop=termOutput.scrollHeight;
+
+  await sleep(3000);
+  await doLogout();
+}
+
+/* ════════════════════════════════════════════════════════
+   AUDIO
+════════════════════════════════════════════════════════ */
+let currentAudio=null,tapeInterval=null;
+function playAudio(src,loop=false){
+  stopAudio();
+  currentAudio=new Audio(src);currentAudio.loop=loop;currentAudio.volume=0.8;
+  currentAudio.play().catch(()=>{});return currentAudio;
+}
+function stopAudio(){
+  if(currentAudio){currentAudio.pause();currentAudio.src='';currentAudio=null;}
+  clearInterval(tapeInterval);tapeBar.style.width='0%';
+}
+
+const tapeName=document.getElementById('tapeName');
+const tapeStatus=document.getElementById('tapeStatus');
+const tapeBar=document.getElementById('tapeBar');
+const transcript=document.getElementById('transcript');
+
+function setTranscript(lines,cls=''){
+  transcript.innerHTML='';transcript.className=cls||'';
+  lines.forEach(l=>{const d=document.createElement('div');d.textContent=l||'\u00a0';d.style.lineHeight='1.55';d.style.fontSize='0.88em';transcript.appendChild(d);});
+  transcript.scrollTop=0;
+}
+
+/* ════════════════════════════════════════════════════════
+   DOM REFS
+════════════════════════════════════════════════════════ */
+const camFeed=document.getElementById('camFeed');
+const camAcquire=document.getElementById('camAcquire');
+const camNoFeed=document.getElementById('camNoFeed');
+const camHUD=document.getElementById('camHUD');
+const camBar=document.getElementById('camBar');
+const camFrame=document.getElementById('camFrame');
+const camLabelR=document.getElementById('camLabelRight');
+const hudCamID=document.getElementById('hudCamID');
+const hudLoc=document.getElementById('hudLoc');
+const hudDate=document.getElementById('hudDate');
+const hudSig=document.getElementById('hudSig');
+const hudAlert=document.getElementById('hudAlert');
+const termOutput=document.getElementById('termOutput');
+const termInputRow=document.getElementById('termInputRow');
+const termPrompt=document.getElementById('termPrompt');
+const termTyped=document.getElementById('termTyped');
+const termLabelR=document.getElementById('termLabelRight');
+const ghost=document.getElementById('ghost');
+
+/* ════════════════════════════════════════════════════════
+   TERMINAL ENGINE
+════════════════════════════════════════════════════════ */
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function ln(text='',cls=''){
+  const d=document.createElement('div');d.className='ln'+(cls?' '+cls:'');
+  d.textContent=text;termOutput.appendChild(d);termOutput.scrollTop=termOutput.scrollHeight;
+}
+async function lnSlow(text,cls='',ms=13){
+  const d=document.createElement('div');d.className='ln'+(cls?' '+cls:'');d.textContent='';
+  termOutput.appendChild(d);
+  for(const ch of text){d.textContent+=ch;termOutput.scrollTop=termOutput.scrollHeight;await sleep(ms);}
+}
+function showInput(){
+  termTyped.textContent=S.inputBuf='';
+  termInputRow.classList.add('on');
+  ghost.style.pointerEvents='auto';ghost.focus();
+}
+function hideInput(){termInputRow.classList.remove('on');ghost.style.pointerEvents='none';}
+function resolvePath(n){
+  if(!n)return S.cwd;const u=n.toUpperCase();
+  if(u==='..'){const p=S.cwd.split('\\');return p.length<=2?S.cwd:p.slice(0,-1).join('\\');}
+  return S.cwd+'\\'+u;
+}
+
+ghost.addEventListener('keydown',e=>{
+  if(!termInputRow.classList.contains('on'))return;
+  if(S.inputMode==='any'){const r=_res;_res=null;S.inputMode='cmd';hideInput();r();return;}
+  if(S.inputMode==='cmd'){
+    if(e.key==='Enter'){
+      const cmd=S.inputBuf.trim();hideInput();
+      if(cmd)ln(S.cwd+'> '+cmd,'echo');
+      S.inputBuf='';if(cmd)handleCmd(cmd);else showInput();
+    }else if(e.key==='Backspace'){S.inputBuf=S.inputBuf.slice(0,-1);termTyped.textContent=S.inputBuf;}
+    else if(e.key.length===1){S.inputBuf+=e.key;termTyped.textContent=S.inputBuf;}
+  }
+});
+document.addEventListener('click',()=>{if(termInputRow.classList.contains('on'))ghost.focus();});
+document.addEventListener('keydown',()=>{const d=new Audio();d.volume=0;d.play().catch(()=>{});},{once:true});
+
+/* ════════════════════════════════════════════════════════
+   COMMANDS
+════════════════════════════════════════════════════════ */
+async function handleCmd(raw){
+  const parts=raw.trim().split(/\s+/);
+  const cmd=parts[0].toLowerCase();
+  const arg=parts.slice(1).join(' ').toUpperCase();
+
+  switch(cmd){
+    case 'cls':termOutput.innerHTML='';break;
+
+    case 'help':case'?':
+      ln('');
+      ln('  dir            List directory');
+      ln('  cd [dir]       Change directory');
+      ln('  type [file]    Display file');
+      ln('  sec2.exe       LKCO cameras (CAM7 CAM8 CAM9)');
+      ln('  play [tape]    No tapes in this node');
+      ln('  logout         End session');
+      ln('');break;
+
+    case 'logout':
+      ln('');
+      hideInput();
+      await sleep(800);
+      await doLogout();
+      return;
+
+    case 'dir':{
+      const node=FS[S.cwd];
+      if(!node||node.type!=='dir'){ln('Path error.','err');break;}
+      ln('');ln(' Directory of '+S.cwd);ln('');
+      for(const name of node.children){
+        const fp=S.cwd+'\\'+name;const ch=FS[fp];
+        const cls=name==='YOU.TXT'?'hi':name==='NOTES_14PG.TXT'?'warn':name==='PHOTO.DAT'?'warn':'';
+        if(ch?.type==='dir')ln(' <DIR>  '+name,'hi');
+        else ln('        '+name,cls);
+      }
+      ln('');ln('  '+node.children.length+' item(s)');ln('');break;
+    }
+
+    case 'cd':{
+      if(!arg){ln(S.cwd);break;}
+      const t=resolvePath(arg);
+      if(FS[t]?.type==='dir'){S.cwd=t;termPrompt.textContent=S.cwd+'> ';termLabelR.textContent=S.cwd;}
+      else ln('Invalid directory.','err');break;
+    }
+
+    case 'type':{
+      if(!arg){ln('Usage: type [filename]','warn');break;}
+      const fp=S.cwd+'\\'+arg;const f=FS[fp];
+      if(!f){ln('File not found: '+arg,'err');break;}
+      if(f.type==='dir'){ln('Is a directory.','warn');break;}
+
+      if(arg==='YOU.TXT'||arg.endsWith('YOU.TXT')){
+        S.youRead=true;TL.raise('l',2);TL.raise('s',1);
+      }
+      if(arg.includes('NOTES')){S.notesRead=true;TL.raise('l',2);}
+      if(arg.includes('INCIDENT')){S.incidentRead=true;TL.raise('h',1);}
+      if(arg.includes('GEOL')){TL.raise('l',1);}
+      if(arg==='PHOTO.DAT'){TL.raise('e',1);}
+
+      ln('');
+      for(const line of f.content.split('\n')){
+        const c=line.startsWith('[')&&line.endsWith(']')?'dim'
+               :line.startsWith('!!')?'err'
+               :line.includes('[REDACTED]')?'warn'
+               :(line.startsWith('it ')||line.startsWith('i ')||line.includes('wall is warm'))?'warn'
+               :line.startsWith('--')?'dim':'';
+        /* YOU.TXT gets special treatment */
+        if(arg==='YOU.TXT'||arg.endsWith('YOU.TXT')){
+          const yc=line.startsWith('Not chosen')||line.startsWith('Just the one')?'warn'
+                  :line.startsWith('The arrangement')||line.startsWith('You just')?'hi'
+                  :line.startsWith('For now')?'err':'';
+          ln(line,yc||c);
+        } else {
+          ln(line,c);
+        }
+      }
+      ln('');break;
+    }
+
+    case 'sec2.exe':case'sec2':await runSec2();break;
+
+    default:
+      ln('');ln("'"+parts[0]+"' is not recognized.",'err');
+      ln('Type HELP.','dim');ln('');
+  }
+  showInput();
+}
+
+/* ════════════════════════════════════════════════════════
+   SEC2 -- 1983 LKCO cameras
+════════════════════════════════════════════════════════ */
+async function runSec2(){
+  ln('');
+  await lnSlow('Initializing LKCO-04 node...','dim',10);await sleep(280);
+  ln('  SECWATCH v1.8c  (1981 hardware)','dim');await sleep(580);ln('');
+  camBar.innerHTML='';
+  LKCO_KEYS.forEach(k=>{
+    const c=CAMS[k];
+    const btn=document.createElement('span');
+    btn.className='cam-btn online';btn.id='btn_'+k;
+    btn.textContent=c.label+(c.degraded?' [WEAK]':'');
+    camBar.appendChild(btn);
+    const sep=document.createElement('span');
+    sep.style.color='var(--border)';sep.textContent=' | ';
+    camBar.appendChild(sep);
+  });
+  const hint=document.createElement('span');
+  hint.style.color='var(--gdim)';hint.textContent='TYPE: 7 8 9';
+  camBar.appendChild(hint);
+  camLabelR.textContent='LKCO-04  1983 NODE';
+
+  for(const k of LKCO_KEYS){
+    const c=CAMS[k];
+    const st=c.degraded?'[ONLINE]  signal degraded':'[ONLINE]';
+    await lnSlow('  '+c.label+' :: '+c.loc.padEnd(18)+' '+st,c.degraded?'warn':'dim',7);
+    await sleep(c.degraded?180:70);
+  }
+  await sleep(280);ln('');
+  ln('  Type cam number to view: 7 8 9');ln('');
+  await runCamLoop();
+}
+
+async function runCamLoop(){
+  const nums=['7','8','9'];
+  while(true){
+    const key=await new Promise(r=>{
+      _res=r;S.inputMode='any';showInput('CAM > ');
+      ghost.onkeydown=e=>{
+        if(e.key==='Escape'||e.key==='q'||e.key==='Q'||e.key==='0'){
+          const rr=_res;if(!rr)return;_res=null;S.inputMode='cmd';hideInput();rr('exit');
+        }else if(nums.includes(e.key)){
+          const rr=_res;if(!rr)return;_res=null;S.inputMode='cmd';hideInput();rr(e.key);
+        }
+      };
+    });
+    if(key==='exit'){ln('  Exiting camera interface.','dim');ln('');break;}
+    await showCam('cam'+key);
+    showInput('CAM > ');
+    ln('  [7 8 9] or Q to exit','dim');
+  }
+}
+
+async function showCam(camKey){
+  const cam=CAMS[camKey];if(!cam)return;
+  /* active button */
+  if(S.activeCamKey){const o=document.getElementById('btn_'+S.activeCamKey);if(o)o.classList.remove('active');}
+  S.activeCamKey=camKey;
+  const btn=document.getElementById('btn_'+camKey);if(btn)btn.classList.add('active');
+
+  /* acquire */
+  camFeed.classList.remove('active','degraded');camFeed.src='';
+  camNoFeed.classList.add('hidden');camAcquire.classList.add('active');
+  camHUD.classList.remove('active');
+
+  const src=cam.img;
+  await new Promise(r=>{const t=new Image();t.onload=t.onerror=r;t.src=src;});
+  await sleep(cam.degraded?1600:900);
+  camAcquire.classList.remove('active');
+  camFeed.src=src;camFeed.classList.add('active');
+  if(cam.degraded)camFeed.classList.add('degraded');
+
+  hudCamID.textContent=cam.label;
+  hudLoc.textContent=cam.loc;
+  hudDate.textContent=DATE_STR+'\u00a0\u00a007:08';
+  hudSig.textContent=cam.degraded?'SIG: WEAK':'SIG: OK';
+  hudSig.className=cam.degraded?'weak':'';
+  hudAlert.textContent=S.observerLogged?'OBSERVER LOGGED':'';
+  hudAlert.classList.toggle('show',S.observerLogged);
+  camHUD.classList.add('active');
+
+  /* CAM9 is the final camera */
+  if(cam.isFinal&&!S.finalTriggered){
+    S.cam9Watching=true;
+    ln('  CAM9 -- east wall, 80-foot bench.','dim');
+    ln('  Cable reel visible. It is 1983.','dim');
+    ln('  The cable reel is still there.','dim');
+    ln('');
+    await sleep(2000);
+    ln('  It is 07:08.','dim');
+    await sleep(1000);
+    ln('  Earl went down at 07:14.','warn');
+    ln('  You have six minutes.','warn');
+    ln('  [ The game will not make you wait six minutes. ]','dim');
+    await sleep(1500);
+    hideInput();
+    await runFinalCam9();
+    return;
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   BOOT
+════════════════════════════════════════════════════════ */
+async function boot(){
+  TL.init();
+
+  /* The date is wrong. Show the boot in the wrong year. */
+  await lnSlow('Award Modular BIOS v4.51PG','dim',6);await sleep(55);
+  ln('Copyright (C) 1984-93, Award Software Inc.','dim');ln('','dim');await sleep(85);
+  ln('CPU : Intel 486 DX2/66  66MHz','dim');await sleep(45);
+  const ram=document.createElement('div');ram.className='ln dim';ram.textContent='Memory Test :      0K';termOutput.appendChild(ram);
+  for(let k=0;k<=640;k+=64){await sleep(26);ram.textContent='Memory Test : '+String(k).padStart(5)+'K';}
+  ram.textContent='Memory Test :   640K OK';await sleep(45);
+  ln('Extended Memory : 3072K OK','dim');await sleep(65);ln('','dim');
+  await lnSlow('Detecting Primary Master....... HDD [ST3655A 638MB]','dim',5);await sleep(75);
+  ln('','dim');ln('Press DEL to enter SETUP','dim');await sleep(440);ln('');
+  await lnSlow('Loading MS-DOS 6.22...','dim',9);await sleep(320);
+  ln('HIMEM is testing extended memory...done.','dim');await sleep(90);ln('');
+  await lnSlow('Processing AUTOEXEC.BAT','dim',9);await sleep(150);
+  ln('  C:\\SECWATCH\\SECWATCH.BAT','dim');await sleep(340);ln('');
+
+  ln('+==========================================================+','hi');
+  ln('|   S E C W A T C H   v 2 . 1 1 b                         |','hi');
+  ln('|   Hargrove Properties LLC  --  Security Terminal         |','hi');
+  ln('|                                                          |','hi');
+
+  /* THE WRONG DATE */
+  const dateLine=document.createElement('div');
+  dateLine.className='ln warn';
+  dateLine.textContent='|   Date: '+DATE_STR+'  /  Time: '+TIME_STR+'                          |';
+  termOutput.appendChild(dateLine);termOutput.scrollTop=termOutput.scrollHeight;
+
+  ln('|   Active sites: LKCO-04  --  LETCHER CO.                |','hi');
+  ln('+==========================================================+','hi');
+  await sleep(280);ln('');
+
+  /* date wrong warning */
+  await sleep(400);
+  const wrongDate=document.createElement('div');
+  wrongDate.className='ln err';
+  wrongDate.textContent='  !! SYSTEM DATE: 03/11/83  --  This is incorrect.';
+  termOutput.appendChild(wrongDate);termOutput.scrollTop=termOutput.scrollHeight;
+  await sleep(300);
+  const wrongDate2=document.createElement('div');
+  wrongDate2.className='ln err';
+  wrongDate2.textContent='  !! SYSTEM DATE: 03/11/83  --  This is not incorrect.';
+  termOutput.appendChild(wrongDate2);termOutput.scrollTop=termOutput.scrollHeight;
+  await sleep(600);ln('');
+
+  /* Badge confirmation */
+  ln('  Session restored from: Badge #0088  --  E. COMBS','warn');
+  ln('  Last login: 03/11/83  07:04','warn');
+  await sleep(500);ln('');
+  ln('  You are not Earl Combs.','dim');
+  await sleep(400);
+  ln('  The terminal does not know that.','dim');
+  await sleep(800);ln('');
+
+  /* the filesystem is 1983 */
+  ln('  This is the filesystem as Earl left it.','dim');
+  ln('  Before Pellegrino cleaned it.','dim');
+  ln('  Before the redactions.','dim');
+  await sleep(600);ln('');
+  ln('  YOU.TXT is in the root directory.','hi');
+  ln('  Earl wrote it for you.','hi');
+  ln('  He did not know your name.','dim');
+  ln('  He left it anyway.','dim');
+  await sleep(800);ln('');
+  ln('  SEC2.EXE runs the LKCO cameras.','dim');
+  ln('  CAM9 points at the east wall.','dim');
+  ln('  Earl walks into frame at 07:14.','warn');
+  ln('');
+  ln('  HELP for commands.','dim');
+  ln('');
+
+  S.inputMode='cmd';showInput();
+}
+
+boot();
+</script>
+</body>
+</html>

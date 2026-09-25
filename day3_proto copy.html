@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SECWATCH // DAY 3</title>
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=PT+Serif:ital,wght@0,400;0,700;1,400&family=Share+Tech+Mono&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --mb:#c4c0ba; --md:#8a8782; --ms:#4e4c4a;
+  --sbg:#0d0c07; --paper:#e6dcc5; --ink:#1a1209; --inkf:#3d3020;
+  --tg:#4dff91; --td:#2a8a4e; --amb:#ffaa00;
+  --inv:#100e08; --invb:#2a2010;
+  --cc:#c8952a;
+}
+
+html,body{width:100%;min-height:100vh;background:#080806;color:var(--tg);
+  font-family:'Share Tech Mono',monospace;overflow-x:hidden}
+
+/* Full-page scanlines */
+body::before{content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px);
+  pointer-events:none;z-index:9999}
+
+/* ===== NAME PROMPT OVERLAY ===== */
+#name-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.95);
+  display:flex;align-items:center;justify-content:center;z-index:8000;
+  flex-direction:column;gap:20px;
+}
+#name-overlay.hidden{display:none}
+.no-prompt{text-align:center;max-width:420px}
+.no-prompt .sys{font-size:11px;letter-spacing:0.3em;color:var(--amb);margin-bottom:20px;opacity:0.7}
+.no-prompt .q{font-size:13px;color:var(--tg);line-height:1.8;margin-bottom:24px}
+.no-prompt .subq{font-size:10px;color:var(--td);font-style:italic;margin-top:-16px;margin-bottom:24px}
+.name-field{background:transparent;border:none;border-bottom:1px solid var(--tg);
+  color:var(--tg);font-family:'Share Tech Mono',monospace;font-size:18px;
+  text-align:center;outline:none;width:280px;padding:6px;letter-spacing:0.15em}
+.name-field::placeholder{color:var(--td);font-size:13px}
+.name-submit{background:transparent;border:1px solid var(--td);
+  color:var(--tg);font-family:'Share Tech Mono',monospace;font-size:11px;
+  letter-spacing:0.2em;padding:8px 24px;cursor:pointer;transition:all 0.2s;margin-top:8px}
+.name-submit:hover{border-color:var(--tg);background:rgba(77,255,145,0.08)}
+
+/* ===== HEADER ===== */
+.sw-hdr{display:flex;align-items:center;justify-content:space-between;
+  padding:7px 20px;border-bottom:1px solid #1a2018;background:#050503;
+  font-size:10px;letter-spacing:0.12em;position:sticky;top:0;z-index:100}
+.sw-logo{color:var(--tg);font-size:12px;letter-spacing:0.35em}
+.sw-meta{color:var(--amb);letter-spacing:0.15em}
+.sw-loc{color:var(--td);font-size:9px}
+
+/* ===== LAYOUT ===== */
+.wrap{display:flex;gap:16px;padding:14px 18px;max-width:1360px;margin:0 auto;align-items:flex-start}
+
+/* ===== LEFT: MACHINE COLUMN ===== */
+.machine-col{flex:1;display:flex;flex-direction:column;gap:12px;min-width:0}
+
+/* ===== NARRATIVE BOX ===== */
+.narr{background:#050503;border:1px solid #1a2018;border-left:3px solid var(--td);
+  padding:11px 15px;font-size:11px;line-height:1.9;color:var(--tg);min-height:60px}
+.narr-cursor{display:inline-block;width:7px;height:12px;background:var(--tg);
+  animation:blink 1s step-end infinite;vertical-align:middle;margin-left:2px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ===== THE MACHINE BODY ===== */
+.machine{
+  background:linear-gradient(175deg,#ccc8c2 0%,#b8b4ae 100%);
+  border-radius:8px 8px 4px 4px;
+  box-shadow:0 2px 0 var(--ms),0 5px 0 #2e2c2a,0 10px 40px rgba(0,0,0,0.85),
+    inset 0 1px 0 rgba(255,255,255,0.5),inset 0 -2px 8px rgba(0,0,0,0.2);
+}
+
+/* Monitor housing */
+.mon-top{
+  padding:14px 14px 10px;
+  background:linear-gradient(175deg,#ccc8c2 0%,#b0aca6 100%);
+  border-radius:8px 8px 0 0;
+  border-bottom:4px solid var(--md);
+}
+
+.mon-brand{display:flex;justify-content:space-between;align-items:baseline;
+  font-size:20px;font-weight:bold;color:#2a2620;letter-spacing:0.08em;
+  margin-bottom:10px;padding:0 2px}
+.brand-alos{letter-spacing:0.05em;font-size:22px}
+.brand-mod{font-size:14px;font-style:italic;opacity:0.6;letter-spacing:0.05em}
+
+/* Bezel */
+.bezel{background:#161410;border-radius:5px;padding:7px;
+  box-shadow:inset 0 3px 12px rgba(0,0,0,0.95),inset 0 0 30px rgba(0,0,0,0.7),
+    0 0 0 1px #0a0908;position:relative}
+
+/* CRT Screen */
+.screen{position:relative;width:100%;height:490px;background:var(--sbg);
+  border-radius:3px;overflow:hidden;cursor:crosshair;
+  animation:flicker 10s ease-in-out infinite}
+@keyframes flicker{0%,89%,91%,94%,100%{opacity:1}90%{opacity:.85}93%{opacity:.92}}
+/* CRT vignette */
+.screen::after{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,0.5) 100%);
+  pointer-events:none;z-index:20;border-radius:3px}
+/* Screen inner glow */
+.screen::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at center,rgba(255,170,0,0.03) 0%,transparent 70%);
+  pointer-events:none;z-index:21}
+
+/* Ghost/status text on screen */
+.ghost{position:absolute;top:7px;right:10px;
+  font-size:9px;color:var(--tg);opacity:0;z-index:25;pointer-events:none;
+  text-shadow:0 0 10px var(--tg),0 0 20px var(--tg);letter-spacing:0.1em}
+.ghost.show{animation:ghost-flash 4s ease-in-out forwards}
+@keyframes ghost-flash{
+  0%{opacity:0}8%{opacity:0.95}18%{opacity:0.2}28%{opacity:0.85}40%{opacity:0}
+  55%{opacity:0.7}65%{opacity:0}80%{opacity:0.4}100%{opacity:0}}
+
+/* Zoom hint */
+.zoom-hint{position:absolute;bottom:8px;right:10px;background:rgba(0,0,0,0.75);
+  color:var(--amb);font-size:8px;padding:3px 7px;border-radius:2px;z-index:22;
+  pointer-events:none;letter-spacing:0.08em;transition:opacity 0.5s}
+.zoom-hint.hidden{opacity:0}
+
+/* ===== NEWSPAPER VIEWPORT ===== */
+.np-viewport{width:100%;height:100%;overflow:hidden;position:relative;
+  display:flex;align-items:center;justify-content:center}
+.np-transform{transform-origin:center center;will-change:transform;
+  display:flex;align-items:flex-start;justify-content:center}
+
+/* ===== NEWSPAPER ===== */
+.newspaper{
+  width:680px;
+  background:var(--paper);
+  padding:14px 16px 18px;
+  font-family:'PT Serif',serif;
+  position:relative;
+  box-shadow:0 0 60px rgba(255,190,80,0.15),0 0 120px rgba(255,190,80,0.05);
+  filter:sepia(0.25) contrast(1.08) brightness(0.98);
+}
+/* Scanline overlay on newspaper (CRT) */
+.newspaper::after{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,
+    rgba(0,0,0,0.035) 3px,rgba(0,0,0,0.035) 4px);
+  pointer-events:none;z-index:10}
+
+/* SECRET: faint margin note on Combs article — only visible at scale 3.5+ */
+.article[data-id="combs-missing"]{position:relative}
+.article[data-id="combs-missing"]::before{
+  content:'he is still there';
+  position:absolute;right:-14px;top:40%;
+  font-family:'Special Elite',cursive;font-size:5.5px;
+  color:rgba(26,18,9,0.12);transform:rotate(90deg);transform-origin:right center;
+  pointer-events:none;white-space:nowrap;z-index:15}
+
+/* Masthead */
+.masthead{text-align:center;border-bottom:3px double var(--ink);padding-bottom:5px;margin-bottom:5px}
+.paper-name{font-family:'UnifrakturMaguntia',cursive;font-size:32px;color:var(--ink);line-height:1.05;margin-bottom:2px}
+.paper-tagline{font-size:6.5px;color:var(--inkf);font-style:italic;margin-bottom:3px}
+.paper-meta{display:flex;justify-content:space-between;
+  font-size:7px;color:var(--inkf);border-top:1px solid var(--ink);
+  border-bottom:1px solid var(--ink);padding:2px 4px;margin-top:2px}
+
+/* Column grid */
+.columns{display:grid;grid-template-columns:repeat(3,1fr);gap:0;
+  border-top:2px solid var(--ink);padding-top:5px;margin-top:4px}
+
+.article{padding:0 7px;border-right:1px solid rgba(26,18,9,0.22);
+  position:relative;transition:background 0.2s;cursor:default}
+.article:last-child{border-right:none}
+.article[data-cols="2"]{grid-column:span 2}
+.article[data-cols="3"]{grid-column:span 3}
+
+/* Clippable articles get a hover state */
+.article.clippable{cursor:pointer}
+.article.clippable:hover{background:rgba(255,180,60,0.09)}
+.article.clipped{outline:1px dashed var(--cc);background:rgba(200,149,42,0.08)!important}
+.article.clipped .clip-btn{display:none}
+.article.clipped::after{content:'✓ CLIPPED';position:absolute;top:3px;right:6px;
+  color:var(--cc);font-family:'Share Tech Mono',monospace;font-size:6px;font-weight:bold;z-index:12}
+
+/* Clip button (hidden until zoom unlocked) */
+.clip-btn{
+  display:none;background:var(--cc);color:#100800;
+  border:none;font-family:'Share Tech Mono',monospace;font-size:6.5px;
+  padding:2px 6px;cursor:pointer;margin-top:4px;letter-spacing:0.1em;
+  transition:background 0.15s;position:relative;z-index:12}
+.clip-btn:hover{background:#e0a832}
+/* Show clip buttons when zoom-unlocked class is on newspaper */
+.zoom-unlocked .clip-btn{display:inline-block}
+
+/* Headline sizes */
+.hl-xl{font-family:'Playfair Display',serif;font-size:17px;font-weight:900;
+  color:var(--ink);line-height:1.08;margin-bottom:3px;
+  border-bottom:2px solid var(--ink);padding-bottom:2px}
+.hl-lg{font-family:'Playfair Display',serif;font-size:12px;font-weight:700;
+  color:var(--ink);line-height:1.15;margin-bottom:3px;
+  border-bottom:1.5px solid var(--ink);padding-bottom:2px}
+.hl-md{font-family:'Playfair Display',serif;font-size:9.5px;font-weight:700;
+  color:var(--ink);line-height:1.2;margin-bottom:2px}
+.subhd{font-size:7px;font-style:italic;color:var(--inkf);margin-bottom:3px;line-height:1.35}
+.byline{font-size:6.5px;color:var(--inkf);margin-bottom:4px;font-style:italic}
+.body-t{font-size:7px;line-height:1.6;color:var(--ink);text-align:justify;hyphens:auto}
+.body-t p{margin-bottom:4px}
+
+/* Photo placeholder */
+.photo{background:linear-gradient(135deg,#b8b0a0 0%,#a8a090 100%);
+  margin:4px 0;display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden}
+.photo::before{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(45deg,rgba(0,0,0,0.08) 0px,rgba(0,0,0,0.08) 1px,
+    transparent 1px,transparent 6px);opacity:0.6}
+.photo-cap{font-size:6px;color:var(--inkf);font-style:italic;margin-top:2px;
+  text-align:center;line-height:1.3}
+
+/* Section divider */
+.sec-rule{grid-column:1/-1;border:none;border-top:1.5px solid rgba(26,18,9,0.35);
+  margin:5px 0}
+
+/* ===== MONITOR CONTROLS ROW ===== */
+.mon-ctrls{display:flex;align-items:center;gap:6px;padding:7px 3px 0;flex-wrap:wrap}
+.zoom-ind{font-size:9px;color:var(--md);letter-spacing:0.06em;margin-right:auto}
+.ctrl{background:linear-gradient(175deg,#d8d4ce 0%,#b0ada8 100%);
+  border:1px solid var(--ms);border-radius:3px;padding:3px 8px;
+  font-size:8.5px;font-family:'Share Tech Mono',monospace;color:#2a2620;
+  cursor:pointer;box-shadow:0 2px 0 var(--ms),inset 0 1px 0 rgba(255,255,255,0.5);
+  transition:all 0.1s;letter-spacing:0.04em;white-space:nowrap}
+.ctrl:hover{background:linear-gradient(175deg,#e4e0da 0%,#c0bdb8 100%)}
+.ctrl:active{transform:translateY(1px);box-shadow:0 1px 0 var(--ms)}
+.ctrl.print-c{background:linear-gradient(175deg,#3a4238 0%,#1e2820 100%);
+  color:var(--tg);border-color:#0e180c;box-shadow:0 2px 0 #080e06,inset 0 1px 0 rgba(255,255,255,0.08)}
+.ctrl.print-c:hover{background:linear-gradient(175deg,#4a5248 0%,#2e3830 100%)}
+
+/* ===== TRANSPORT ===== */
+.transport{
+  background:linear-gradient(180deg,#b0ada8 0%,#989590 100%);
+  border-top:4px solid var(--md);
+  border-radius:0 0 4px 4px;
+  padding:15px 18px 18px;
+  display:flex;align-items:center;gap:14px;
+  position:relative;
+}
+/* Film groove */
+.transport::before{content:'';position:absolute;
+  left:144px;right:144px;top:50%;transform:translateY(-50%);
+  height:22px;background:#100e08;border-radius:2px;
+  box-shadow:inset 0 2px 6px rgba(0,0,0,0.9)}
+/* Film perforations */
+.transport::after{content:'';position:absolute;
+  left:150px;right:150px;top:50%;transform:translateY(-50%);
+  height:12px;
+  background:repeating-linear-gradient(90deg,
+    #1e1c18 0,#1e1c18 5px,#0e0c08 5px,#0e0c08 7px);
+  border-radius:1px}
+
+/* Film reels */
+.reel{
+  width:96px;height:96px;border-radius:50%;flex-shrink:0;
+  background:radial-gradient(circle at 35% 30%,#5a5652 0%,#2a2824 50%,#1a1816 100%);
+  box-shadow:0 4px 16px rgba(0,0,0,0.7),
+    inset 0 0 0 6px #3a3834,inset 0 0 0 8px #2a2824,
+    inset 0 0 0 16px #3a3834,inset 0 0 0 18px #2a2824,
+    inset 0 0 0 36px #3a3834;
+  position:relative;transition:transform 0.8s ease-in-out;
+}
+.reel::after{content:'';position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;
+  background:linear-gradient(135deg,#d0ccc6 0%,#a0a098 100%);
+  box-shadow:inset 0 1px 4px rgba(0,0,0,0.5),0 1px 0 rgba(255,255,255,0.3)}
+/* Left reel has more film (thicker ring) */
+.reel.left{box-shadow:0 4px 16px rgba(0,0,0,0.7),
+    inset 0 0 0 6px #3a3834,inset 0 0 0 8px #2a2824,
+    inset 0 0 0 14px #6a6860,inset 0 0 0 16px #2a2824,
+    inset 0 0 0 26px #3a3834}
+.reel.spin{animation:reelspin 0.7s ease-in-out}
+@keyframes reelspin{from{transform:rotate(0)}to{transform:rotate(55deg)}}
+
+/* Film nav */
+.film-nav{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;position:relative;z-index:5}
+.frame-ctr{background:#100e08;color:var(--amb);font-size:10.5px;
+  padding:4px 14px;border-radius:3px;border:1px solid #2a2820;letter-spacing:0.12em;
+  font-family:'Share Tech Mono',monospace}
+.film-label{font-size:8px;color:var(--md);letter-spacing:0.08em;font-family:'Share Tech Mono',monospace}
+.nav-btns{display:flex;gap:8px}
+.nav-btn{background:linear-gradient(175deg,#d0ccc8 0%,#a8a5a0 100%);
+  border:1px solid var(--ms);border-radius:4px;padding:5px 16px;
+  font-size:10px;font-family:'Share Tech Mono',monospace;color:#2a2620;
+  cursor:pointer;box-shadow:0 3px 0 var(--ms),inset 0 1px 0 rgba(255,255,255,0.5);
+  letter-spacing:0.1em;transition:all 0.1s}
+.nav-btn:hover{background:linear-gradient(175deg,#e0dcd8 0%,#b8b5b0 100%)}
+.nav-btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ms)}
+.nav-btn:disabled{opacity:0.35;cursor:not-allowed}
+
+/* LED strip */
+.leds{display:flex;gap:5px;align-items:center}
+.led{width:7px;height:7px;border-radius:50%;background:#1a1816}
+.led.g{background:var(--tg);box-shadow:0 0 5px var(--tg);animation:ledp 2s ease-in-out infinite}
+.led.a{background:var(--amb);box-shadow:0 0 5px var(--amb)}
+@keyframes ledp{0%,100%{opacity:1}50%{opacity:0.5}}
+
+/* ===== RIGHT: INVENTORY PANEL ===== */
+.inv-panel{width:340px;flex-shrink:0;display:flex;flex-direction:column;gap:10px}
+
+.inv-card{background:var(--inv);border:1px solid var(--invb);border-radius:4px;padding:11px;position:relative}
+.inv-title{font-size:9.5px;letter-spacing:0.28em;color:var(--amb);
+  margin-bottom:9px;padding-bottom:6px;border-bottom:1px solid var(--invb)}
+
+/* Visitor badge */
+.badge{background:#f2e8d0;border:2px solid #8a7850;border-radius:4px;padding:0;overflow:hidden}
+.badge-stripe{height:9px;background:repeating-linear-gradient(90deg,
+  #8a6030 0,#8a6030 5px,#c09050 5px,#c09050 10px)}
+.badge-body{padding:8px 10px;display:flex;gap:10px;align-items:center}
+.badge-photo{width:38px;height:48px;background:linear-gradient(160deg,#c0c8d8 0%,#a0a8b8 100%);
+  border:1px solid #8a8898;display:flex;align-items:center;justify-content:center;
+  font-size:22px;flex-shrink:0;color:#60637a}
+.badge-info{font-family:'Special Elite',cursive}
+.badge-name{font-size:12px;color:#1a0e06;font-weight:bold;letter-spacing:0.03em}
+.badge-role{font-size:8px;color:#5a4030;margin-top:1px}
+.badge-num{font-size:7px;color:#8a7060;margin-top:3px;font-family:'Share Tech Mono',monospace}
+.badge-org{font-size:7.5px;color:#7a6040;text-align:center;
+  border-top:1px dashed #c0a870;margin-top:5px;padding:4px 10px;
+  font-family:'Special Elite',cursive}
+
+/* Request slip */
+.req-slip{background:#f8f4e0;border:1px solid #c8b868;padding:8px 10px;
+  font-family:'Special Elite',cursive;font-size:9px;color:#3a2810;
+  position:relative;transform:rotate(-0.5deg);box-shadow:1px 2px 5px rgba(0,0,0,0.35)}
+.req-slip .sl{font-size:8px;color:#7a6040;display:block;margin-bottom:2px;
+  font-family:'Share Tech Mono',monospace;letter-spacing:0.05em}
+.req-line{border-bottom:1px solid #c8b868;padding-bottom:2px;margin-bottom:4px;min-height:14px}
+
+/* Clippings */
+.clips-list{display:flex;flex-direction:column;gap:6px;min-height:50px}
+.no-clips{font-size:9.5px;color:var(--td);font-style:italic;text-align:center;padding:12px 0}
+.clip-item{
+  background:#f8f4e8;border:1px solid #c0a048;border-left:3px solid var(--cc);
+  padding:6px 8px;font-family:'Special Elite',cursive;font-size:9px;color:#1a0e06;
+  box-shadow:1px 2px 5px rgba(0,0,0,0.4);cursor:default;
+  animation:clipin 0.35s ease-out}
+@keyframes clipin{from{transform:translateX(-8px);opacity:0}to{transform:translateX(0);opacity:1}}
+.clip-item:nth-child(even){transform:rotate(0.3deg)}
+.clip-item:nth-child(odd){transform:rotate(-0.2deg)}
+.clip-date{font-size:7px;color:#8a6840;font-family:'Share Tech Mono',monospace;display:block;margin-bottom:2px}
+.clip-title{font-weight:bold;color:#100806;line-height:1.3;font-size:9.5px}
+.clip-note{font-size:8px;color:#4a3820;margin-top:3px;line-height:1.4;font-style:italic}
+
+/* Docs found section (appears after clippings) */
+#docs-section{display:none;animation:clipin 0.5s ease-out}
+.doc-item{
+  display:flex;align-items:center;gap:8px;padding:6px 8px;
+  border-bottom:1px solid var(--invb);cursor:pointer;transition:background 0.2s;
+  font-size:9.5px;letter-spacing:0.04em}
+.doc-item:hover{background:rgba(255,170,0,0.06)}
+.doc-item:last-child{border-bottom:none}
+.doc-icon{color:var(--amb);font-size:11px;flex-shrink:0}
+.doc-name{flex:1;line-height:1.4}
+.doc-tag{font-size:8px;color:var(--td);display:block}
+.doc-item.sealed .doc-icon{color:#8a2020}
+.doc-item.sealed .doc-name{color:#c04040}
+
+/* Notes */
+.notes-area{
+  min-height:110px;font-family:'Special Elite',cursive;font-size:9.5px;
+  color:#3a2810;line-height:1.85;
+  background:#f8f4de;border:1px solid #c8b868;padding:8px 10px 8px 14px;
+  background-image:repeating-linear-gradient(transparent,transparent 18px,#d8c888 18px,#d8c888 19px);
+  background-position:0 8px;overflow:hidden}
+.note-ln{display:block;animation:notein 0.4s ease-out;min-height:19px}
+@keyframes notein{from{opacity:0}to{opacity:1}}
+
+/* Document modal */
+#doc-modal{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);
+  z-index:5000;align-items:center;justify-content:center}
+#doc-modal.open{display:flex}
+.doc-modal-inner{
+  background:#f0e8d0;border:2px solid #8a7040;max-width:580px;width:90%;
+  max-height:85vh;overflow-y:auto;padding:24px;position:relative;
+  font-family:'PT Serif',serif;color:#1a0e06;
+  box-shadow:0 20px 60px rgba(0,0,0,0.8)}
+.doc-modal-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;
+  color:#1a0e06;border-bottom:2px solid #8a7040;padding-bottom:8px;margin-bottom:14px}
+.doc-modal-meta{font-size:9px;color:#6a5030;font-family:'Share Tech Mono',monospace;
+  margin-bottom:14px;line-height:1.7;letter-spacing:0.05em}
+.doc-modal-body{font-size:11.5px;line-height:1.75;color:#2a1a08}
+.doc-modal-body p{margin-bottom:10px}
+.doc-modal-body .redacted{
+  background:#1a1208;color:#1a1208;padding:0 4px;user-select:none;
+  display:inline;cursor:not-allowed;border-radius:1px}
+.doc-modal-body .redacted:hover::after{content:' [SEALED]';color:#c04040;
+  font-family:'Share Tech Mono',monospace;font-size:8px}
+.doc-close{position:absolute;top:12px;right:14px;background:none;border:none;
+  font-size:18px;cursor:pointer;color:#6a5030;padding:4px 8px}
+.doc-close:hover{color:#1a0e06}
+.doc-stamp{position:absolute;bottom:20px;right:20px;border:3px solid #8a2020;
+  color:#8a2020;font-family:'Share Tech Mono',monospace;font-size:11px;
+  padding:4px 10px;transform:rotate(-8deg);letter-spacing:0.2em;
+  opacity:0.7;pointer-events:none}
+
+/* Printer event */
+#printer-section{display:none;animation:clipin 0.5s ease-out}
+.printer-box{background:#0a0e08;border:1px solid #1a2818;padding:10px;font-size:10px;color:var(--tg)}
+.print-queue-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:6px 8px;background:#0e1a0c;border:1px solid #1a3018;margin-bottom:6px}
+.pq-name{font-size:9px;color:var(--amb);letter-spacing:0.06em}
+.pq-date{font-size:8px;color:var(--td)}
+.pq-status{font-size:8px;color:#c04040}
+.release-btn{background:transparent;border:1px solid var(--td);color:var(--tg);
+  font-family:'Share Tech Mono',monospace;font-size:9px;padding:4px 10px;
+  cursor:pointer;letter-spacing:0.12em;transition:all 0.2s}
+.release-btn:hover{background:rgba(77,255,145,0.1);border-color:var(--tg)}
+
+/* Deed printout */
+#deed-printout{display:none;background:#f5efd4;border:1px solid #c0a860;
+  padding:18px;font-family:'PT Serif',serif;font-size:11px;color:#1a0e06;
+  margin-top:8px;position:relative;animation:deed-appear 1s ease-out}
+@keyframes deed-appear{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+#deed-printout h3{font-family:'Playfair Display',serif;font-size:15px;text-align:center;
+  border-bottom:2px double #8a7040;padding-bottom:6px;margin-bottom:12px}
+#deed-printout .deed-body{font-size:10.5px;line-height:1.8}
+#deed-printout .deed-highlight{font-weight:bold;font-size:13px;color:#8a0808;
+  display:block;text-align:center;margin:10px 0;letter-spacing:0.05em}
+#deed-printout .notary{font-size:9px;color:#5a4020;margin-top:14px;
+  border-top:1px solid #c0a860;padding-top:8px;font-style:italic}
+#deed-printout .deed-stamp{border:3px double #8a0808;color:#8a0808;
+  font-family:'Share Tech Mono',monospace;font-size:9px;padding:4px 10px;
+  display:inline-block;margin-top:8px;letter-spacing:0.2em;transform:rotate(-5deg)}
+
+/* Continue button */
+#continue-btn{
+  display:none;background:transparent;border:1px solid var(--td);
+  color:var(--tg);font-family:'Share Tech Mono',monospace;font-size:11px;
+  letter-spacing:0.2em;padding:10px;cursor:pointer;width:100%;
+  transition:all 0.2s;margin-top:4px;text-align:center}
+#continue-btn.show{display:block}
+#continue-btn:hover{background:rgba(77,255,145,0.09);border-color:var(--tg)}
+
+/* Brightness filter (applied to newspaper) */
+.np-transform{filter:brightness(1)}
+</style>
+</head>
+<body>
+
+<!-- Name prompt overlay -->
+<div id="name-overlay">
+  <div class="no-prompt">
+    <div class="sys">LETCHER COUNTY CLERK'S OFFICE // VISITOR LOG // 01.16.94</div>
+    <div class="q">The clerk at the front desk handed you a yellow visitor card and a pen.<br>She didn't say anything. You filled in your name.</div>
+    <div class="subq">(This will be used in official documents.)</div>
+    <input type="text" class="name-field" id="name-input" placeholder="YOUR NAME" maxlength="30" autocomplete="off">
+    <br>
+    <button class="name-submit" onclick="submitName()">[ SIGN IN ]</button>
+  </div>
+</div>
+
+<!-- Header -->
+<div class="sw-hdr">
+  <div class="sw-logo">SECWATCH</div>
+  <div class="sw-meta">DAY 3 // PAPER TRAIL</div>
+  <div class="sw-loc">LETCHER COUNTY CLERK'S OFFICE // WHITESBURG KY // 01.16.94 14:00</div>
+</div>
+
+<!-- Main layout -->
+<div class="wrap">
+
+  <!-- LEFT: Machine column -->
+  <div class="machine-col">
+
+    <!-- Narrative -->
+    <div class="narr" id="narr-box">
+      <span id="narr-text"></span><span class="narr-cursor" id="narr-cursor"></span>
+    </div>
+
+    <!-- The ALOS Z43 machine -->
+    <div class="machine">
+      <div class="mon-top">
+        <div class="mon-brand">
+          <span class="brand-alos">AL<span style="letter-spacing:-0.04em">O</span>S</span>
+          <span class="brand-mod">Z&nbsp;43</span>
+        </div>
+        <div class="bezel">
+          <div class="screen" id="screen">
+            <!-- Ghost text -->
+            <div class="ghost" id="ghost-txt"></div>
+            <!-- Zoom hint -->
+            <div class="zoom-hint" id="zoom-hint">SCROLL: ZOOM &nbsp;·&nbsp; DRAG: PAN &nbsp;·&nbsp; CLIP: ZOOM IN TO READ</div>
+            <!-- Newspaper viewport -->
+            <div class="np-viewport" id="viewport">
+              <div class="np-transform" id="transform-layer">
+                <div class="newspaper" id="newspaper-content">
+                  <!-- rendered by JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mon-ctrls">
+          <span class="zoom-ind" id="zoom-ind">ZOOM: 1.0×</span>
+          <button class="ctrl" id="btn-darker" onclick="adjustBright(-0.12)">DARKER</button>
+          <button class="ctrl" id="btn-auto" onclick="resetBright()">AUTO</button>
+          <button class="ctrl" id="btn-lighter" onclick="adjustBright(0.12)">LIGHTER</button>
+          <button class="ctrl print-c" id="btn-print" onclick="printClip()">⬡ PRINT</button>
+        </div>
+      </div>
+
+      <!-- Transport mechanism -->
+      <div class="transport">
+        <div class="reel left" id="reel-l"></div>
+        <div class="film-nav">
+          <div class="leds">
+            <div class="led g"></div>
+            <div class="led g"></div>
+            <div class="led a"></div>
+            <div class="led"></div>
+            <div class="led"></div>
+          </div>
+          <div class="frame-ctr">
+            FRAME <span id="f-num">1</span>&nbsp;/&nbsp;<span id="f-tot">5</span>
+          </div>
+          <div class="nav-btns">
+            <button class="nav-btn" id="prev-btn" onclick="prevFrame()" disabled>◀ PREV</button>
+            <button class="nav-btn" id="next-btn" onclick="nextFrame()">NEXT ▶</button>
+          </div>
+          <div class="film-label" id="film-label">COURIER 1983</div>
+        </div>
+        <div class="reel" id="reel-r"></div>
+      </div>
+    </div>
+
+  </div><!-- end machine-col -->
+
+  <!-- RIGHT: Inventory panel -->
+  <div class="inv-panel">
+
+    <!-- Visitor badge -->
+    <div class="inv-card">
+      <div class="inv-title">VISITOR CREDENTIALS</div>
+      <div class="badge">
+        <div class="badge-stripe"></div>
+        <div class="badge-body">
+          <div class="badge-photo">👤</div>
+          <div class="badge-info">
+            <div class="badge-name" id="badge-name">—</div>
+            <div class="badge-role">Security Contractor</div>
+            <div class="badge-role" style="margin-top:2px">Pellegrino &amp; Associates</div>
+            <div class="badge-num" id="badge-num">VISITOR · DAY PASS ONLY</div>
+          </div>
+        </div>
+        <div class="badge-org">LETCHER COUNTY CLERK'S OFFICE — RESEARCH ACCESS</div>
+      </div>
+      <!-- Request slip -->
+      <div class="req-slip" style="margin-top:8px">
+        <span class="sl">MICROFILM REQUEST FORM — CLERK USE ONLY</span>
+        <div class="req-line"><strong>Collection:</strong> COURIER 1979–1994</div>
+        <div class="req-line"><strong>Subject:</strong> Hargrove / LKCO / Eastern Letcher</div>
+        <div class="req-line"><strong>Researcher:</strong> <span id="req-name">—</span></div>
+      </div>
+    </div>
+
+    <!-- Clippings -->
+    <div class="inv-card">
+      <div class="inv-title">CLIPPINGS — <span id="clip-count">0</span> / 5</div>
+      <div class="clips-list" id="clips-list">
+        <div class="no-clips" id="no-clips-msg">No articles clipped yet.<br>Zoom in (scroll wheel) to read,<br>then click [ CLIP ] on key articles.</div>
+      </div>
+    </div>
+
+    <!-- County Records (hidden until unlocked) -->
+    <div class="inv-card" id="docs-section">
+      <div class="inv-title">COUNTY RECORDS — ACCESS TERMINAL</div>
+      <div id="docs-list">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="inv-card">
+      <div class="inv-title">FIELD NOTES</div>
+      <div class="notes-area" id="notes-area"></div>
+    </div>
+
+    <!-- Printer event (hidden until triggered) -->
+    <div class="inv-card" id="printer-section">
+      <div class="inv-title" style="color:#c04040">⚠ PRINT QUEUE — PENDING JOB</div>
+      <div class="printer-box">
+        <div style="font-size:9px;color:var(--td);margin-bottom:8px">Queued print job detected in system.<br>Job predates current session.</div>
+        <div class="print-queue-item">
+          <div>
+            <div class="pq-name">PROPERTY TRANSFER NOTICE</div>
+            <div class="pq-date">Queued: 11/03/1987 · 09:44</div>
+            <div class="pq-status">STATUS: HELD — NEVER RELEASED</div>
+          </div>
+        </div>
+        <button class="release-btn" id="release-btn" onclick="releasePrint()">[ RELEASE PRINT JOB ]</button>
+        <div id="deed-printout">
+          <h3>LETCHER COUNTY PROPERTY TRANSFER NOTICE</h3>
+          <div class="deed-body">
+            <p>This instrument of transfer, duly executed and notarized under the laws of the Commonwealth of Kentucky, records the conveyance of all right, title, and interest in the following described real property:</p>
+            <p><strong>PARCEL DESIGNATION:</strong> LKCO-04, Eastern Letcher County. All that certain tract or parcel of land situated in the eastern portion of Letcher County, Kentucky, at the coordinates described in the 1887 survey as terminating at the point where the surveyor's instruments gave inconsistent readings, and declined to proceed further.</p>
+            <p><strong>GRANTOR:</strong> Hargrove Properties LLC (David R. Hargrove, Managing Member)</p>
+            <span class="deed-highlight" id="deed-grantee">GRANTEE: —</span>
+            <p>For and in consideration of Ten Dollars ($10.00) and other good and valuable consideration, the receipt and sufficiency of which are hereby acknowledged.</p>
+            <div class="notary">
+              <p>Notarized this 3rd day of November, 1987, in Letcher County, Kentucky.</p>
+              <p>Notary Public: <em>R. Pellegrino</em> &nbsp;&nbsp;|&nbsp;&nbsp; Expires: 12/31/1990</p>
+            </div>
+            <div class="deed-stamp">RECORDED · 11/03/1987</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Continue button -->
+    <button id="continue-btn" onclick="window.location.href='day4.html'">[ CONTINUE TO DAY 4 → ]</button>
+
+  </div><!-- end inv-panel -->
+
+</div><!-- end wrap -->
+
+<!-- Document modal -->
+<div id="doc-modal">
+  <div class="doc-modal-inner">
+    <button class="doc-close" onclick="closeDoc()">✕</button>
+    <div class="doc-modal-title" id="modal-title"></div>
+    <div class="doc-modal-meta" id="modal-meta"></div>
+    <div class="doc-modal-body" id="modal-body"></div>
+    <div class="doc-stamp" id="modal-stamp"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let playerName = localStorage.getItem('sw_name') || null;
+let currentFrame = 0;
+let scale = 1;
+let panX = 0, panY = 0;
+let isDragging = false;
+let lastX = 0, lastY = 0;
+let brightness = 1;
+let clippedIds = new Set();
+let narrativeBeat = 0;
+let ghostTriggered = false;
+let docsUnlocked = false;
+let printerTriggered = false;
+
+// ============================================================
+// NEWSPAPER DATA
+// ============================================================
+const frames = [
+  {
+    label:'COURIER 1983',
+    date:'SEPTEMBER 14, 1983',
+    vol:'Vol. XCVII, No. 37',
+    price:'25¢',
+    ed:'MORNING EDITION',
+    articles:[
+      {id:'combs-missing',cols:3,clippable:true,
+       hl:'xl',headline:'LKCO FOREMAN REPORTED MISSING NEAR INACTIVE SHAFT SITE',
+       subhead:'Earl Combs, 41, Not Returned From Tuesday Inspection; Sheriff Requests State Assistance',
+       byline:'By James Whitfield, Staff Reporter',
+       photo:{h:72,cap:'Search crews at the LKCO access road, County Rd. 71. At right, LKCO coordinator R. Pate.'},
+       body:`Earl Combs, 41, a Whitesburg native and foreman with Letcher-Knox Coal Operations, was reported missing Tuesday after failing to return from a routine inspection of the company's inactive eastern Letcher County parcel.\n\nCombs' truck, a 1979 Ford, was found at the access road to the closed Shaft 4 site Tuesday afternoon by a neighbor. His flashlight and a clipboard were recovered some thirty feet from the vehicle. No other trace was found.\n\nThe LKCO eastern parcel has been inactive since 1979, when a geological assessment recommended suspension of operations. The land is held under a caretaking agreement with the Hargrove family. Combs had served as the site's primary caretaker since that year.\n\n"The shaft itself is sealed," Sheriff Gerald Bates told the Courier. "We found his equipment but no sign of injury or distress. This is a mystery."\n\nState police assistance has been requested. The search enters its third day today. Combs is survived by his wife, Helen, and three children.`,
+       noteText:'Earl Combs — LKCO foreman, missing Sept 1983. Caretaker of Hargrove land. SECWATCH system still lists him: STATUS ACTIVE.'},
+      {id:'school-board',cols:1,clippable:false,
+       hl:'md',headline:'School Board to Vote on Gymnasium Proposal',
+       subhead:'Shared Facility Would Serve Two District Schools',
+       byline:'By Sandra Compton',
+       body:"The Letcher County Board of Education will hold a special session next Tuesday to consider a $340,000 gymnasium proposal. The facility would serve Fleming-Neon and Whitesburg middle schools jointly. Partial funding from a state grant is anticipated."},
+      {id:'search-day3',cols:1,clippable:false,
+       hl:'md',headline:'Search Teams Widen; No New Leads',
+       byline:'Staff Reports',
+       body:`The search for Earl Combs entered its third day without resolution. LKCO has suspended all site operations pending investigation. Company officials declined to comment beyond confirming that Combs' access to the property was routine and authorized.`},
+      {id:'fair',cols:1,clippable:false,
+       hl:'md',headline:'4-H Fair Results — Whitesburg District',
+       byline:'Community Notes',
+       body:'The annual Letcher County 4-H Fair concluded Saturday with record attendance. Blue ribbon recipients in livestock, produce, and craft categories were recognized at a ceremony at the civic center. Complete results are listed on page B4.'}
+    ]
+  },
+  {
+    label:'COURIER 1986',
+    date:'MARCH 7, 1986',
+    vol:'Vol. C, No. 10',
+    price:'25¢',
+    ed:'MORNING EDITION',
+    articles:[
+      {id:'hargrove-center',cols:3,clippable:true,
+       hl:'xl',headline:'HARGROVE FAMILY TO BUILD NEW BUSINESS CENTER ON COUNTY ROAD 15 SITE',
+       subhead:`David Hargrove, 36, Announces Spring Construction; Planning Board Approves 4–1 Despite One Member's Concern Over LKCO Corridor Proximity`,
+       byline:'By Sandra Compton, Staff Reporter',
+       photo:{h:65,cap:`David Hargrove at Thursday's planning board meeting. The building is expected to open in late 1986.`},
+       body:`David Hargrove, 36, representing the Hargrove family trust, announced this week that construction will begin this spring on a new private business and research facility at the former industrial site on County Road 15.\n\nThe Hargrove Business Center, as it will be known, will offer private office suites and what Hargrove described as a "regional research archive." The 12,000-square-foot building is expected to open by October 1986.\n\n"This land has been in our family for nearly a century," Hargrove told the Courier. "It is time to put it to productive use."\n\nThe county planning board approved the development four to one on Tuesday. The lone dissenting vote came from board member Charles Risner, who cited the site's proximity to the inactive LKCO corridor in eastern Letcher County and requested more specificity about the archive's intended use.\n\nHargrove dismissed the concern. "The LKCO parcel is a separate matter entirely," he said. "Our building is on different land under different ownership."\n\nConstruction is expected to employ twelve to fifteen workers. Tenant interest has reportedly been strong among regional professional firms.`,
+       noteText:'Hargrove Center — County Rd 15, opens 1986. Private offices + "research archive." Never says what kind. Planning dissent: LKCO proximity flagged.'},
+      {id:'donations',cols:1,clippable:false,
+       hl:'md',headline:'Hargrove Foundation Gifts $5,000 to County Library',
+       byline:'Community Notes',
+       body:"The Hargrove Family Foundation has donated five thousand dollars to the Letcher County Public Library for acquisition of regional reference materials. Library director Ellen Sims called it the largest single gift to the library in five years."},
+      {id:'roads',cols:1,clippable:false,
+       hl:'md',headline:'Highway Dept. Lists Spring Road Closures',
+       byline:'Staff Reports',
+       body:"The Kentucky Department of Transportation has announced spring resurfacing work beginning April 4th. County Road 15 will see lane restrictions but remain open during construction. Motorists are advised to allow additional travel time through June."},
+      {id:'baseball',cols:1,clippable:false,
+       hl:'md',headline:'Yellow Jackets Baseball Opens Friday at Hazard',
+       byline:'Sports Staff',
+       body:'The Whitesburg High School baseball team begins its 1986 season Friday evening at Hazard. Coach Mike Sims says the squad is better positioned this spring after a strong showing in fall conditioning.'}
+    ]
+  },
+  {
+    label:'COURIER 1988',
+    date:'NOVEMBER 23, 1988',
+    vol:'Vol. CII, No. 47',
+    price:'35¢',
+    ed:'MORNING EDITION',
+    articles:[
+      {id:'night-activity',cols:2,clippable:true,
+       hl:'lg',headline:'COUNTY ROAD 15 RESIDENTS FILE COMPLAINTS OVER LATE-NIGHT GATHERINGS AT HARGROVE CENTER',
+       subhead:`Sheriff's Office Investigates; No Criminal Activity Found — Hargrove Confirms "Private Meetings"`,
+       byline:'By James Whitfield, Staff Reporter',
+       body:`Several residents living near the Hargrove Business Center on County Road 15 have filed formal complaints with the Letcher County Sheriff's Office regarding what they describe as unusual nighttime activity at the building during the past twelve months.\n\nRuth Bingham, who lives approximately half a mile from the facility, said she has observed vehicles arriving at the building well past midnight on multiple occasions. "There must have been a dozen cars some nights," Bingham told the Courier. "And once, in October, I could see something like torchlight in the lower windows. That building has no regular tenants I know of after six o'clock."\n\nAt least four other nearby residents filed similar complaints with the county.\n\nSheriff's Deputy Kenneth Stacy investigated and reported finding no evidence of trespassing or unlawful activity. "Mr. Hargrove confirmed he uses the building for private meetings," Stacy told the Courier. "There is no law against that on private property."\n\nDavid Hargrove, reached by telephone, declined to elaborate. "We hold private meetings," he said. "There is nothing more I have to say about it."`,
+       noteText:'Dozen cars. Torchlight in the BASEMENT. 1986–1988. Twelve people. This is what the court file calls "organized ritual activity." They thought they were doing something. They were just close enough for it to notice them.'},
+      {id:'thanksgiving',cols:1,clippable:false,
+       hl:'md',headline:'Free Thanksgiving Dinner at First Methodist',
+       byline:'Community Notes',
+       body:'First United Methodist Church will host a free community Thanksgiving dinner beginning at noon on Thursday. Transportation available. All are welcome. A children\'s program will follow the meal.'},
+      {id:'basketball-88',cols:1,clippable:false,
+       hl:'md',headline:`Yellow Jackets Open Basketball Season Friday`,
+       byline:'Sports Staff',
+       body:`The Whitesburg Yellow Jackets open the 1988–89 basketball season at home Friday against Hazard High. Tipoff at 7 p.m. Coach Randall Sims says the team is "cautiously optimistic" given a tough early schedule and three returning starters.`}
+    ]
+  },
+  {
+    label:'COURIER 1991',
+    date:'OCTOBER 9, 1991',
+    vol:'Vol. CV, No. 41',
+    price:'35¢',
+    ed:'MORNING EDITION',
+    articles:[
+      {id:'hargrove-death',cols:3,clippable:true,
+       hl:'xl',headline:'DAVID HARGROVE, 41, DIES; BUSINESS CENTER TO CLOSE INDEFINITELY',
+       subhead:'James Hargrove, 76, Dies Four Days After Son — Estate Seals Building and All Associated Properties Including Eastern LKCO Parcel',
+       byline:'By Sandra Compton, Staff Reporter',
+       photo:{h:65,cap:'The Hargrove Business Center on County Road 15, photographed 1987. All tenants given 30 days to vacate.'},
+       body:`David Hargrove, 41, the last active member of the Hargrove family and managing director of the Hargrove Business Center, died Sunday at Whitesburg ARH Hospital following sudden cardiac arrest. He was pronounced dead at 3:14 a.m. He had not been known to suffer from heart disease.\n\nHargrove's father, James Hargrove, 76, died Thursday — four days after his son — at the family residence on Cornett Branch Road. The elder Hargrove's physician attributed the death to natural causes consistent with his age and general health.\n\nThe Hargrove family trust announced Monday that the business center will close indefinitely. An attorney for the estate, Thomas Veale of Hazard, said the building and all associated Hargrove land holdings — including the eastern county LKCO parcel — will be placed under a maintenance contract while the estate is resolved.\n\n"There is no succession plan," Veale acknowledged. "David was the end of the line. The family's holdings will be managed in trust until the legal picture is clearer."\n\nApproximately seven tenants have been given thirty days to vacate. The estate is not accepting inquiries or offers regarding the property at this time.\n\nDavid Hargrove is survived by no immediate family. Services were private, per the family's request. Donations to the Letcher County Historical Archive are requested in lieu of flowers.`,
+       noteText:'41 years old. No prior heart trouble. Father dead 4 days later. LKCO parcel goes with the rest of the estate. End of the Hargrove line. Pellegrino filed the death cert.'},
+      {id:'festival',cols:1,clippable:false,
+       hl:'md',headline:'Fall Festival to Proceed Despite Rain Forecast',
+       byline:'Staff Reports',
+       body:"Organizers of the 14th annual Letcher County Fall Festival confirmed the event will proceed as scheduled this Saturday. Several outdoor vendors will relocate under the civic center awning. Admission is free and open to the public."},
+      {id:'vote',cols:1,clippable:false,
+       hl:'md',headline:'Early Voting Opens Monday for November Ballot',
+       byline:'From County Clerk',
+       body:"Early voting for the November 5th general election begins Monday, October 14th, at the Letcher County Courthouse. Hours are 8 a.m. to 4 p.m., Monday through Friday, through November 1st."},
+      {id:'weather-fall',cols:1,clippable:false,
+       hl:'md',headline:'First Frost Expected by Weekend',
+       byline:'Weather Service',
+       body:'The National Weather Service is forecasting the first frost of the season for eastern Kentucky by Friday night. Gardeners are advised to protect or harvest tender plants. Lows in exposed areas may reach 28°F through the weekend.'}
+    ]
+  },
+  {
+    label:'COURIER DEC 1991',
+    date:'DECEMBER 12, 1991',
+    vol:'Vol. CV, No. 50',
+    price:'35¢',
+    ed:'AFTERNOON EDITION',
+    articles:[
+      {id:'docs-sealed',cols:2,clippable:true,
+       hl:'lg',headline:'JUDGE SEALS DOCUMENTS IN HARGROVE MATTER; INSPECTION PETITION DENIED',
+       subhead:"Petitioner Identified Only as R.M. Had Sought Access to Building's Lower Level and Associated Records — Case No. LC-1991-CV-0447",
+       byline:'By James Whitfield, Staff Reporter',
+       body:`A Letcher Circuit Court judge ruled Thursday to seal all documents related to a civil proceeding involving the former Hargrove Business Center, denying a petition seeking a full inspection of the building's lower level and its contents.\n\nThe petitioner, identified in court filings only by the initials R.M., alleged the building may contain evidence related to "organized gathering activity" during the period 1986 to 1991, and expressed concern about the welfare of unnamed participants.\n\nJudge Harold Compton declined to authorize the inspection and ordered all related filings sealed. The court's written order cited confidentiality provisions without elaboration.\n\nThomas Veale, attorney for the Hargrove estate, said the ruling was appropriate. "There is nothing in that building that concerns the public," Veale said. "The petition was entirely without merit."\n\nThe petitioner's attorney could not be reached for comment. Court records confirm the case number as LC-1991-CV-0447. Documents are sealed indefinitely. The building remains closed and under estate management. Property records indicate no authorized maintenance visits since September 1991.`,
+       noteText:'Case LC-1991-CV-0447. Petitioner: R.M. Sought access to LOWER LEVEL specifically. "Organized gathering activity." Sealed Dec 1991. Who is R.M.? Find out who R.M. is.'},
+      {id:'parade',cols:1,clippable:false,
+       hl:'md',headline:'Christmas Parade Route Adjusted for Construction',
+       byline:'City Hall',
+       body:"The annual Whitesburg Christmas Parade, set for December 20th, will follow an adjusted route due to Main Street utility work. Revised route maps are available at City Hall and included with this edition."},
+      {id:'cold',cols:1,clippable:false,
+       hl:'md',headline:'Cold Snap Expected Through Weekend',
+       byline:'Weather Service',
+       body:"A cold air mass from the northwest is expected to push temperatures well below seasonal norms through Sunday. Overnight lows may reach 18F in the county's higher elevations. A wind advisory is in effect for exposed ridgelines."}
+    ]
+  }
+];
+
+// ============================================================
+// COUNTY RECORDS DATA
+// ============================================================
+const docs = [
+  {
+    id:'deed-chain',icon:'📜',name:'DEED CHAIN — LKCO-04',tag:'Letcher County Property Records',sealed:false,
+    title:'Deed Chain — Parcel LKCO-04, Eastern Letcher County',
+    meta:'LETCHER COUNTY CLERK\'S OFFICE\nPROPERTY RECORDS DIVISION\nParcel: LKCO-04 · Chain of Title: 1887–Present\nPulled: 01/16/1994 14:23',
+    stamp:'',
+    body:`<p>Seven conveyances are recorded for LKCO-04 since the original 1887 grant.</p>
+<p><strong>1887:</strong> Original land grant to Charles Hargrove. Survey note appended: <em>"Eastern boundary terminates at coordinates where surveyor's instruments gave inconsistent readings. Surveyor declined to proceed. Boundary accepted on the basis of prior deed description."</em></p>
+<p><strong>1887–1921:</strong> Charles Hargrove (deceased). Inherited by William Hargrove.</p>
+<p><strong>1921–1954:</strong> William Hargrove (deceased). Inherited by James Hargrove.</p>
+<p><strong>1954–1991:</strong> James Hargrove / Hargrove Properties LLC.</p>
+<p><strong>1987 (11/03):</strong> Transfer recorded to private party. Documents attached. <em>[See: Property Transfer Notice — 11/03/1987 — IN PRINT QUEUE]</em></p>
+<p><strong>1991:</strong> Estate of James Hargrove (in probate). No active trustee of record.</p>
+<p style="margin-top:12px;color:#8a2020;font-size:10.5px"><strong>NOTE:</strong> Cross-referencing prior owners against county records: Charles Hargrove (deceased 1921, natural causes), William Hargrove (deceased 1954, natural causes), James Hargrove (deceased 1991, natural causes). All sellers in prior conveyances either deceased or absent from subsequent county records. No tax filings, no voter registrations, no further property records found for any party who transferred this parcel.</p>`
+  },
+  {
+    id:'missing-persons',icon:'🔍',name:'MISSING PERSONS INDEX — EASTERN LETCHER',tag:'Sheriff\'s Office Cross-Reference 1923–1991',sealed:false,
+    title:'Missing Persons Index — Eastern Letcher County (Partial)',
+    meta:'LETCHER COUNTY SHERIFF\'S OFFICE\nCross-reference: Parcels adjacent to or including LKCO-04\nCompiled for clerk records access — 01/16/1994',
+    stamp:'',
+    body:`<p>Twelve names appear in missing persons records connected to parcels adjacent to or including the LKCO-04 corridor. This is not a comprehensive list — records prior to 1940 are incomplete.</p>
+<p><strong>1923:</strong> Evan Griffiths, 44. Coal prospector. Welsh national. Last recorded at eastern survey point. No further records.</p>
+<p><strong>1931:</strong> Martin Blevins, 38. Independent miner. Last seen near eastern county access road.</p>
+<p><strong>1951:</strong> Robert Sizemore, 29. Geological survey assistant. Survey notes end mid-entry. No body recovered.</p>
+<p><strong>1962:</strong> Three workers — names redacted per family request — during LKCO's only active drilling operation at Shaft 4. Incident report sealed. Mining operations resumed briefly, then suspended permanently in 1963.</p>
+<p><strong>1983 (February):</strong> Richard "Ricky" Meade, 23. LKCO laborer. <em>Note: Meade's residence at 1407 Cornett Branch Road remains on record. Utility payments current as of this date. No death certificate filed. No further contact.</em></p>
+<p><strong>1983 (September):</strong> Earl Combs, 41. LKCO foreman. <em>Note: SECWATCH terminal at Hargrove Business Center lists Combs as STATUS: ACTIVE as of this review.</em></p>
+<p style="margin-top:12px;color:#8a2020;font-size:10.5px"><strong>NOTE:</strong> None of the twelve individuals were found. None have filed taxes, registered a vehicle, or appeared in any record after the date of their disappearance.</p>`
+  },
+  {
+    id:'death-cert',icon:'📋',name:'DEATH CERTIFICATE — D. HARGROVE (1991)',tag:'Letcher County Vital Records',sealed:false,
+    title:'Certificate of Death — David Robert Hargrove',
+    meta:'COMMONWEALTH OF KENTUCKY\nDEPARTMENT FOR VITAL STATISTICS\nCertificate No. 91-LC-0443\nDate Filed: 03/18/1991',
+    stamp:'',
+    body:`<p><strong>Name of Deceased:</strong> David Robert Hargrove</p>
+<p><strong>Date of Birth:</strong> 11/14/1950 &nbsp;|&nbsp; <strong>Age:</strong> 41 years</p>
+<p><strong>Date of Death:</strong> 03/16/1991 &nbsp;|&nbsp; <strong>Time:</strong> 03:14 a.m.</p>
+<p><strong>Place of Death:</strong> Whitesburg ARH Hospital, Whitesburg, Letcher County, KY</p>
+<p><strong>Cause of Death:</strong><br>
+I (Immediate): Acute Cardiac Arrest<br>
+II (Underlying): Unknown / No prior cardiac history on file<br>
+III (Contributing): None noted</p>
+<p><strong>Manner of Death:</strong> Natural</p>
+<p><strong>Filed by:</strong> R. Pellegrino &nbsp;·&nbsp; <em>(Relationship to deceased: Associate)</em></p>
+<p><strong>Witness:</strong> <span style="font-style:italic;color:#8a6040;">[Signature — illegible — possibly reads: E. Combs]</span></p>
+<p style="margin-top:12px;color:#8a2020;font-size:10.5px"><strong>NOTE:</strong> Earl Combs has been listed as missing since September 14, 1983 — eight years prior to this certificate. The witness signature cannot be a clerical error. Earl Combs is not available to witness anything. The certificate was accepted as filed.</p>`
+  },
+  {
+    id:'court-file',icon:'⚖',name:'CASE LC-1991-CV-0447 [PARTIAL ACCESS]',tag:'Circuit Court — SEALED — Partial Index Only',sealed:true,
+    title:'Letcher Circuit Court — Case LC-1991-CV-0447 [SEALED]',
+    meta:'LETCHER COUNTY CIRCUIT COURT\nCivil Division\nCase No. LC-1991-CV-0447\nORDER OF SEALING: 12/11/1991\nAccess Level: INDEX ONLY — Documents Sealed by Court Order',
+    stamp:'SEALED BY COURT ORDER',
+    body:`<p><strong>Case Type:</strong> Civil Petition — Property Inspection</p>
+<p><strong>Petitioner:</strong> <span class="redacted">RICHARD MEADE</span> (initials R.M.)</p>
+<p><strong>Respondent:</strong> Estate of James Hargrove / Thomas Veale, Attorney</p>
+<p><strong>Filed:</strong> November 1, 1991 &nbsp;|&nbsp; <strong>Closed:</strong> December 11, 1991</p>
+<p><strong>Petitioner's Stated Basis:</strong> Alleges building at Hargrove Business Center, specifically <span class="redacted">LOWER LEVEL / BASEMENT</span>, contains evidence related to <em>"organized ritual activity consistent with occult practice"</em> during the period 1986–1991. Petitioner expresses concern for welfare of unnamed participants. Petitioner appeared at initial hearing without counsel.</p>
+<p><strong>Relief Sought:</strong> Full physical inspection of <span class="redacted">LOWER LEVEL</span> and seizure of all records, photographs, and material evidence therein. Identification of twelve named individuals listed as persons of interest including <span class="redacted">DAVID R. HARGROVE</span>.</p>
+<p><strong>Court Disposition:</strong> Petition denied. All supporting documents sealed per confidentiality provisions. Judge H. Compton presiding.</p>
+<p><strong>Estate Attorney Statement:</strong> <em>"There is nothing in that building that concerns the public."</em></p>
+<p style="margin-top:12px;color:#8a2020;font-size:10.5px"><strong>NOTE:</strong> Petitioner R.M. filed this case. The petitioner's full name is sealed. The initials match Richard "Ricky" Meade, listed as missing since February 1983 — eight years before this petition was filed. Richard Meade does not legally exist in any record after 1983. He filed this petition anyway.</p>`
+  }
+];
+
+// ============================================================
+// NARRATIVE BEATS
+// ============================================================
+const narratives = [
+  // Beat 0 — startup
+  `The basement of the Letcher County Courthouse smells like old carpet and fluorescent light. The clerk upstairs pointed you here without making eye contact. She handed you one canister of film and a laminated index card: COURIER 1979–1994 (INCOMPLETE). The ALOS reader was already on.\n\nYou have the case number from Pellegrino. You have a name: Hargrove. You have a building that shouldn't have been accessed by a dead man's badge. You need a reason why.`,
+  // Beat 1 — after first clip
+  `The Courier has been covering this county since 1886. Everything that happened here, happened in these pages first. Or didn't happen at all, officially.\n\nKeep looking.`,
+  // Beat 2 — after 3 clips
+  `You have three pieces now. The foreman who vanished. The building that opened three years later on the same family's land. The meetings nobody would explain.\n\nThe clerk upstairs unlocked the records terminal for you. She said she wasn't supposed to. She said she'd done it before, for someone else, a long time ago. She didn't say who.`,
+  // Beat 3 — docs unlocked
+  `The county records go back further than the newspaper. The deed chain for LKCO-04 has seven entries. You pulled all seven sellers. Not one of them appears anywhere after the sale.\n\nNot missing. Not dead. Just — not there.`,
+  // Beat 4 — all 5 clipped
+  `Five clips. The picture is almost complete. The Hargrove family held this land for a hundred years and they all died or disappeared. The meetings in the basement were real. Someone tried to open a court case about it and got shut down.\n\nThe printer is making a sound.\n\nThe printer has been making a sound since you sat down. You thought it was just the machine. It wasn't the machine.`,
+  // Beat 5 — after deed reveals
+  `November 3rd, 1987.\n\nThe deed to LKCO-04 was transferred in 1987. You didn't buy anything in 1987. You've never been to Letcher County before this week.\n\nThe document is notarized. Pellegrino signed it. And there is a witness line.\n\nThe game does not explain this.\n\nThe game has never explained any of this.`
+];
+
+// ============================================================
+// INIT
+// ============================================================
+window.onload = function() {
+  if (!playerName) {
+    document.getElementById('name-overlay').classList.remove('hidden');
+    document.getElementById('name-input').focus();
+    document.getElementById('name-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') submitName();
+    });
+  } else {
+    startDay3();
+  }
+};
+
+function submitName() {
+  const v = document.getElementById('name-input').value.trim();
+  if (!v) return;
+  playerName = v.toUpperCase();
+  localStorage.setItem('sw_name', playerName);
+  document.getElementById('name-overlay').classList.add('hidden');
+  startDay3();
+}
+
+function startDay3() {
+  document.getElementById('badge-name').textContent = playerName;
+  document.getElementById('badge-num').textContent = 'VISITOR · 01.16.94 · DAY PASS';
+  document.getElementById('req-name').textContent = playerName;
+  renderFrame(0);
+  typeWriter(narratives[0], document.getElementById('narr-text'), () => {});
+  setupInteractions();
+}
+
+// ============================================================
+// RENDER NEWSPAPER
+// ============================================================
+function renderFrame(idx) {
+  const f = frames[idx];
+  document.getElementById('f-num').textContent = idx + 1;
+  document.getElementById('f-tot').textContent = frames.length;
+  document.getElementById('film-label').textContent = f.label;
+  document.getElementById('prev-btn').disabled = idx === 0;
+  document.getElementById('next-btn').disabled = idx === frames.length - 1;
+
+  let html = `<div class="masthead">
+    <div class="paper-name">The Letcher County Courier</div>
+    <div class="paper-tagline">Serving Eastern Kentucky Since 1886 — Your Record of the Mountains</div>
+    <div class="paper-meta">
+      <span>${f.vol}</span><span>${f.ed}</span><span>${f.date}</span><span>${f.price}</span>
+    </div>
+  </div>
+  <div class="columns">`;
+
+  for (const a of f.articles) {
+    const isClipped = clippedIds.has(a.id);
+    html += `<div class="article${a.clippable?' clippable':''}${isClipped?' clipped':''}" 
+      data-id="${a.id}" data-cols="${a.cols}" style="grid-column:span ${a.cols}">`;
+
+    // Headline
+    if (a.hl==='xl') html += `<div class="hl-xl">${a.headline}</div>`;
+    else if (a.hl==='lg') html += `<div class="hl-lg">${a.headline}</div>`;
+    else html += `<div class="hl-md">${a.headline}</div>`;
+
+    if (a.subhead) html += `<div class="subhd">${a.subhead}</div>`;
+    if (a.byline) html += `<div class="byline">${a.byline}</div>`;
+
+    if (a.photo) {
+      html += `<div class="photo" style="height:${a.photo.h}px"></div>
+               <div class="photo-cap">${a.photo.cap}</div>`;
+    }
+
+    const paras = a.body.split('\n\n');
+    html += '<div class="body-t">';
+    for (const p of paras) html += `<p>${p}</p>`;
+    html += '</div>';
+
+    if (a.clippable && !isClipped) {
+      html += `<button class="clip-btn" onclick="clipArticle('${a.id}',${idx})">[ CLIP ARTICLE ]</button>`;
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+
+  document.getElementById('newspaper-content').innerHTML = html;
+
+  // Ghost trigger for Earl Combs (frame 0)
+  if (idx === 0 && !ghostTriggered) {
+    ghostTriggered = true;
+    setTimeout(() => {
+      const g = document.getElementById('ghost-txt');
+      g.textContent = 'COMBS_E // STATUS: ACTIVE';
+      g.classList.add('show');
+      setTimeout(() => g.classList.remove('show'), 4000);
+    }, 6000);
+  }
+
+  // Reset pan when frame changes
+  panX = 0; panY = 0;
+  updateTransform();
+  checkZoomUnlock();
+}
+
+// ============================================================
+// ZOOM / PAN
+// ============================================================
+function setupInteractions() {
+  const screen = document.getElementById('screen');
+  const viewport = document.getElementById('viewport');
+
+  // Scroll to zoom
+  screen.addEventListener('wheel', e => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.15 : 0.15;
+    const newScale = Math.max(0.9, Math.min(4.5, scale + delta));
+    // Adjust pan to zoom toward cursor position
+    const rect = screen.getBoundingClientRect();
+    const cx = e.clientX - rect.left - rect.width/2;
+    const cy = e.clientY - rect.top - rect.height/2;
+    panX -= cx * (newScale - scale) / scale;
+    panY -= cy * (newScale - scale) / scale;
+    scale = newScale;
+    updateTransform();
+    checkZoomUnlock();
+  }, {passive:false});
+
+  // Drag to pan
+  screen.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+    isDragging = true;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    screen.style.cursor = 'grabbing';
+  });
+  document.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    panX += e.clientX - lastX;
+    panY += e.clientY - lastY;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    // Clamp pan
+    const maxPanX = 300 * scale;
+    const maxPanY = 300 * scale;
+    panX = Math.max(-maxPanX, Math.min(maxPanX, panX));
+    panY = Math.max(-maxPanY, Math.min(maxPanY, panY));
+    updateTransform();
+  });
+  document.addEventListener('mouseup', () => {
+    isDragging = false;
+    document.getElementById('screen').style.cursor = 'crosshair';
+  });
+
+  // Touch support
+  let lastTouchDist = 0;
+  screen.addEventListener('touchstart', e => {
+    if (e.touches.length === 1) { lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; }
+    if (e.touches.length === 2) {
+      lastTouchDist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX,
+                                  e.touches[0].clientY-e.touches[1].clientY);
+    }
+  }, {passive:true});
+  screen.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (e.touches.length === 1) {
+      panX += e.touches[0].clientX - lastX;
+      panY += e.touches[0].clientY - lastY;
+      lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
+      updateTransform();
+    }
+    if (e.touches.length === 2) {
+      const dist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX,
+                               e.touches[0].clientY-e.touches[1].clientY);
+      scale = Math.max(0.9, Math.min(4.5, scale * (dist / lastTouchDist)));
+      lastTouchDist = dist;
+      updateTransform();
+      checkZoomUnlock();
+    }
+  }, {passive:false});
+}
+
+function updateTransform() {
+  document.getElementById('transform-layer').style.transform =
+    `translate(${panX}px,${panY}px) scale(${scale})`;
+  document.getElementById('zoom-ind').textContent = `ZOOM: ${scale.toFixed(1)}×`;
+  // Hide zoom hint after first zoom
+  if (scale > 1.2) document.getElementById('zoom-hint').classList.add('hidden');
+}
+
+function checkZoomUnlock() {
+  const np = document.getElementById('newspaper-content');
+  if (scale >= 1.7) np.classList.add('zoom-unlocked');
+  else np.classList.remove('zoom-unlocked');
+}
+
+// ============================================================
+// FRAME NAVIGATION
+// ============================================================
+function nextFrame() {
+  if (currentFrame >= frames.length - 1) return;
+  spinReels();
+  currentFrame++;
+  setTimeout(() => renderFrame(currentFrame), 300);
+}
+function prevFrame() {
+  if (currentFrame <= 0) return;
+  spinReels();
+  currentFrame--;
+  setTimeout(() => renderFrame(currentFrame), 300);
+}
+function spinReels() {
+  const l = document.getElementById('reel-l');
+  const r = document.getElementById('reel-r');
+  l.classList.add('spin'); r.classList.add('spin');
+  // Flicker screen
+  document.getElementById('screen').style.opacity = '0.3';
+  setTimeout(() => {
+    document.getElementById('screen').style.opacity = '';
+    l.classList.remove('spin'); r.classList.remove('spin');
+  }, 700);
+}
+
+// ============================================================
+// BRIGHTNESS
+// ============================================================
+function adjustBright(d) {
+  brightness = Math.max(0.4, Math.min(2, brightness + d));
+  document.getElementById('transform-layer').style.filter = `brightness(${brightness})`;
+}
+function resetBright() {
+  brightness = 1;
+  document.getElementById('transform-layer').style.filter = '';
+}
+
+// ============================================================
+// PRINT CURRENT CLIP (CTRL button)
+// ============================================================
+function printClip() {
+  // Find a clippable article on this frame and clip the first one found
+  const arts = document.querySelectorAll('.article.clippable:not(.clipped)');
+  if (arts.length > 0) {
+    const id = arts[0].dataset.id;
+    clipArticle(id, currentFrame);
+  }
+}
+
+// ============================================================
+// CLIPPING MECHANIC
+// ============================================================
+function clipArticle(articleId, frameIdx) {
+  if (clippedIds.has(articleId)) return;
+  clippedIds.add(articleId);
+
+  // Find article data
+  const f = frames[frameIdx];
+  const art = f.articles.find(a => a.id === articleId);
+  if (!art || !art.clippable) return;
+
+  // Update newspaper UI
+  const el = document.querySelector(`.article[data-id="${articleId}"]`);
+  if (el) {
+    el.classList.add('clipped');
+    const btn = el.querySelector('.clip-btn');
+    if (btn) btn.remove();
+  }
+
+  // Add to clippings panel
+  document.getElementById('no-clips-msg') && document.getElementById('no-clips-msg').remove();
+  const li = document.createElement('div');
+  li.className = 'clip-item';
+  li.innerHTML = `<span class="clip-date">${f.date}</span>
+    <div class="clip-title">${art.headline}</div>
+    <div class="clip-note">${art.noteText}</div>`;
+  document.getElementById('clips-list').appendChild(li);
+
+  // Update count
+  const count = clippedIds.size;
+  document.getElementById('clip-count').textContent = count;
+
+  // Add note to notes area
+  addNote(art.noteText.split('.')[0] + '.');
+
+  // Check narrative beats
+  checkBeat(count);
+}
+
+function addNote(text) {
+  const na = document.getElementById('notes-area');
+  const ln = document.createElement('span');
+  ln.className = 'note-ln';
+  ln.textContent = '— ' + text;
+  na.appendChild(ln);
+}
+
+function checkBeat(count) {
+  if (count === 1 && narrativeBeat === 0) {
+    narrativeBeat = 1;
+    setTimeout(() => typeWriter(narratives[1], document.getElementById('narr-text')), 800);
+  }
+  if (count === 3 && narrativeBeat < 2) {
+    narrativeBeat = 2;
+    setTimeout(() => {
+      typeWriter(narratives[2], document.getElementById('narr-text'), unlockDocs);
+    }, 800);
+  }
+  if (count === 5 && narrativeBeat < 4) {
+    narrativeBeat = 4;
+    setTimeout(() => {
+      typeWriter(narratives[4], document.getElementById('narr-text'), triggerPrinter);
+    }, 800);
+  }
+}
+
+// ============================================================
+// UNLOCK COUNTY RECORDS
+// ============================================================
+function unlockDocs() {
+  if (docsUnlocked) return;
+  docsUnlocked = true;
+  const sec = document.getElementById('docs-section');
+  sec.style.display = 'block';
+  const list = document.getElementById('docs-list');
+  for (const doc of docs) {
+    const item = document.createElement('div');
+    item.className = `doc-item${doc.sealed?' sealed':''}`;
+    item.innerHTML = `<div class="doc-icon">${doc.icon}</div>
+      <div class="doc-name">${doc.name}<span class="doc-tag">${doc.tag}</span></div>`;
+    item.onclick = () => openDoc(doc.id);
+    list.appendChild(item);
+  }
+  setTimeout(() => typeWriter(narratives[3], document.getElementById('narr-text')), 400);
+}
+
+// ============================================================
+// DOCUMENT MODAL
+// ============================================================
+function openDoc(docId) {
+  const doc = docs.find(d => d.id === docId);
+  if (!doc) return;
+  document.getElementById('modal-title').textContent = doc.title;
+  document.getElementById('modal-meta').innerHTML = doc.meta.replace(/\n/g,'<br>');
+  document.getElementById('modal-body').innerHTML = doc.body;
+  document.getElementById('modal-stamp').textContent = doc.stamp;
+  document.getElementById('doc-modal').classList.add('open');
+}
+function closeDoc() {
+  document.getElementById('doc-modal').classList.remove('open');
+}
+document.getElementById('doc-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('doc-modal')) closeDoc();
+});
+
+// ============================================================
+// PRINTER EVENT
+// ============================================================
+function triggerPrinter() {
+  if (printerTriggered) return;
+  printerTriggered = true;
+  setTimeout(() => {
+    document.getElementById('printer-section').style.display = 'block';
+    addNote('Old print job in queue — 1987. Not mine. Never printed.');
+  }, 1200);
+}
+
+function releasePrint() {
+  const btn = document.getElementById('release-btn');
+  btn.textContent = '[ PRINTING... ]';
+  btn.disabled = true;
+  btn.style.color = 'var(--amb)';
+  setTimeout(() => {
+    const deed = document.getElementById('deed-printout');
+    const granteeEl = document.getElementById('deed-grantee');
+    granteeEl.textContent = `GRANTEE: ${playerName}`;
+    deed.style.display = 'block';
+    // Scroll deed into view
+    deed.scrollIntoView({behavior:'smooth', block:'nearest'});
+    setTimeout(() => {
+      narrativeBeat = 5;
+      typeWriter(narratives[5], document.getElementById('narr-text'), () => {
+        document.getElementById('continue-btn').classList.add('show');
+      });
+      addNote('The deed has my name on it. 1987. I have never been here before.');
+    }, 800);
+  }, 2200);
+}
+
+// ============================================================
+// TYPEWRITER EFFECT
+// ============================================================
+function typeWriter(text, el, callback) {
+  el.textContent = '';
+  let i = 0;
+  const cursor = document.getElementById('narr-cursor');
+  function tick() {
+    if (i < text.length) {
+      el.textContent += text[i];
+      i++;
+      setTimeout(tick, text[i-1] === '\n' ? 180 : 22);
+    } else {
+      if (callback) callback();
+    }
+  }
+  tick();
+}
+</script>
+</body>
+</html>
