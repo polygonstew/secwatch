@@ -51,6 +51,7 @@ css/                        styles (dream.css = Night Shift)
 img/  audio/                media
 videos/                     optional: night_1.mp4 ... plays when you wake
 secWatch_story_and_lore.md  the full story, Days 1-10 (spoilers)
+PREQUEL_1962_JOSEPH_NO1.md  1962 prequel: Joseph No. 1 drift, mining research
 md/                         production bible + shot lists
 conv/                       ffmpeg converters for camera footage
 
