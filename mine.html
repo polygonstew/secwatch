@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JOSEPH No. 1 — SECWATCH</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap">
+<style>
+  :root{ --bg:#050403; --amber:#e3a24a; --dim:#7a6a50; --ink:#d8d4c8; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; background:var(--bg); color:var(--ink); font-family:'Share Tech Mono', monospace; overflow:hidden; }
+  #wrap{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; }
+  #screen{ image-rendering:pixelated; image-rendering:crisp-edges; width:min(100vw, 160vh); aspect-ratio:640/400; height:auto; max-height:100vh; display:block; cursor:crosshair; background:#000; }
+  .card{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(4,3,2,.94); z-index:10; cursor:pointer; padding:16px; }
+  .card.on{ display:flex; }
+  .card-in{ max-width:760px; width:100%; }
+  #cardText{ white-space:pre-wrap; font-size:clamp(13px, 2.1vw, 18px); line-height:1.5; color:var(--ink); min-height:40vh; }
+  #cardHint{ margin-top:22px; color:var(--dim); font-size:13px; }
+  #cardBtns{ margin-top:22px; display:flex; gap:10px; flex-wrap:wrap; }
+  .cbtn{ font:inherit; font-size:15px; color:var(--bg); background:var(--amber); border:0; padding:9px 16px; cursor:pointer; text-decoration:none; }
+  .cbtn:hover{ background:#ffd080; }
+  #back{ position:fixed; top:6px; right:8px; z-index:5; color:var(--dim); font-size:12px; text-decoration:none; }
+  #back:hover{ color:var(--amber); }
+  #touch{ display:none; position:fixed; inset:auto 0 0 0; z-index:6; pointer-events:none; padding:10px; justify-content:space-between; }
+  #touch.on{ display:flex; }
+  #touch .grp{ display:grid; grid-template-columns:repeat(3, 52px); gap:6px; pointer-events:auto; }
+  #touch .grp.r{ grid-template-columns:repeat(2, 64px); }
+  #touch button{ height:52px; font:inherit; font-size:13px; color:var(--amber); background:rgba(30,24,16,.7); border:1px solid #4a3a26; border-radius:6px; }
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="screen" width="640" height="400"></canvas></div>
+<a id="back" href="index.html?dash">&larr; SECWATCH</a>
+
+<div id="card" class="card"><div class="card-in">
+  <pre id="cardText"></pre>
+  <div id="cardBtns"></div>
+  <div id="cardHint">click or press SPACE</div>
+</div></div>
+
+<div id="touch">
+  <div class="grp">
+    <span></span><button data-k="ArrowUp">▲</button><span></span>
+    <button data-k="ArrowLeft">◀</button><button data-k="ArrowDown">▼</button><button data-k="ArrowRight">▶</button>
+  </div>
+  <div class="grp r">
+    <button data-k="USE">TOOL</button><button data-k="E">E</button>
+    <button data-k="TOOL">SWAP</button><button data-k="MAP">MAP</button>
+  </div>
+</div>
+
+<script src="js/swState.js"></script>
+<script src="js/mineSheets.js"></script>
+<script src="js/mineArt.js"></script>
+<script src="js/mineLevel.js"></script>
+<script src="js/mineEngine.js"></script>
+</body>
+</html>

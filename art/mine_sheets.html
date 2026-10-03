@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mine Sprite Sheets — SECWATCH</title>
+<link rel="stylesheet" href="../css/tools.css">
+<style>
+  .sheet{ margin:18px 0 28px; }
+  .cv{ background:repeating-conic-gradient(#202020 0 25%, #2a2a2a 0 50%) 0 0/16px 16px; border:1px solid var(--line); max-width:100%; }
+  .cells td:first-child{ color:var(--amber2); white-space:nowrap; }
+  .drop{ border:2px dashed var(--line2); padding:18px; text-align:center; color:var(--dim); border-radius:6px; }
+  .drop.over{ border-color:var(--amber); color:var(--amber); }
+  .res{ margin-top:12px; }
+  .row{ display:flex; gap:14px; flex-wrap:wrap; align-items:flex-start; }
+  .tabs button{ margin-right:4px; }
+</style>
+</head>
+<body>
+<div class="bar">
+  <h1>MINE SPRITE SHEETS</h1>
+  <span class="muted">JOSEPH No. 1 · grid templates · art check</span>
+  <span class="sp"></span>
+  <a class="btn" href="../control.html">Control panel</a>
+  <a class="btn" href="../mine.html">Play</a>
+  <a class="btn" href="day_outlines.html">Day image outlines</a>
+</div>
+<div class="wrap">
+  <div class="note">
+    Paint straight onto a <b>template</b>. Each cell has a 12px label strip and a 1px frame, and the game never reads either.
+    It reads only the inside of each frame.<br>
+    <b>Magenta (#FF00FF)</b> is guide colour and gets ignored, so leave it or paint over it.
+    A cell you leave empty keeps the built-in art. Fill cells one at a time.<br>
+    Save finished sheets as <code>img/mine/walls.png</code>, <code>flats.png</code>, <code>sprites.png</code>, <code>tools.png</code>
+    and <code>face.png</code>. Optional glow sheets use the same grid: <code>walls_glow.png</code> etc. (white = lights itself).<br>
+    The <b>reference</b> sheets are the built-in art on the same grid, if you'd rather paint over them than start blank.
+    Ready-made copies of both are in <code>art/mine/templates/</code> and <code>art/mine/reference/</code>.
+  </div>
+
+  <h2>CHECK A SHEET YOU PAINTED</h2>
+  <div class="drop" id="drop">Drop PNGs here (named walls.png, sprites.png ...) or <input type="file" id="file" accept="image/png" multiple></div>
+  <div class="res" id="res"></div>
+  <div style="margin-top:8px"><button class="primary" id="preview" disabled>Preview checked sheets in the game</button>
+    <span class="muted">Opens the mine using these sheets, without copying anything into img/mine/.</span></div>
+
+  <div id="sheets"></div>
+</div>
+
+<script src="../js/mineSheets.js"></script>
+<script src="../js/mineArt.js"></script>
+<script>
+const MS = MineSheets, SH = MS.SHEETS;
+const MAG = '#ff00ff';
+
+function frame(sheet){
+  const sz = MS.size(sheet), s = SH[sheet];
+  const c = document.createElement('canvas'); c.width = sz.w; c.height = sz.h;
+  const g = c.getContext('2d');
+  g.fillStyle = '#2a2a2a'; g.fillRect(0, 0, sz.w, sz.h);
+  s.cells.forEach((cell, i) => {
+    const p = MS.slot(sheet, i);
+    g.fillStyle = '#161616'; g.fillRect(p.x, p.y, p.sw, MS.LABEL);
+    g.save(); g.beginPath(); g.rect(p.x, p.y, p.sw, MS.LABEL); g.clip();
+    g.fillStyle = '#dcdcdc'; g.font = '9px monospace'; g.textBaseline = 'top'; g.fillText(cell[0], p.x + 2, p.y + 2);
+    g.restore();
+    g.fillStyle = '#7a7a7a';
+    g.fillRect(p.x, p.y + MS.LABEL, p.sw, 1); g.fillRect(p.x, p.y + p.sh - 1, p.sw, 1);
+    g.fillRect(p.x, p.y + MS.LABEL, 1, p.sh - MS.LABEL); g.fillRect(p.x + p.sw - 1, p.y + MS.LABEL, 1, p.sh - MS.LABEL);
+    g.clearRect(p.ix, p.iy, s.cw, s.ch);
+  });
+  return c;
+}
+function dash(g, x, y, w){ g.fillStyle = MAG; for(let k = 0; k < w; k += 4) g.fillRect(x + k, y, 2, 1); }
+function guides(g, sheet, i, name){
+  const s = SH[sheet], p = MS.slot(sheet, i), x = p.ix, y = p.iy;
+  g.fillStyle = MAG;
+  if(sheet === 'walls'){ (MS.GUIDES.walls[name] || []).forEach(r => dash(g, x, y + r, s.cw)); }
+  if(sheet === 'sprites'){
+    dash(g, x, y + 32, s.cw);
+    g.fillRect(x, y + 63, 4, 1); g.fillRect(x + 60, y + 63, 4, 1);
+    g.fillRect(x + 32, y, 1, 3); g.fillRect(x + 32, y + 61, 1, 3);
+  }
+  if(sheet === 'tools'){
+    g.fillRect(x + 64, y + 93, 1, 3);
+    const a = MS.GUIDES.toolAnchor[name];
+    if(a){ g.fillRect(x + a[0] - 4, y + a[1], 9, 1); g.fillRect(x + a[0], y + a[1] - 4, 1, 9); }
+  }
+  if(sheet === 'face'){ g.fillRect(x, y + 18, 3, 1); g.fillRect(x + 29, y + 18, 3, 1); }
+}
+function template(sheet){
+  const c = frame(sheet), g = c.getContext('2d');
+  SH[sheet].cells.forEach((cell, i) => guides(g, sheet, i, cell[0]));
+  return c;
+}
+function reference(sheet){
+  const c = frame(sheet), g = c.getContext('2d');
+  SH[sheet].cells.forEach((cell, i) => { const p = MS.slot(sheet, i); g.drawImage(MineArt.bake(sheet, cell[0]), p.ix, p.iy); });
+  return c;
+}
+function glowReference(sheet){
+  const c = frame(sheet), g = c.getContext('2d');
+  const built = MineArt.build({});
+  SH[sheet].cells.forEach((cell, i) => {
+    if(!cell[2] || cell[2] === 'none') return;
+    const t = built.tex[cell[0]]; if(!t || !t.E) return;
+    const p = MS.slot(sheet, i), d = g.createImageData(t.w, t.h);
+    for(let k = 0; k < t.w*t.h; k++){ const v = Math.round(t.E[k]*255); d.data[k*4] = d.data[k*4+1] = d.data[k*4+2] = v; d.data[k*4+3] = 255; }
+    g.putImageData(d, p.ix, p.iy);
+  });
+  return c;
+}
+function download(canvas, name){
+  canvas.toBlob(b => { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); });
+}
+function show(canvas, zoom){ canvas.className = 'cv pix'; canvas.style.width = (canvas.width*zoom) + 'px'; return canvas; }
+
+/* ── sheet sections ── */
+const host = document.getElementById('sheets');
+window.SHEET_EXPORT = {};
+for(const name in SH){
+  const s = SH[name], sz = MS.size(name);
+  const sec = document.createElement('div'); sec.className = 'sheet';
+  sec.innerHTML = '<h2>' + name.toUpperCase() + '.PNG</h2>' +
+    '<div class="muted">img/mine/' + name + '.png · ' + s.cells.length + ' cells of ' + s.cw + '×' + s.ch +
+    ' · ' + s.cols + ' per row · sheet ' + sz.w + '×' + sz.h + ' px · ' + (s.kind === 'tex' ? 'opaque' : 'transparent background') + '</div>';
+  const bar = document.createElement('div'); bar.className = 'tabs'; bar.style.margin = '8px 0';
+  const tpl = template(name), ref = reference(name);
+  const glow = s.glowSheet ? glowReference(name) : null;
+  window.SHEET_EXPORT[name] = { template: tpl, reference: ref, glow };
+  const view = document.createElement('div');
+  const zoom = s.cw >= 128 ? 2 : 2;
+  const views = { template: show(tpl, zoom), reference: show(ref, zoom) };
+  if(glow) views['glow reference'] = show(glow, zoom);
+  let cur = 'template';
+  const btns = {};
+  Object.keys(views).forEach(k => {
+    const b = document.createElement('button'); b.textContent = k; btns[k] = b;
+    b.onclick = () => { cur = k; view.innerHTML = ''; view.appendChild(views[k]); Object.values(btns).forEach(x => x.classList.remove('on')); b.classList.add('on'); };
+    bar.appendChild(b);
+  });
+  const d1 = document.createElement('button'); d1.textContent = '⬇ blank template'; d1.onclick = () => download(tpl, name + '_template.png');
+  const d2 = document.createElement('button'); d2.textContent = '⬇ reference'; d2.onclick = () => download(ref, name + '_reference.png');
+  bar.append(' ', d1, d2);
+  if(glow){ const d3 = document.createElement('button'); d3.textContent = '⬇ glow template'; d3.onclick = () => download(template(name), name + '_glow_template.png');
+    const d4 = document.createElement('button'); d4.textContent = '⬇ glow reference'; d4.onclick = () => download(glow, name + '_glow_reference.png'); bar.append(d3, d4); }
+  sec.appendChild(bar); sec.appendChild(view);
+  const tbl = document.createElement('table'); tbl.className = 'cells'; tbl.style.marginTop = '10px';
+  tbl.innerHTML = '<tr><th>cell</th><th>paint this</th><th>glow</th></tr>' +
+    s.cells.map(c => '<tr><td>' + c[0] + '</td><td>' + c[1].replace(/</g, '&lt;') + '</td><td class="muted">' + c[2] + '</td></tr>').join('');
+  sec.appendChild(tbl);
+  host.appendChild(sec);
+  btns.template.click();
+}
+
+/* ── check a painted sheet ── */
+const checked = {};
+const res = document.getElementById('res');
+function sheetFor(fname){
+  const base = fname.toLowerCase().replace(/\.png$/, '').replace(/_(template|reference)$/, '');
+  if(SH[base]) return { sheet: base, file: base };
+  const m = base.match(/^(\w+)_glow/); if(m && SH[m[1]]) return { sheet: m[1], file: m[1] + '_glow' };
+  return null;
+}
+function check(file){
+  const who = sheetFor(file.name);
+  const box = document.createElement('div'); box.className = 'panel'; box.style.margin = '8px 0';
+  if(!who){ box.innerHTML = '<span class="bad">' + file.name + ': name it walls.png, flats.png, sprites.png, tools.png, face.png (or *_glow.png)</span>'; res.prepend(box); return; }
+  const rd = new FileReader();
+  rd.onload = () => {
+    const im = new Image();
+    im.onload = () => {
+      const sz = MS.size(who.sheet), s = SH[who.sheet];
+      const c = document.createElement('canvas'); c.width = im.width; c.height = im.height;
+      const g = c.getContext('2d'); g.drawImage(im, 0, 0);
+      let html = '<b>' + file.name + '</b> → ' + who.file + ' · ' + im.width + '×' + im.height;
+      html += (im.width === sz.w && im.height === sz.h) ? ' <span class="ok">size OK</span>' : ' <span class="bad">expected ' + sz.w + '×' + sz.h + '</span>';
+      const ov = document.createElement('canvas'); ov.width = im.width; ov.height = im.height;
+      const og = ov.getContext('2d'); og.drawImage(im, 0, 0);
+      const painted = [], empty = [];
+      s.cells.forEach((cell, i) => {
+        const cut = MS.cutCell(g, who.sheet, i), p = MS.slot(who.sheet, i);
+        (cut ? painted : empty).push(cell[0]);
+        og.strokeStyle = cut ? '#3cff6a' : 'rgba(255,255,255,.25)'; og.lineWidth = 1;
+        og.strokeRect(p.ix - 0.5, p.iy - 0.5, s.cw + 1, s.ch + 1);
+      });
+      html += '<div style="margin:6px 0"><span class="ok">painted (' + painted.length + '):</span> ' + (painted.join(', ') || '—') +
+        '<br><span class="muted">empty, using built-in (' + empty.length + '):</span> ' + (empty.join(', ') || '—') + '</div>';
+      box.innerHTML = html; box.appendChild(show(ov, 2));
+      res.prepend(box);
+      checked[who.file] = rd.result;
+      document.getElementById('preview').disabled = false;
+    };
+    im.src = rd.result;
+  };
+  rd.readAsDataURL(file);
+}
+document.getElementById('file').onchange = e => [...e.target.files].forEach(check);
+const drop = document.getElementById('drop');
+drop.ondragover = e => { e.preventDefault(); drop.classList.add('over'); };
+drop.ondragleave = () => drop.classList.remove('over');
+drop.ondrop = e => { e.preventDefault(); drop.classList.remove('over'); [...e.dataTransfer.files].forEach(check); };
+document.getElementById('preview').onclick = () => {
+  try{ localStorage.setItem('mine_sheet_preview', JSON.stringify(checked)); }
+  catch(e){ alert('Too big for browser storage. Copy the PNGs into img/mine/ instead.'); return; }
+  window.open('../mine.html?sheets=preview', '_blank');
+};
+</script>
+</body>
+</html>

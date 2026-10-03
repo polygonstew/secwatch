@@ -1,0 +1,10 @@
+{
+  "name": "SECWATCH Control",
+  "short_name": "SECWATCH",
+  "description": "Level and story editor for SECWATCH: JOSEPH No. 1",
+  "start_url": "control.html",
+  "display": "standalone",
+  "background_color": "#141414",
+  "theme_color": "#141414",
+  "icons": [ { "src": "img/icon_control.png", "sizes": "256x256", "type": "image/png" } ]
+}

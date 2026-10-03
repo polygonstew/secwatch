@@ -1,0 +1,7 @@
+{
+  "episode": "JOSEPH No. 1 — LKCO-04, 1962",
+  "levels": [
+    { "file": "levels/e1m1.json", "id": "e1m1", "title": "THE SHIFT", "when": "FRIDAY, APRIL 6, 1962", "badge": "1962" },
+    { "file": "levels/e1m2.json", "id": "e1m2", "title": "THE EAST HEADING", "when": "SATURDAY, APRIL 7, 1962", "badge": "0407" }
+  ]
+}

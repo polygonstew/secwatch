@@ -86,6 +86,10 @@ Then **clean up, rock dust, and move to the next place.**
 
 # PART 2 — THE GAME PREMISE
 
+> **Now playable:** `mine.html` (or badge `1962` on the SECWATCH terminal). It's a Wolfenstein-style first-person mine in two levels: E1M1 THE SHIFT and E1M2 THE EAST HEADING.
+> Engine and rules: `docs/MINE_ENGINE.md`. Edit the levels and story in `control.html`.
+> Where the game differs from the first draft below, the game is canon. The differences are noted inline (**[game]**).
+
 ## SECWATCH: JOSEPH No. 1
 ### Letcher County, Kentucky. Spring 1962.
 
@@ -110,7 +114,7 @@ The money is tight, the Roving Pickets are on the radio, and the brothers are go
 
 ### Act Two — The East Heading
 
-The seam is better to the east. Everybody can see it. The coal gets thicker and cleaner, and Luther starts doing math.
+The seam is better to the east. Everybody can see it. The coal gets thicker and cleaner. Luther won't touch it: the paint is the paint.
 
 Strange things start small. Every one of them comes out of the real work:
 
@@ -121,22 +125,25 @@ Strange things start small. Every one of them comes out of the real work:
 - **The belt.** It runs fine. But the belt man swears that on the night shift, with the power off at the portal, he heard it **turning slowly** in the dark. There's no damage and no coal on it. The tail roller is warm.
 - **Harold Combs** stops by more often. He never comes underground. He asks Ebward, carefully, how far east the face is. He asks the second time like he already knows.
 
-The east heading crosses the line.
+Nobody drives past the line. **[game]** On Saturday, the east heading has crossed it anyway, two crosscuts past Harold's paint, rock dusted fresh, and nobody on the section drove it. *"I been in this mine every day for two year. I never drove that heading."* (Luther)
 
 ### Act Three — Four Men
 
-A crew of four goes in on a Saturday cleanup shift to pull a pillar in the east heading. The player is at the tipple.
+A crew of four goes in on a Saturday cleanup shift to pull the last pillar short of Harold's line: Cecil Ison, Doyle Fields, Bobby Mullins (nineteen) and Junior Holbrook. The player is on the picking table at the tipple.
 
 The **belt stops** at 2:19 p.m. *(02:19 is the time Floor 3's camera died in 1994. Don't explain it.)*
 
-The rest of the game is the search. The player goes in with Luther and Ebward and moves the way real rescue crews did: test for gas, check the air, advance one crosscut at a time, rebuild stoppings to push air ahead.
+The rest of the game is the search. Luther and Ebward hold the fan at the portal ("somebody's got to stay on the fan"), and the player goes in with a lamp and a rock duster, nothing else.
 
 What they find is wrong only in quiet ways:
 
 - The section is **neat**. The shuttle car is parked. The cutter bar is cleaned. Lunch buckets are closed. The rock dust has been laid down fresh and even, better than anyone on this crew has ever done it.
 - The east face is **warm**. The parting band is gone in a clean line, as if it was never laid down.
 - There's a crack at the bottom of the face, six inches wide, and it's breathing warm, steady air *into* the mine. Against the fan.
-- The four men are not there. They're never found. No bodies, no blood, no signs of a fall.
+- **[game]** The player fits through the crack. Behind it are **the roots**: Stigmaria, the root systems of trees that died three hundred million years ago, which every miner has seen turned to stone in the fire clay. These aren't stone. They're a warm maze that lights itself, and it breathes.
+- The four men are in there, each standing facing the rock with the roots up over their boots, cap lamps off, warm. Doyle says *"Tell Luther it ain't his fault."* Junior, closest to the light, says *"I understand now."* You can't carry a man who's holding on.
+- There's a light at the far end. Touch it and the game says *Not yet.* and puts you back.
+- When you come back out, the crack closes behind you, *slow, like a hand*. On paper, the four men are never found: the county report says **MEN RECOVERED: none**.
 
 The final choice belongs to the brothers, not the player. Harold Combs comes to the portal. He tells them, in as few words as a man can use, that the four men aren't dead the way they mean dead, and that nobody else should go east. Then he tells them what has to be done.
 

@@ -1,0 +1,154 @@
+{
+  "format": "joseph-wad/1",
+  "id": "e1m1",
+  "title": "THE SHIFT",
+  "when": "FRIDAY, APRIL 6, 1962",
+  "w": 64,
+  "h": 25,
+  "player": {"x":1.6,"y":12.5,"a":0},
+  "start": {"tools":[1,2,3,4,5,6],"powder":4,"bags":6,"battery":100,"drain":0.1,"clock":420,"quota":63,"belt":{"on":true,"y":12,"fromX":1},"counters":{}},
+  "hud": {"label":"TONS","counter":"tons","of":63},
+  "rules": {"gasBase":0.25},
+  "next": "levels/e1m2.json",
+  "intro": [
+    "JOSEPH No. 1 DRIFT  /  FIRE CLAY SEAM",
+    "FRIDAY, APRIL 6, 1962   7:00 A.M.",
+    "",
+    "You run the face for Luther and Ebward Joseph.",
+    "Eleven men, one cutting machine, one loader,",
+    "and a belt they bought used out of Jenkins.",
+    "",
+    "Run three places. Sixty-three ton.",
+    "",
+    "Cut it. Drill it. Check your gas. Shoot it.",
+    "Load it. Dump it on the belt. Dust as you go.",
+    "",
+    "The lease says nobody drives east of Harold Combs' paint."
+  ],
+  "zones": [
+    {"name":"gas pocket (south face)","x0":15,"y0":13,"x1":16,"y1":15,"gas":1.2},
+    {"name":"gas rising","x0":22,"y0":3,"x1":24,"y1":21,"gas":0.2},
+    {"name":"gas rising more","x0":25,"y0":3,"x1":26,"y1":21,"gas":0.45},
+    {"name":"the east: warm coal, the lamp burns tall","x0":27,"y0":3,"x1":39,"y1":21,"warm":true,"anomaly":true,"drone":0.35},
+    {"name":"Combs line: no mining","x0":30,"y0":3,"x1":39,"y1":21,"nomine":"That's Harold's paint. Not one cut past it.","nomineWho":"LUTHER"}
+  ],
+  "things": [
+    {"id":"charger","type":"charger","x":1.5,"y":10.5},
+    {"id":"supply","type":"supply","x":1.5,"y":14.5},
+    {"id":"luther","type":"luther","x":4.5,"y":11.5,"talk":[["LUTHER","Run me three places. Sixty-three ton."],["LUTHER","Undercut it first. Nobody shoots off the solid in my mine."],["LUTHER","Harold's paint is up at thirty. Not one cut past it."],["LUTHER","Belt tail moves up when you hit it with E and there's open entry ahead of it."]]},
+    {"id":"ebward","type":"ebward","x":8.5,"y":13.5,"talk":[["EBWARD","Check your gas before every shot. Lamp's on 1."],["EBWARD","If the flame grows a blue cap, hang a curtain on the face and give it time."],["EBWARD","Dust as you go. Dust don't burn if it's white."],["EBWARD","Powder and dust bags are at the portal. Lamp rack too."]]},
+    {"id":"tail","type":"tail","x":13.5,"y":12.5}
+  ],
+  "triggers": [
+    {"id":"begin","when":{"on":"start"}, "do": [
+        {"obj":"RUN 3 PLACES  /  63 TONS"},
+        {"say":"Morning. Faces are at the end of all three entries. Belt tail's at thirteen.","who":"LUTHER"},
+        {"wait":2.5},
+        {"say":"Powder and dust bags are by the portal. Lamp rack too.","who":"EBWARD"}
+      ] },
+    {"id":"first_cut","when":{"on":"mine","step":"cut"}, "do": [
+        {"say":"Now drill it. Holes above the kerf. That's 3.","who":"EBWARD"}
+      ] },
+    {"id":"first_drill","when":{"on":"mine","step":"drill"}, "do": [
+        {"say":"Hold your lamp up to it before you load powder. 1, then SPACE.","who":"EBWARD"}
+      ] },
+    {"id":"first_shot","when":{"on":"mine","step":"shot"}, "do": [
+        {"say":"Load it out. Shovel's on 5. Three scoops to a place.","who":"LUTHER"}
+      ] },
+    {"id":"first_load","when":{"on":"mine","step":"load"}, "do": [
+        {"say":"Car holds three scoops. Dump it at the tail with E.","who":"LUTHER"}
+      ] },
+    {"id":"one_place","when":{"on":"counter","name":"tons","gte":21}, "do": [
+        {"say":"That's one place. Move the tail up when there's open entry ahead of it.","who":"LUTHER"},
+        {"wait":3},
+        {"say":"And dust it. Watch that dust meter.","who":"EBWARD"}
+      ] },
+    {"id":"warmer","when":{"on":"enter","x0":22,"y0":3,"x1":39,"y1":21}, "do": [
+        {"say":"The air's warmer up here. It ought to be colder this far under."}
+      ] },
+    {"id":"east_lamp","when":{"on":"lamp","x0":27,"y0":3,"x1":39,"y1":21}, "do": [
+        {"wait":1.5},
+        {"say":"You hold the lamp closer. The flame leans toward the east rib."}
+      ] },
+    {"id":"east_cut","when":{"on":"mine","step":"cut","x0":27,"y0":3,"x1":39,"y1":21}, "do": [
+        {"say":"The cutter bar comes out of the kerf warm. Not hot from the work. Warm like a stone that's been in somebody's pocket."}
+      ] },
+    {"id":"east_load","when":{"on":"mine","step":"load","x0":27,"y0":3,"x1":39,"y1":21}, "do": [
+        {"say":"A piece of the parting rolls off the shovel. It's warm. You set it on the rib instead of the belt."}
+      ] },
+    {"id":"east_dust","when":{"on":"dust","x0":26,"y0":3,"x1":39,"y1":21}, "do": [
+        {"wait":1},
+        {"say":"The dust on the east rib won't lay even. It settles in lines."}
+      ] },
+    {"id":"paint","when":{"on":"enter","x0":28,"y0":3,"x1":29,"y1":21}, "do": [
+        {"say":"Orange paint across the face up ahead. H.C. Harold Combs' line."}
+      ] },
+    {"id":"compass","when":{"on":"enter","x0":29,"y0":3,"x1":29,"y1":21}, "do": [
+        {"wait":2},
+        {"say":"You check your compass against the survey spad. The needle won't settle."}
+      ] },
+    {"id":"quota","when":{"on":"counter","name":"tons","gte":63}, "do": [
+        {"obj":"WALK OUT  /  [E] AT THE DRIFT MOUTH"},
+        {"say":"That's the shift. Bring it on out.","who":"LUTHER"}
+      ] },
+    {"id":"portal","when":{"on":"usetile","tile":"P"},"if":{"counter":"tons","gte":63}, "do": [
+        {"end":{"next":"levels/e1m2.json","card":["SATURDAY, APRIL 7, 1962","","Cleanup shift. Cecil Ison, Doyle Fields, Bobby Mullins and Junior Holbrook","go in at seven to pull the last pillar short of Harold's line.","","You're on the picking table at the tipple. The belt runs all morning.","Coal. Slate. Flint clay.","","Some of the flint clay is warm. The picking boys set those pieces","to one side without being told.","","2:17 P.M.","2:18 P.M.","2:19 P.M.","","The belt stops."]}}
+      ], "else": [
+        {"say":"Day ain't over. Run me sixty-three ton.","who":"LUTHER"}
+      ] }
+  ],
+  "tiles": [
+    "################################################################",
+    "################################################################",
+    "################################################################",
+    "#cccccccccccccccccccccccccccccHccccccccc########################",
+    "#cccccccccccccccccccccccccccccHccccccccc########################",
+    "#cccccccccccccccccccccccccccccHccccccccc########################",
+    "#cccccccccccccccccccccccccccccHccccccccc########################",
+    "#cccccccccccccccccccccccccccccHccccccccc########################",
+    "#cccccccccccccccccccccccccccccHccccccccc########################",
+    "#cccccccccccccccccccccccccccccHccccccccc########################",
+    "#..............cccccccccccccccHccccccccc########################",
+    "#ccc.ccc.ccc.cccccccccccccccccHccccccccc########################",
+    "P..............cccccccccccccccHccccccccc########################",
+    "#ccc.ccc.ccc.cccccccccccccccccHccccccccc########################",
+    "#..............cccccccccccccccHccccccccc########################",
+    "#cccccccccccccccccccccccccccccHccccccccc########################",
+    "#cccccccccccccccccccccccccccccHccccccccc########################",
+    "#cccccccccccccccccccccccccccccHccccccccc########################",
+    "#cccccccccccccccccccccccccccccHccccccccc########################",
+    "#cccccccccccccccccccccccccccccHccccccccc########################",
+    "#cccccccccccccccccccccccccccccHccccccccc########################",
+    "#cccccccccccccccccccccccccccccHccccccccc########################",
+    "################################################################",
+    "################################################################",
+    "################################################################"
+  ],
+  "dust": [
+    "................................................................",
+    "................................................................",
+    "................................................................",
+    "................................................................",
+    "................................................................",
+    "................................................................",
+    "................................................................",
+    "................................................................",
+    "................................................................",
+    "**********......................................................",
+    "**********......................................................",
+    "**********......................................................",
+    ".*********......................................................",
+    "**********......................................................",
+    "**********......................................................",
+    "**********......................................................",
+    "................................................................",
+    "................................................................",
+    "................................................................",
+    "................................................................",
+    "................................................................",
+    "................................................................",
+    "................................................................",
+    "................................................................",
+    "................................................................"
+  ]
+}

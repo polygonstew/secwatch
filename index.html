@@ -2,113 +2,399 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SECWATCH v2.11b -- DAY 1</title>
-<!-- SECWATCH v2.11b day1.html | /img/ /audio/ | see production_bible.md -->
-<!--
-  You found the source. Good.
-  Most people don't look.
-
-  37.1954° N, 82.9371° W
-
-  You should not go there.
-  Earl went there.
-  You know what happened to Earl.
-
-  Leave this running.
--->
-<link rel="stylesheet" href="css/style.css">
-<script src="js/swState.js"></script>
-<script>SW.newRun();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SECWATCH</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap">
+<style>
+  :root{ --g:#4dff91; --gd:#2a8a4e; --gdd:#123a22; --amb:#ffaa00; --red:#ff4a4a; --bg:#030403; --pnl:#060a07; --line:#163a24; --blue:#7ab0ff; }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; min-height:100%; background:var(--bg); color:var(--g); font-family:'Share Tech Mono', monospace; font-size:15px; }
+  body{ text-shadow:0 0 6px rgba(77,255,145,.28); }
+  body::after{ content:''; position:fixed; inset:0; pointer-events:none; z-index:50;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 1px, transparent 1px 3px), radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.55)); }
+  a{ color:var(--amb); }
+  header{ display:flex; gap:14px; align-items:center; flex-wrap:wrap; padding:8px 14px; border-bottom:1px solid var(--line); font-family:'VT323', monospace; font-size:22px; letter-spacing:.04em; }
+  header .sp{ flex:1; } header .dim{ color:var(--gd); }
+  .big{ font-family:'VT323', monospace; }
+  #boot{ max-width:900px; margin:0 auto; padding:24px 16px; }
+  #bootText{ white-space:pre-wrap; margin:0; font-size:15px; line-height:1.45; min-height:300px; }
+  #login{ margin-top:18px; display:none; gap:10px; flex-wrap:wrap; align-items:center; font-size:18px; }
+  #login.on{ display:flex; }
+  input{ font:inherit; color:var(--g); background:#020302; border:1px solid var(--gd); padding:6px 8px; outline:none; text-shadow:inherit; }
+  input:focus{ border-color:var(--g); box-shadow:0 0 8px rgba(77,255,145,.25); }
+  #badge{ width:90px; letter-spacing:.2em; text-align:center; }
+  button,.btn{ font:inherit; color:var(--bg); background:var(--g); border:0; padding:6px 12px; cursor:pointer; text-decoration:none; display:inline-block; text-shadow:none; }
+  button:hover,.btn:hover{ background:#a8ffc8; }
+  button.ghost,.btn.ghost{ background:transparent; color:var(--g); border:1px solid var(--gd); }
+  button.ghost:hover,.btn.ghost:hover{ border-color:var(--g); background:var(--gdd); }
+  button.amb{ background:var(--amb); }
+  #route{ margin-top:14px; color:var(--amb); min-height:24px; font-size:18px; }
+  #dash{ padding-bottom:60px !important; display:none; grid-template-columns:minmax(0, 1.35fr) minmax(0, 1fr); gap:12px; padding:12px; max-width:1500px; margin:0 auto; }
+  #dash.on{ display:grid; }
+  .col{ display:flex; flex-direction:column; gap:12px; min-width:0; }
+  .pnl{ background:var(--pnl); border:1px solid var(--line); padding:10px 12px; min-width:0; }
+  .pnl h2{ margin:0 0 8px; font-family:'VT323', monospace; font-weight:normal; font-size:24px; color:var(--g); letter-spacing:.05em; display:flex; gap:10px; align-items:baseline; flex-wrap:wrap; }
+  .pnl h2 small{ font-size:16px; color:var(--gd); }
+  .dim{ color:var(--gd); } .amb{ color:var(--amb); } .red{ color:var(--red); }
+  .tabs{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+  .tabs button{ background:transparent; color:var(--gd); border:1px solid var(--line); }
+  .tabs button.on{ color:var(--g); border-color:var(--g); background:var(--gdd); }
+  #mapWrap{ position:relative; border:1px solid var(--line); background:#0b1626; }
+  #map{ display:block; width:100%; height:auto; image-rendering:pixelated; cursor:crosshair; }
+  #mapInfo{ display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; align-items:center; }
+  #mapHover{ color:var(--blue); min-height:20px; font-size:13px; }
+  .legend span{ display:inline-flex; align-items:center; gap:4px; margin-right:10px; font-size:12px; color:var(--gd); }
+  .legend i{ width:10px; height:10px; display:inline-block; }
+  table{ width:100%; border-collapse:collapse; }
+  td{ padding:4px 6px; border-bottom:1px solid #0d2416; vertical-align:middle; }
+  tr:hover td{ background:#08160d; }
+  td.go{ text-align:right; white-space:nowrap; }
+  .bar{ display:flex; align-items:center; gap:8px; margin:4px 0; }
+  .bar .lab{ width:100px; color:var(--gd); }
+  .seg{ display:flex; gap:2px; }
+  .seg i{ width:14px; height:12px; background:#0c2014; display:block; }
+  .seg i.on{ background:var(--g); box-shadow:0 0 6px rgba(77,255,145,.5); }
+  .seg i.hot{ background:var(--amb); } .seg i.crit{ background:var(--red); }
+  .thumbs{ display:flex; gap:4px; flex-wrap:wrap; }
+  .thumbs .th{ width:54px; height:32px; border:1px solid var(--line); background:#000 center/cover no-repeat; position:relative; }
+  .thumbs .th.missing{ border-color:#4a1a1a; } .thumbs .th.new{ border-style:dashed; border-color:#4a3a12; }
+  .sys{ display:flex; gap:8px; flex-wrap:wrap; }
+  #cmd{ position:sticky; bottom:0; background:#020302; border-top:1px solid var(--line); padding:8px 14px; display:none; gap:8px; align-items:center; z-index:10; }
+  #cmd.on{ display:flex; }
+  #cmdIn{ flex:1; border:0; background:transparent; padding:2px; }
+  #cmdOut{ white-space:pre-wrap; color:var(--g); max-height:30vh; overflow:auto; padding:0 14px; font-size:14px; }
+  .blink{ animation:bl 1s steps(1) infinite; } @keyframes bl{ 50%{ opacity:0; } }
+  @media (max-width:980px){ #dash{ grid-template-columns:1fr; } header{ font-size:18px; } }
+</style>
 </head>
 <body>
+<header>
+  <span>SECWATCH v2.11b</span><span class="dim">HARGROVE PROPERTIES · SECURITY NETWORK</span>
+  <span class="sp"></span><span id="op" class="dim"></span><span id="clock"></span>
+</header>
 
-<!-- INTRO OVERLAY -->
-<div id="introOverlay">
-  <div id="introText"></div>
-  <div id="introContinue">[ PRESS ANY KEY TO CONTINUE ]</div>
-</div>
+<section id="boot">
+  <pre id="bootText"></pre>
+  <form id="login" autocomplete="off">
+    <label>OPERATOR</label><input id="name" maxlength="24" placeholder="NAME">
+    <label>BADGE #</label><input id="badge" maxlength="4" inputmode="numeric" placeholder="____">
+    <button type="submit">LOG IN</button>
+    <span class="dim" style="font-size:13px;width:100%">Any badge logs you in. Some badges take you straight somewhere.</span>
+  </form>
+  <div id="route"></div>
+</section>
 
-<div id="layout">
-  <div id="topRow">
-    <div id="camPanel">
-      <div id="camLabel">
-        <span>SECWATCH v2.11b  --  CAMERA FEED</span>
-        <span id="camLabelRight">HARGROVE PROPERTIES LLC</span>
+<main id="dash">
+  <div class="col">
+    <div class="pnl">
+      <h2>MINE MAPS <small>LKCO-04 SURVEY ARCHIVE</small></h2>
+      <div class="tabs" id="mapTabs"></div>
+      <div id="mapWrap"><canvas id="map" width="960" height="400"></canvas></div>
+      <div id="mapHover"></div>
+      <div id="mapInfo"></div>
+      <div class="legend" style="margin-top:6px">
+        <span><i style="background:#9fb4d0"></i>mined</span><span><i style="background:#e8eef8"></i>rock dusted</span>
+        <span><i style="background:#e0782a"></i>Combs line</span><span><i style="background:#ffc070"></i>crack</span>
+        <span><i style="background:#b8743a"></i>roots</span><span><i style="background:#ff5050"></i>seal</span><span><i style="background:#e0c040"></i>belt</span>
       </div>
-      <div id="camFrame">
-        <img id="camFeed" src="" alt="">
-        <div id="camAcquire">ACQUIRING SIGNAL...</div>
-        <div id="camNoFeed">
-          <div class="nf-box">
-            <div>NO FEED SELECTED</div>
-            <div style="margin-top:6px;font-size:0.85em;color:var(--gdim);">SEC1.EXE  /  SEC2.EXE</div>
-          </div>
-        </div>
-        <div id="camHUD">
-          <div class="hud-row"><span id="hudCamID">--</span><span id="hudAlert">MOTION DETECTED</span><span id="hudLoc">--</span></div>
-          <div class="hud-row"><span id="hudRec">&#9679; REC</span><span id="hudDate">01/15/94&nbsp;&nbsp;23:51</span><span id="hudSig">SIG: --</span></div>
-        </div>
-      </div>
-      <div id="camBar"><span style="color:var(--gdim);letter-spacing:0.08em;">RUN SEC1.EXE OR SEC2.EXE TO INITIALIZE</span></div>
     </div>
-    <div id="commsPanel">
-      <div id="commsLabel"><span>COMMS / PHONE</span><span id="commsLabelRight">LINE: IDLE</span></div>
-      <div id="commsBody">
-        <div id="phoneDisplay">
-          <div class="comm-title">&#9743; INTERNAL TELEPHONE</div>
-          <div id="phoneNumber">&nbsp;</div>
-          <div id="phoneStatus">TYPE: DIAL [EXT]</div>
-        </div>
-        <div id="tapeDisplay">
-          <div class="comm-title">&#9654; TAPE PLAYER</div>
-          <div id="tapeName">NO TAPE LOADED</div>
-          <div id="tapeStatus">TYPE: PLAY [TAPE_XX]</div>
-          <div id="tapeBar"></div>
-        </div>
-        <div id="transcript">TRANSCRIPT WILL APPEAR HERE</div>
-
-        <!-- SITE INTEGRITY PANEL -->
-        <div id="integrityPanel">
-          <div class="int-title">&#9632; SITE INTEGRITY</div>
-          <div class="int-row">
-            <span class="int-label">HARGROV</span>
-            <div class="int-bar-track"><div class="int-bar-fill" id="barH"></div></div>
-            <span class="int-val" id="valH">0</span>
-          </div>
-          <div class="int-row">
-            <span class="int-label">LKCO</span>
-            <div class="int-bar-track"><div class="int-bar-fill" id="barL"></div></div>
-            <span class="int-val" id="valL">0</span>
-          </div>
-          <div class="int-row">
-            <span class="int-label">SYSTEM</span>
-            <div class="int-bar-track"><div class="int-bar-fill" id="barS"></div></div>
-            <span class="int-val" id="valS">0</span>
-          </div>
-          <div class="int-row" id="ewRow">
-            <span class="int-label" style="color:var(--red);">EAST WALL</span>
-            <div class="int-bar-track"><div class="int-bar-fill red" id="barE"></div></div>
-            <span class="int-val err" id="valE">0</span>
-          </div>
-        </div>
-      </div>
-      <div id="commsHelp">DIAL [ext]&nbsp;&nbsp;PLAY [tape]&nbsp;&nbsp;STOP&nbsp;&nbsp;HELP</div>
+    <div class="pnl">
+      <h2>FEEDS &amp; IMAGES <small id="feedSum"></small></h2>
+      <div id="feeds"></div>
+      <div style="margin-top:8px"><a class="btn ghost" href="art/day_outlines.html">Open image outlines</a> <a class="btn ghost" href="art/mine_sheets.html">Mine sprite sheets</a></div>
     </div>
   </div>
-  <div id="termPanel">
-    <div id="termLabel"><span>TERMINAL  --  DAY 1  --  01/15/94</span><span id="termLabelRight">C:\SECWATCH</span></div>
-    <div id="termOutput"></div>
-    <div id="termInputRow">
-      <span id="termPrompt">C:\SECWATCH&gt;&nbsp;</span>
-      <span id="termTyped"></span>
-      <span class="cur"></span>
+  <div class="col">
+    <div class="pnl">
+      <h2>SHIFT LOG <small>days and nights</small></h2>
+      <table id="log"></table>
+    </div>
+    <div class="pnl">
+      <h2>SITE INTEGRITY</h2>
+      <div id="bars"></div>
+      <div id="stat" class="dim" style="margin-top:8px;font-size:13px"></div>
+    </div>
+    <div class="pnl">
+      <h2>SYSTEM</h2>
+      <div class="sys">
+        <a class="btn ghost" href="control.html">CONTROL PANEL (editor)</a>
+        <a class="btn ghost" href="art/day_outlines.html">IMAGE OUTLINES</a>
+        <a class="btn ghost" href="art/mine_sheets.html">SPRITE SHEETS</a>
+        <a class="btn ghost" href="docs/README.md">DOCS</a>
+        <button class="ghost" id="bNew">NEW RUN</button>
+        <button class="ghost" id="bWipe">WIPE SAVE</button>
+        <button class="ghost" id="bOut">LOG OUT</button>
+      </div>
     </div>
   </div>
-</div>
-<input id="ghost" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="none">
+</main>
 
-<script src="js/SECengine.js"></script>
+<div id="cmdOut"></div>
+<div id="cmd"><span>C:\SECWATCH&gt;</span><input id="cmdIn" spellcheck="false" placeholder="type a badge #, or HELP"><span class="blink">_</span></div>
 
+<script src="js/swState.js"></script>
+<script src="js/badges.js"></script>
+<script src="js/mineLevel.js"></script>
+<script src="js/artManifest.js"></script>
+<script>
+(function(){
+const $ = s => document.querySelector(s);
+const SAVE = SW.save;
+const LAST_KEY = 'sw_dash_last';
+function store(k, v){ try{ if(v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); }catch(e){ return null; } }
+
+/* ── clock ── */
+function tick(){ const d = new Date(); $('#clock').textContent = '01/15/94  ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + ':' + String(d.getSeconds()).padStart(2, '0'); }
+setInterval(tick, 1000); tick();
+
+/* ── boot ── */
+const BOOT = [
+  'SECWATCH v2.11b   (c) 1989 TRI-COUNTY SECURITY SYSTEMS / HARGROVE PROPERTIES',
+  'MEMORY TEST .............. 640K OK',
+  'NETWORK .................. 3 SITES',
+  '  SITE A  HARGROVE BUSINESS CENTER   WHITESBURG KY     6 CAMERAS',
+  '  SITE B  LKCO-04 STRIP SITE         LETCHER CO KY     3 CAMERAS',
+  '  SITE C  LKCO-04 / JOSEPH No. 1     SEALED 1962       0 CAMERAS',
+  'SURVEY ARCHIVE ........... ' + 'LOADING',
+  'LAST LOGIN ............... BADGE #0088   03/11/83 07:14',
+  '',
+  'ENTER OPERATOR NAME AND BADGE NUMBER.'
+];
+let bootDone = false;
+async function boot(){
+  const el = $('#bootText');
+  const fast = !!SAVE.name;
+  for(const line of BOOT){
+    if(bootDone) break;
+    for(let i = 0; i <= line.length; i += fast ? 6 : 2){ if(bootDone) break; el.textContent = BOOT.slice(0, BOOT.indexOf(line)).join('\n') + (BOOT.indexOf(line) ? '\n' : '') + line.slice(0, i); await sleep(8); }
+    await sleep(fast ? 20 : 90);
+  }
+  finishBoot();
+}
+function finishBoot(){
+  if(bootDone) return; bootDone = true;
+  $('#bootText').textContent = BOOT.join('\n');
+  $('#login').classList.add('on');
+  $('#name').value = SAVE.name || '';
+  (SAVE.name ? $('#badge') : $('#name')).focus();
+}
+$('#boot').addEventListener('click', e => { if(e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON') finishBoot(); });
+addEventListener('keydown', e => { if(!bootDone && e.key !== 'Tab'){ finishBoot(); } });
+function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+/* ── login + badge routing ── */
+function setOperator(name, badge){
+  if(name) SAVE.name = name.toUpperCase();
+  if(badge) SAVE.badge = badge;
+  SW.commit();
+  $('#op').textContent = (SAVE.name || 'OPERATOR') + (SAVE.badge ? '  #' + SAVE.badge : '');
+}
+async function route(code, from){
+  const r = SW_BADGES[code];
+  if(!r) return false;
+  const out = from === 'cmd' ? say : (t => $('#route').textContent = t);
+  out('BADGE #' + code + ' ACCEPTED\nROUTING → ' + r.label + (r.when ? '   ' + r.when : ''));
+  store(LAST_KEY, code);
+  await sleep(1100);
+  location.href = r.go;
+  return true;
+}
+$('#login').addEventListener('submit', async e => {
+  e.preventDefault();
+  const name = $('#name').value.trim(), badge = $('#badge').value.trim().replace(/\D/g, '').padStart(4, '0');
+  if(!$('#badge').value.trim()){ $('#badge').focus(); $('#route').textContent = 'BADGE NUMBER REQUIRED.'; return; }
+  setOperator(name || SAVE.name || 'OPERATOR', badge);
+  if(await route(badge, 'login')) return;
+  showDash();
+});
+
+/* ── dashboard ── */
+let LEVELS = [], CUR = 0, LVCACHE = {};
+async function showDash(){
+  $('#boot').style.display = 'none';
+  $('#dash').classList.add('on'); $('#cmd').classList.add('on');
+  setOperator();
+  renderLog(); renderBars(); renderFeeds();
+  try{ LEVELS = (await (await fetch('levels/index.json')).json()).levels; }
+  catch(e){ LEVELS = []; $('#mapInfo').innerHTML = '<span class="red">SURVEY ARCHIVE OFFLINE.</span> <span class="dim">Maps load over http: run SECWATCH_PLAY.bat (or python3 -m http.server) and open http://localhost:8777/</span>'; }
+  renderTabs(); if(LEVELS.length) showMap(0);
+  $('#cmdIn').focus();
+}
+
+function renderLog(){
+  const last = store(LAST_KEY);
+  const rows = SW_ORDER.map(code => [code, SW_BADGES[code]]).concat([['1962', SW_BADGES['1962']], ['0407', SW_BADGES['0407']]]);
+  $('#log').innerHTML = '';
+  rows.forEach(([code, r]) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + (code === last ? '<span class="amb">▶</span>' : '') + '</td><td>' + r.label + '</td><td class="dim">' + (r.when || '') + '</td><td class="go"></td>';
+    const b = document.createElement('button'); b.className = 'ghost'; b.textContent = 'OPEN';
+    b.onclick = () => { store(LAST_KEY, code); location.href = r.go; };
+    tr.lastChild.appendChild(b); $('#log').appendChild(tr);
+  });
+}
+function renderBars(){
+  const names = { h:'HARGROVE', l:'LKCO', s:'SYSTEM', e:'EAST WALL' };
+  $('#bars').innerHTML = '';
+  ['h','l','s','e'].forEach(k => {
+    const v = SAVE.bars[k] || 0, row = document.createElement('div'); row.className = 'bar';
+    let seg = '';
+    for(let i = 1; i <= 10; i++) seg += '<i class="' + (i <= v ? (v >= 8 ? 'crit' : v >= 5 ? 'hot' : 'on') : '') + '"></i>';
+    row.innerHTML = '<span class="lab">' + names[k] + '</span><span class="seg">' + seg + '</span><span>' + (k === 'e' && SAVE.ewRaw < 0 ? '--' : v) + '</span>';
+    $('#bars').appendChild(row);
+  });
+  const ev = SAVE.evidence || [];
+  $('#stat').innerHTML = 'OPERATOR ' + (SAVE.name || '—') + ' · BADGE #' + (SAVE.badge || '----') +
+    '<br>EVIDENCE ' + ev.length + (ev.length ? ': ' + ev.slice(-8).join(', ') : '') +
+    (SAVE.flags.custodian ? '<br><span class="amb">CUSTODIAN</span>' : '') +
+    (SW.has('JOSEPH_NO1') ? '<br><span class="amb">LKCO-04 / JOSEPH No. 1: SEALED 4-7-62</span>' : '');
+}
+
+/* mine maps */
+function renderTabs(){
+  $('#mapTabs').innerHTML = '';
+  LEVELS.forEach((l, i) => { const b = document.createElement('button'); b.textContent = l.id.toUpperCase() + '  ' + l.title; b.onclick = () => showMap(i); $('#mapTabs').appendChild(b); });
+}
+async function getLevel(file){ if(LVCACHE[file]) return LVCACHE[file]; const j = await (await fetch(file)).json(); return LVCACHE[file] = j; }
+async function showMap(i){
+  CUR = i; [...$('#mapTabs').children].forEach((b, k) => b.classList.toggle('on', k === i));
+  const meta = LEVELS[i];
+  let lv; try{ lv = await getLevel(meta.file); }catch(e){ $('#mapInfo').innerHTML = '<span class="red">COULD NOT READ ' + meta.file + '</span>'; return; }
+  drawMineMap(lv);
+  const sealed = SW.has('JOSEPH_NO1');
+  const code = Object.keys(SW_BADGES).find(k => SW_BADGES[k].go.endsWith(meta.file));
+  $('#mapInfo').innerHTML = '<span>' + meta.title + '</span><span class="dim">' + (meta.when || '') + '</span>' +
+    (lv.id === 'e1m2' && sealed ? '<span class="amb">STATUS: SEALED · 4 MEN NOT RECOVERED</span>' : '') + '<span style="flex:1"></span>';
+  const go = document.createElement('a'); go.className = 'btn'; go.textContent = 'ENTER THE MINE ▶';
+  go.href = 'mine.html?level=' + meta.file; go.onclick = () => code && store(LAST_KEY, code);
+  $('#mapInfo').appendChild(go);
+}
+function drawMineMap(lv){
+  const cv = $('#map'), s = Math.floor(Math.min(960/lv.w, 400/lv.h));
+  cv.width = lv.w*s; cv.height = lv.h*s;
+  const g = cv.getContext('2d');
+  g.fillStyle = '#0b1626'; g.fillRect(0, 0, cv.width, cv.height);
+  g.strokeStyle = 'rgba(120,160,220,.08)'; g.lineWidth = 1;
+  for(let x = 0; x <= lv.w; x++){ g.beginPath(); g.moveTo(x*s + 0.5, 0); g.lineTo(x*s + 0.5, cv.height); g.stroke(); }
+  for(let y = 0; y <= lv.h; y++){ g.beginPath(); g.moveTo(0, y*s + 0.5); g.lineTo(cv.width, y*s + 0.5); g.stroke(); }
+  const sealed = SW.has('JOSEPH_NO1');
+  const view = JSON.parse(JSON.stringify(lv));
+  view.things = (view.things || []).filter(t => !/^(cecil|doyle|bobby|junior|light|roots_hang)$/.test(t.type));
+  MineLevel.drawMap(g, view, s, { blueprint:true });
+  /* belt */
+  const tail = view.things.find(t => t.type === 'tail'), bt = lv.start && lv.start.belt;
+  if(tail && bt){ g.fillStyle = '#e0c040'; g.fillRect((bt.fromX || 1)*s, (Math.floor(tail.y) + 0.75)*s, (Math.floor(tail.x) - (bt.fromX || 1) + 1)*s, Math.max(2, s*0.15)); }
+  /* roots: unsurveyed until you've been there */
+  const grid = MineLevel.gridFrom(lv);
+  let rx = lv.w, rx1 = 0, ry = lv.h, ry1 = 0;
+  grid.forEach((v, c) => { if(v === MineLevel.T.ROOT){ const x = c % lv.w, y = (c/lv.w) | 0; rx = Math.min(rx, x); rx1 = Math.max(rx1, x); ry = Math.min(ry, y); ry1 = Math.max(ry1, y); } });
+  if(rx1 >= rx && !sealed){
+    g.fillStyle = '#0b1626'; g.fillRect(rx*s, ry*s, (rx1 - rx + 1)*s, (ry1 - ry + 1)*s);
+    g.strokeStyle = 'rgba(184,116,58,.6)'; g.setLineDash([4, 4]); g.strokeRect(rx*s + 0.5, ry*s + 0.5, (rx1 - rx + 1)*s - 1, (ry1 - ry + 1)*s - 1); g.setLineDash([]);
+    g.fillStyle = '#b8743a'; g.font = Math.max(11, s*1.1) + 'px "Share Tech Mono", monospace'; g.textAlign = 'center';
+    g.fillText('UNSURVEYED', (rx + rx1 + 1)/2*s, (ry + ry1 + 1)/2*s); g.textAlign = 'left';
+  }
+  /* the seal, once it's been built */
+  if(sealed){
+    (lv.triggers || []).forEach(tr => (tr.do || []).forEach(a => {
+      if(a.spawn && a.spawn.type === 'blocks'){ g.fillStyle = '#ff5050'; g.fillRect(Math.floor(a.spawn.x)*s, Math.floor(a.spawn.y)*s, s, s); }
+    }));
+  }
+  /* labels */
+  g.font = Math.max(10, s*0.9) + 'px "Share Tech Mono", monospace';
+  const label = (x, y, t, col) => { g.fillStyle = col || '#cfe0ff'; g.fillText(t, x*s, y*s); };
+  for(let y = 0; y < lv.h; y++) for(let x = 0; x < lv.w; x++){
+    const v = grid[y*lv.w + x];
+    if(v === MineLevel.T.PORTAL) label(x + 0.3, y - 2.5, 'DRIFT MOUTH');
+    if(v === MineLevel.T.CRACK) label(x - 1, y - 0.6, 'CRACK', '#ffc070');
+  }
+  const markX = (() => { for(let x = 0; x < lv.w; x++) for(let y = 0; y < lv.h; y++) if(grid[y*lv.w + x] === MineLevel.T.MARK) return x; return -1; })();
+  if(markX >= 0) label(markX - 1, 2.6, 'H.C. LINE', '#e0782a');
+  if(sealed && lv.id === 'e1m2') label(16, 9.4, 'SEALED 4-7-62', '#ff7070');
+  cv.onmousemove = e => {
+    const r = cv.getBoundingClientRect(), x = Math.floor((e.clientX - r.left)/r.width*lv.w), y = Math.floor((e.clientY - r.top)/r.height*lv.h);
+    if(x < 0 || y < 0 || x >= lv.w || y >= lv.h) return;
+    const t = MineLevel.TILES.find(t => t[1] === grid[y*lv.w + x]);
+    const hidden = !sealed && grid[y*lv.w + x] === MineLevel.T.ROOT;
+    const zs = (lv.zones || []).filter(z => x >= z.x0 && x <= z.x1 && y >= z.y0 && y <= z.y1).map(z => z.name);
+    $('#mapHover').textContent = 'X ' + x + '  Y ' + y + '   ' + (hidden ? '???' : t ? t[2].toUpperCase() : '') + (zs.length && !hidden ? '   ·   ' + zs.join(' · ').toUpperCase() : '');
+  };
+}
+
+/* feeds & images */
+function probe(src){ return new Promise(r => { const i = new Image(); i.onload = () => r(src); i.onerror = () => r(null); i.src = src; }); }
+async function renderFeeds(){
+  const box = $('#feeds'); box.innerHTML = '';
+  let tot = { have:0, missing:0, new:0 };
+  for(const day of ART_MANIFEST){
+    const row = document.createElement('div'); row.className = 'bar';
+    row.innerHTML = '<span class="lab">' + (day.day.length < 2 && /\d/.test(day.day) ? 'DAY ' + day.day : day.day === 'N' ? 'NIGHTS' : '1962') + '</span>';
+    const th = document.createElement('div'); th.className = 'thumbs'; row.appendChild(th); box.appendChild(row);
+    for(const s of day.slots){
+      let src = await probe(s.file);
+      for(const a of (s.alt || [])){ if(src) break; src = await probe(a); }
+      const st = src ? 'have' : s.status === 'new' ? 'new' : 'missing'; tot[st]++;
+      const d = document.createElement('a'); d.className = 'th ' + st; d.href = 'art/day_outlines.html'; d.title = s.title + ' · ' + s.file + ' · ' + st;
+      if(src) d.style.backgroundImage = 'url("' + src + '")';
+      th.appendChild(d);
+    }
+  }
+  $('#feedSum').innerHTML = tot.have + ' have · <span class="red">' + tot.missing + ' missing</span> · <span class="amb">' + tot.new + ' new slots</span>';
+}
+
+/* ── command line ── */
+function say(t){ const o = $('#cmdOut'); o.textContent = t; o.scrollTop = 0; }
+const HELP = [
+  'COMMANDS',
+  '  ####          a badge number (some go straight to a day)',
+  '  DAY n         open day n          NIGHT n    open night n',
+  '  MINE [1|2]    enter the 1962 drift  MAP n     show mine map n',
+  '  STATUS        site integrity       LOG        shift log',
+  '  CONTROL       level + story editor  OUTLINES  image outlines',
+  '  SHEETS        mine sprite sheets   REGISTRY   badge registry',
+  '  NEWRUN        start a new run      LOGOUT     log out',
+  '  CLS           clear'
+].join('\n');
+$('#cmdIn').addEventListener('keydown', async e => {
+  if(e.key !== 'Enter') return;
+  const raw = e.target.value.trim(); e.target.value = '';
+  if(!raw) return;
+  const [cmd, arg] = raw.toUpperCase().split(/\s+/);
+  if(/^\d{1,4}$/.test(cmd) || (cmd === 'BADGE' && arg)){
+    const code = (cmd === 'BADGE' ? arg : cmd).padStart(4, '0');
+    setOperator(null, code);
+    if(!(await route(code, 'cmd'))){ say('BADGE #' + code + ' ACCEPTED. NO ROUTE ON FILE.'); }
+    return;
+  }
+  switch(cmd){
+    case 'HELP': case '?': say(HELP); break;
+    case 'DAY': { const c = String(+arg).padStart(4, '0'); if(SW_BADGES[c] && +arg <= 10) route(c, 'cmd'); else say('NO SUCH DAY.'); break; }
+    case 'NIGHT': { const c = '010' + (+arg); if(SW_BADGES[c]) route(c, 'cmd'); else say('NO SUCH NIGHT.'); break; }
+    case 'MINE': route(arg === '2' ? '0407' : '1962', 'cmd'); break;
+    case 'MAP': { const i = (+arg || 1) - 1; if(LEVELS[i]) showMap(i); else say('NO SUCH MAP.'); break; }
+    case 'STATUS': say(['h','l','s','e'].map(k => ({ h:'HARGROVE', l:'LKCO', s:'SYSTEM', e:'EAST WALL' })[k].padEnd(10) + ' ' + '█'.repeat(SAVE.bars[k] || 0) + '░'.repeat(10 - (SAVE.bars[k] || 0))).join('\n')); break;
+    case 'LOG': case 'DIR': case 'LS': say(SW_ORDER.map(c => SW_BADGES[c].label + '   ' + SW_BADGES[c].when).join('\n')); break;
+    case 'REGISTRY': say(Object.keys(SW_BADGES).map(c => '#' + c + '  ' + SW_BADGES[c].label).join('\n')); break;
+    case 'CONTROL': location.href = 'control.html'; break;
+    case 'OUTLINES': location.href = 'art/day_outlines.html'; break;
+    case 'SHEETS': location.href = 'art/mine_sheets.html'; break;
+    case 'NEWRUN': SW.newRun(); renderBars(); say('NEW RUN. NAME KEPT. EVERYTHING ELSE CLEARED.'); break;
+    case 'LOGOUT': location.reload(); break;
+    case 'CLS': say(''); break;
+    case 'EARL': say('BADGE #0088 STATUS: ACTIVE'); break;
+    default: say('BAD COMMAND OR FILE NAME. TYPE HELP.');
+  }
+});
+$('#bNew').onclick = () => { if(confirm('Start a new run? Your name stays; bars, evidence and flags clear.')){ SW.newRun(); renderBars(); } };
+$('#bWipe').onclick = () => { if(confirm('Wipe the whole save, name included?')) SW.reset(); };
+$('#bOut').onclick = () => location.reload();
+
+/* deep links: index.html?badge=0004 routes immediately, ?dash skips the login */
+const qs = new URLSearchParams(location.search);
+if(qs.get('badge')){ bootDone = true; $('#bootText').textContent = BOOT.join('\n'); setOperator(SAVE.name || 'OPERATOR', qs.get('badge').padStart(4, '0')); route(qs.get('badge').padStart(4, '0'), 'login').then(ok => { if(!ok) showDash(); }); }
+else if(qs.has('dash')){ bootDone = true; showDash(); }
+else boot();
+})();
+</script>
 </body>
 </html>
