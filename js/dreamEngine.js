@@ -18,6 +18,14 @@
      nightmare.html     'stay up all night', JAM music + shakes
      new                evidence -> cards (SW.find in the days),
                         intent patterns, WHISPER curses, wall pulse
+     claims             the arrangement as the rules: you don't beat it,
+                        you acknowledge it and claim the ground. A claim
+                        holds like an anchor, and whatever it holds when
+                        a Terror reaches counts as accounted for. Claims
+                        carry: every night you hold puts one more on
+                        record (save.flags.recorded, max 3); the 1962
+                        seal (JOSEPH_NO1) holds CAM B. See the Claims
+                        section of DESIGN_NIGHTSHIFT.md.
 
    Nothing about a specific card / Terror / night is hard-coded;
    it all comes from js/dreamData.js.
@@ -26,7 +34,9 @@
 const LANES = 3;
 const BAR_NAMES = { h:'HARGROVE', l:'LKCO', s:'SYSTEM', e:'EAST WALL' };
 const GLYPH = { x:'✕', doc:'≡', o:'◯', beam:'◈', arrow:'⇄', noise:'▓', badge:'◆',
-                tape:'▶', phone:'☏', ward:'▣', screen:'▭' };
+                tape:'▶', phone:'☏', ward:'▣', screen:'▭', claim:'⊕' };
+const RECORD_MAX = 3;           // claims on record carried between nights
+const depthFt = d => Math.round((d + 1) * 78 / NIGHT.map.length) + ' FT';   // 78 ft: the anomaly depth
 
 const save = SW.save;
 const nightIdx = Math.max(0, Math.min(NS_NIGHTS.length - 1,
@@ -43,7 +53,7 @@ const G = {
   draw:[], hand:[], discard:[], exhausted:[],
   turn:1, uid:1,
   feedMaxHp:1,
-  stats:{ feeds:0, turns:0, cards:0, statics:0 },
+  stats:{ feeds:0, turns:0, cards:0, statics:0, registered:0 },
   busy:false
 };
 const $ = id => document.getElementById(id);
@@ -103,7 +113,7 @@ function beginNight(){
   G.focus.max = Math.max(1, NS_CONFIG.focus + (save.flags.tired ? NS_CONFIG.tiredFocus : 0));
   G.depth = 0; G.path = [];
   G.draw = shuffle(deckList().map(inst)); G.hand = []; G.discard = []; G.exhausted = [];
-  G.stats = { feeds:0, turns:0, cards:0, statics:0 };
+  G.stats = { feeds:0, turns:0, cards:0, statics:0, registered:0 };
 }
 
 function renderBrief(){
@@ -125,12 +135,15 @@ function renderBrief(){
 
   const t = [];
   const ew = save.bars.e || 0;
-  if(ew >= 2) t.push(`East Wall ${ew}: Terrors +${Math.floor(ew / 2)} HP, your Lucidity -${Math.floor(ew / 2)}.`);
+  if(ew >= 2) t.push(`East Wall ${ew}: every feed takes +${Math.floor(ew / 2)} more to account for, your Lucidity -${Math.floor(ew / 2)}.`);
   ['h','l','s','e'].forEach(k => { const b = Math.floor((save.bars[k] || 0) / 4);
     if(b) t.push(`${BAR_NAMES[k]} ${save.bars[k]}: its Terrors hit +${b}.`); });
   if(ew >= NS_CONFIG.wallPulseAt) t.push(`The wall pulses every ${NS_CONFIG.wallPulseEvery} turns. OBSERVER LOGGED.`);
   if(save.flags.tired) t.push(`You stayed up last night. ${NS_CONFIG.tiredFocus} Focus.`);
   if(!t.length) t.push('Nothing yet. You have not dug deep enough to be noticed.');
+  const rec = Math.min(RECORD_MAX, save.flags.recorded || 0);
+  if(rec) t.push(`On record: every feed opens with a claim of ${rec} on each lane.`);
+  if(SW.has('JOSEPH_NO1')) t.push('The 1962 seal holds CAM B.');
   $('brief-threats').innerHTML = t.map(x => `<li>${esc(x)}</li>`).join('');
   setPhase('brief');
 }
@@ -153,7 +166,7 @@ function renderMap(){
   const wrap = $('map-depths'); wrap.innerHTML = '';
   NIGHT.map.forEach((nodes, d) => {
     const row = document.createElement('div');
-    row.className = 'depth'; row.dataset.depth = (d + 1) * 26 + ' FT';
+    row.className = 'depth'; row.dataset.depth = depthFt(d);
     nodes.forEach((n, i) => {
       const el = document.createElement('div');
       const state = d < G.depth ? (G.path[d] === i ? 'taken' : 'skipped') : d === G.depth ? 'avail' : 'locked';
@@ -199,6 +212,11 @@ function startFeed(node){
   G.lanes = Array.from({ length:LANES }, () => ({ enemy:null, ward:null }));
   const slots = laneSlots(node.enemies.length);
   node.enemies.forEach((id, i) => { if(NS_ENEMIES[id]) G.lanes[slots[i]].enemy = makeEnemy(id); });
+  /* claims already standing when the feed opens (larger value wins, its label with it) */
+  const rec = Math.min(RECORD_MAX, save.flags.recorded || 0);
+  if(rec) for(let i = 0; i < LANES; i++) stake(i, rec);
+  if(SW.has('JOSEPH_NO1')) stake(1, 3, 'H.C. 1962');
+  if(node.claims) node.claims.forEach((n, i) => { if(n > 0) stake(i, n, node.keeper); });
   G.feedMaxHp = G.lanes.reduce((s, l) => s + (l.enemy ? l.enemy.maxHp : 0), 0) || 1;
   G.turn = 1;
   G.discard.push(...G.hand); G.hand = [];
@@ -207,6 +225,7 @@ function startFeed(node){
   $('observer').classList.toggle('hidden', (save.bars.e || 0) < NS_CONFIG.wallPulseAt);
   $('log').innerHTML = '';
   log(`${node.type === 'elite' ? 'STRONG SIGNAL' : 'FEED'} ACQUIRED -- ${node.enemies.map(id => NS_ENEMIES[id].name).join(', ')}`, 'hot');
+  if(node.keeper) log(`A line is already held at ${camName(node.claims.findIndex(n => n > 0))}: ${node.keeper}.`);
   setPhase('battle');
   renderAll();
   JAM.action(true);
@@ -229,7 +248,7 @@ function renderHud(){
   $('deck-count').textContent = G.draw.length;
   $('discard-count').textContent = G.discard.length;
   $('turn-val').textContent = G.turn;
-  $('feed-label').textContent = `${NIGHT.title} -- ${(G.depth + 1) * 26} FT`;
+  $('feed-label').textContent = `${NIGHT.title} -- ${depthFt(G.depth)}`;
   const pips = $('depth-pips'); pips.innerHTML = '';
   NIGHT.map.forEach((_, i) => {
     const p = document.createElement('div');
@@ -242,11 +261,12 @@ function intentOf(e){
   const [kind, n = 0] = e.pattern[e.step % e.pattern.length];
   return { kind, n: kind === 'attack' ? n + e.bonus + e.barBonus : n };
 }
+const camName = i => 'CAM ' + String.fromCharCode(65 + i) + (G.depth + 1) + (NIGHT.parcels ? ' · ' + NIGHT.parcels[i] : '');
 function intentBadge(e){
   if(e.silenced) return `<div class="intent-badge silenced">— silenced —</div>`;
   const it = intentOf(e);
-  const txt = { attack:`⚔ ${it.n}`, guard:`▣ guard ${it.n}`, extend:`↑ extend +${it.n}`,
-                whisper:`≋ whisper ×${it.n}`, watch:'◌ watching' }[it.kind] || it.kind;
+  const txt = { attack:`▸ reaches ${it.n}`, guard:`≈ unsurveyed ${it.n}`, extend:`↑ nearer +${it.n}`,
+                whisper:`≋ static ×${it.n}`, watch:'◌ aware of you' }[it.kind] || it.kind;
   return `<div class="intent-badge ${it.kind}">${txt}</div>`;
 }
 
@@ -254,7 +274,7 @@ function renderLanes(){
   const er = $('lane-enemy-row'), wr = $('lane-ward-row');
   er.innerHTML = ''; wr.innerHTML = '';
   G.lanes.forEach((lane, i) => {
-    const cam = 'CAM ' + String.fromCharCode(65 + i) + (G.depth + 1);
+    const cam = camName(i);
     if(lane.enemy){
       const e = lane.enemy;
       const pod = document.createElement('div');
@@ -266,11 +286,11 @@ function renderLanes(){
           <div class="enemy-glyph">${e.glyph}</div>
           <div class="enemy-name">${esc(e.name)}</div>
           <div class="hp-bar"><div class="hp-fill" style="width:${Math.max(0, e.hp / e.maxHp) * 100}%"></div></div>
-          <div class="hp-text">${e.hp} / ${e.maxHp}</div>
+          <div class="hp-text">${e.hp} / ${e.maxHp} unaccounted</div>
           <div class="status-row">
-            ${e.shield ? `<span class="status shield">▣ ${e.shield}</span>` : ''}
+            ${e.shield ? `<span class="status shield" title="unsurveyed: absorbs your next acknowledgements">≈ ${e.shield}</span>` : ''}
             ${e.exposed ? `<span class="status exposed">◈ +${e.exposed}</span>` : ''}
-            ${e.bonus + e.barBonus ? `<span class="status atk" title="extend + threat bar">⚔ +${e.bonus + e.barBonus}</span>` : ''}
+            ${e.bonus + e.barBonus ? `<span class="status atk" title="nearer + threat bar">▸ +${e.bonus + e.barBonus}</span>` : ''}
           </div>
           <div class="enemy-flavor">${esc(e.flavor)}</div>
         </div>
@@ -283,16 +303,18 @@ function renderLanes(){
       er.appendChild(em);
     }
     const w = document.createElement('div');
-    w.className = 'ward-slot' + (lane.ward ? ' filled' : '');
+    const wd = lane.ward;
+    w.className = 'ward-slot' + (wd ? ' filled' : '') + (wd && wd.claim ? ' claim' : '');
     w.dataset.lane = i;
-    w.innerHTML = lane.ward ? `<span>▣ anchor ${lane.ward.value}</span>` : 'anchor';
+    w.innerHTML = wd ? `<span>${esc(wd.by || (wd.claim ? '⊕ claim' : '▣ anchor'))} ${wd.value}</span>` : 'unclaimed';
     wr.appendChild(w);
   });
 }
 
 /* ---------- cards ---------- */
 function statLabel(c){
-  return ({ damage:`DMG ${c.value}`, damage_all:`ALL ${c.value}`, drain:`DRAIN ${c.value}`,
+  return ({ damage:`ACCOUNT ${c.value}`, damage_all:`ACCOUNT ALL ${c.value}`, drain:`ACCOUNT ${c.value} · ½ BACK`,
+            claim: c.target === 'all' ? `CLAIM ALL ${c.value}` : `CLAIM ${c.value}`, register:'LET IT KNOW',
             heal:`+${c.value} LUCIDITY`, recall:`+${c.value} · DRAW 1`, ward:`ANCHOR ${c.value}`,
             ward_all:`ANCHOR ALL ${c.value}`, swap:'MOVE', draw:`DRAW ${c.value}`,
             energy:`+${c.value} FOCUS`, expose:`EXPOSE +${c.value}`, silence:'SILENCE',
@@ -376,7 +398,7 @@ function hurt(i, amount){
   }
   JAM.sfx('atk', .7);
   if(e.hp <= 0){
-    log(`${e.name}: SIGNAL LOST`, 'good');
+    log(`${e.name}: ACCOUNTED FOR. It withdraws.`, 'good');
     if(el) el.classList.add('dying');
     lane.enemy = null;
   }
@@ -389,9 +411,20 @@ function heal(n){
 function anchor(i, n){
   if(i === undefined || isNaN(i) || !G.lanes[i]) return false;
   const lane = G.lanes[i];
-  lane.ward = { value: Math.max(n, lane.ward ? lane.ward.value : 0) };
+  const prev = lane.ward || {};
+  const w = { ...prev, value: Math.max(n, prev.value || 0) };   // paper on a claim keeps it a claim
+  if(n > (prev.value || 0)) delete w.by;                         // the larger value wins, with its label
+  lane.ward = w;
   const s = document.querySelector(`.ward-slot[data-lane="${i}"]`);
   if(s) floatText(s, '+' + n, 'info');
+  return true;
+}
+/* a claim: an anchor that also accounts for whatever it holds */
+function stake(i, n, by){
+  if(!anchor(i, n)) return false;
+  const w = G.lanes[i].ward;
+  w.claim = true;
+  if(by && n >= w.value) w.by = by;
   return true;
 }
 const needsEnemy = i => !!(G.lanes[i] && G.lanes[i].enemy);
@@ -416,7 +449,24 @@ const EFFECTS = {
   energy(c){ G.focus.cur += c.value; return true; },
   expose(c, i){ if(!needsEnemy(i)) return false; G.lanes[i].enemy.exposed += c.value; return true; },
   silence(c, i){ if(!needsEnemy(i)) return false; G.lanes[i].enemy.silenced = true; log(`${G.lanes[i].enemy.name} goes quiet.`); return true; },
-  purge(){ G.stats.statics++; return true; }
+  purge(){ G.stats.statics++; return true; },
+  claim(c, i){
+    if(c.target === 'all'){ G.lanes.forEach((_, k) => stake(k, c.value)); return true; }
+    if(i === undefined || isNaN(i) || !G.lanes[i]) return false;
+    return stake(i, c.value);
+  },
+  register(c, i){
+    if(!needsEnemy(i)) return false;
+    const lane = G.lanes[i], e = lane.enemy;
+    if(!(lane.ward && lane.ward.claim)){
+      const el = document.querySelector(`.enemy-card[data-lane="${i}"]`);
+      if(el){ floatText(el, 'no claim on this line', 'info'); shakeEl(el); }
+      return false;
+    }
+    e.silenced = true; e.bonus = 0;
+    log(`${e.name} registers the line.`, 'good');
+    return true;
+  }
 };
 
 function playCard(uid, lane){
@@ -469,6 +519,13 @@ async function endTurn(){
   G.busy = false;
   $('end-turn-btn').disabled = false;
   if(G.lucidity.cur <= 0) return nightLost();
+  if(!G.lanes.some(l => l.enemy)){ renderAll(); return checkClear(); }   // claims accounted for the last of it
+  if(G.node && G.node.dawn && G.turn >= G.node.dawn){
+    G.lanes.forEach(l => { l.enemy = null; });
+    log('Dawn. It withdraws.', 'good');
+    renderAll();
+    return checkClear();
+  }
   G.turn++; G.stats.turns++;
   G.focus.cur = G.focus.max;
   drawCards(NS_CONFIG.handSize);
@@ -480,6 +537,7 @@ function act(e, i, it){
   if(it.kind === 'attack'){
     if(el){ el.classList.add('attacking'); setTimeout(() => el.classList.remove('attacking'), 420); }
     const lane = G.lanes[i];
+    const wasClaim = !!(lane.ward && lane.ward.claim), by = lane.ward && lane.ward.by;
     let dmg = it.n, absorbed = 0;
     if(lane.ward){
       absorbed = Math.min(lane.ward.value, dmg);
@@ -493,17 +551,28 @@ function act(e, i, it){
       floatText($('lucidity-plaque'), '-' + dmg, 'dmg');
       JAM.hit(); shakeBody();
     }
-    log(`${e.name} -- ${it.n}${absorbed ? ` (${absorbed} held)` : ''}`, dmg ? 'hot' : '');
+    if(wasClaim && absorbed > 0){
+      G.stats.registered += absorbed;
+      log(`${e.name} meets the line. ${absorbed} accounted for.${dmg ? ` ${dmg} reaches you.` : ''}`, dmg ? 'hot' : 'good');
+      hurt(i, absorbed);
+    }else{
+      log(`${e.name} reaches ${it.n}.${absorbed ? ` ${absorbed} held.` : ''}`, dmg ? 'hot' : '');
+    }
+    if(by && !lane.ward) log(`The line ${by} was holding is yours now.`, 'hot');
   }else if(it.kind === 'guard'){
-    e.shield = it.n;
-    log(`${e.name} braces. ▣ ${it.n}`);
+    if(G.lanes[i].ward && G.lanes[i].ward.claim){
+      log(`${e.name}: the readings settle on your claim.`);
+    }else{
+      e.shield = it.n;
+      log(`${e.name}: the instruments won't settle. ≈ ${it.n}`);
+    }
   }else if(it.kind === 'extend'){
     e.bonus += it.n;
-    log(`${e.name} extends. Attacks +${it.n}.`, 'hot');
+    log(`${e.name} comes nearer. +${it.n}.`, 'hot');
   }else if(it.kind === 'whisper'){
     for(let k = 0; k < it.n; k++) G.discard.push(inst('static'));
     if(el) floatText(el, '+' + it.n + ' STATIC', 'info');
-    log(`${e.name} whispers. ${it.n} STATIC in your discard.`, 'hot');
+    log(`${e.name}: three slow beats. ${it.n} STATIC in your discard.`, 'hot');
   }else{
     log(`${e.name} is aware of you.`);
   }
@@ -625,6 +694,7 @@ function nightWon(){
   SW.setBars(save.bars);
   SW.flag(NIGHT.id, 'held');
   SW.flag('tired', false);
+  SW.flag('recorded', Math.min(RECORD_MAX, (save.flags.recorded || 0) + 1));   // one more line on record
   JAM.stop(); JAM.sfx('won', .8);
   playInterlude(NIGHT.video, () => showEnd('win'));
 }
@@ -642,18 +712,18 @@ function showEnd(result){
     $('end-summary').textContent = NIGHT.win;
     $('end-retry').classList.add('hidden');
     $('end-wake').textContent = 'Get up  →';
-    $('end-hint').textContent = 'East Wall eased by ' + (-NS_CONFIG.winEastWall) + '.';
+    $('end-hint').textContent = 'East Wall eased by ' + (-NS_CONFIG.winEastWall) + '. On record: ' + Math.min(RECORD_MAX, save.flags.recorded || 0) + '.';
   }else{
     $('end-eyebrow').textContent = 'lucidity 0';
     $('end-title').textContent = 'PERCEIVED';
     $('end-summary').textContent = NIGHT.lose;
     $('end-retry').classList.remove('hidden');
     $('end-wake').textContent = 'Wake up  (stay up all night)';
-    $('end-hint').textContent = `Waking now: East Wall +${NS_CONFIG.loseEastWall}, and you start the next night tired.`;
+    $('end-hint').textContent = `Waking now: East Wall +${NS_CONFIG.loseEastWall}, you start the next night tired, and nothing stays on record.`;
   }
   $('end-stats').innerHTML = `
-    <div class="stat-block"><div class="num">${G.stats.feeds}</div><div class="lbl">Feeds Cut</div></div>
-    <div class="stat-block"><div class="num">${G.stats.turns}</div><div class="lbl">Turns</div></div>
+    <div class="stat-block"><div class="num">${G.stats.feeds}</div><div class="lbl">Accounted For</div></div>
+    <div class="stat-block"><div class="num">${G.stats.registered}</div><div class="lbl">Held At The Line</div></div>
     <div class="stat-block"><div class="num">${G.stats.cards}</div><div class="lbl">Cards Taken</div></div>
     <div class="stat-block"><div class="num">${save.clarity || 0}</div><div class="lbl">Clarity</div></div>`;
   setPhase('end');
@@ -666,6 +736,7 @@ function wake(){
     SW.setBars(save.bars);
     SW.flag(NIGHT.id, 'taken');
     SW.flag('tired', true);
+    SW.flag('recorded', 0);                       // the arrangement lapsed: nothing on record
   }
   SW.commit();
   location.href = NIGHT.next;

@@ -84,11 +84,13 @@
         {"say":"The dust on the east rib won't lay even. It settles in lines."}
       ] },
     {"id":"paint","when":{"on":"enter","x0":28,"y0":3,"x1":29,"y1":21}, "do": [
-        {"say":"Orange paint across the face up ahead. H.C. Harold Combs' line."}
+        {"say":"Orange paint across the face up ahead. H.C. Harold Combs' line."},
+        {"save":{"evidence":"HC_LINE"}}
       ] },
     {"id":"compass","when":{"on":"enter","x0":29,"y0":3,"x1":29,"y1":21}, "do": [
         {"wait":2},
-        {"say":"You check your compass against the survey spad. The needle won't settle."}
+        {"say":"You check your compass against the survey spad. The needle won't settle."},
+        {"save":{"evidence":"SURVEY_SPAD"}}
       ] },
     {"id":"quota","when":{"on":"counter","name":"tons","gte":63}, "do": [
         {"obj":"WALK OUT  /  [E] AT THE DRIFT MOUTH"},

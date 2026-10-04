@@ -110,9 +110,73 @@ const adv = async p => { for(let i = 0; i < 2; i++){ await p.keyboard.press('Spa
     for(const n of [1, 2, 3]){
       await p.goto(BASE + '/dream.html?night=' + n); await p.waitForTimeout(1200);
     }
-    ok(await p.evaluate(() => NS_CARDS.deny.name === 'ACKNOWLEDGE' && NS_ENEMIES.earl.name === 'THE EAST WALL'), 'card text: ACKNOWLEDGE, THE EAST WALL');
+    ok(await p.evaluate(() => NS_CARDS.deny.name === 'ACKNOWLEDGE' && NS_ENEMIES.eastwall.name === 'THE EAST WALL'), 'card text: ACKNOWLEDGE, THE EAST WALL');
     ok(await p.evaluate(() => { SW.find('JOSEPH_NO1'); SW.flag('sealed_1962', true); SW.newRun(); return SW.has('JOSEPH_NO1') && SW.save.flags.sealed_1962 === true; }), 'new run keeps the 1962 mine records');
     await p.screenshot({ path: path.join(OUT, 'night3.png') });
+    ok(!errs.length, 'no errors ' + errs.join(' | '));
+  }
+
+  console.log('NIGHT SHIFT: claims');
+  { const errs = []; const { p } = await page(b, errs);
+    await p.goto(BASE + '/dream.html?night=1'); await p.waitForTimeout(800);
+    ok(await p.evaluate(() => {
+      const ids = [...NS_STARTER, ...NS_REWARDS, ...Object.values(NS_EVIDENCE)];
+      const enemies = NS_NIGHTS.flatMap(n => n.map.flat().flatMap(nd => nd.enemies || []));
+      return ids.every(id => NS_CARDS[id]) && enemies.every(id => NS_ENEMIES[id]) && Object.values(NS_CARDS).every(c => EFFECTS[c.effect]);
+    }), 'every card, Terror and effect reference resolves');
+    /* the 1962 seal stands in CAM B */
+    await p.evaluate(() => { SW.find('JOSEPH_NO1'); SW.flag('recorded', 0); SW.newRun(); });
+    await p.goto(BASE + '/dream.html?night=1'); await p.waitForTimeout(800);
+    await p.click('#brief-go'); await p.waitForTimeout(300);
+    await p.click('.node.avail >> nth=0'); await p.waitForTimeout(500);
+    ok(await p.evaluate(() => { const w = G.lanes[1].ward; return !!w && w.claim && w.value >= 3 && w.by === 'H.C. 1962'; }), 'the 1962 seal holds CAM B');
+    /* a claim accounts for what it holds */
+    const reg = await p.evaluate(async () => {
+      const i = G.lanes.findIndex(l => l.enemy && intentOf(l.enemy).kind === 'attack');
+      if(i < 0) return 'no attacker';
+      const e = G.lanes[i].enemy, n = intentOf(e).n, hp = e.hp;
+      G.lanes[i].ward = { value:6, claim:true };
+      G.lanes.forEach((l, k) => { if(k !== i) l.enemy = null; });
+      await endTurn();
+      const now = G.lanes[i].enemy ? G.lanes[i].enemy.hp : 0;
+      return hp - now === Math.min(6, n, hp) && G.stats.registered > 0 ? 'ok' : 'hp ' + hp + '->' + now + ' n ' + n;
+    });
+    ok(reg === 'ok', 'a claim accounts for what it holds (' + reg + ')');
+    /* a claim cancels 'unsurveyed' */
+    const guard = await p.evaluate(async () => {
+      G.lanes = [0, 1, 2].map(() => ({ enemy:null, ward:null }));
+      const e = makeEnemy('threshold'); e.step = 0;
+      G.lanes[0].enemy = e; G.lanes[0].ward = { value:4, claim:true };
+      G.busy = false; G.phase = 'battle';
+      await endTurn();
+      return e.shield;
+    });
+    ok(guard === 0, 'a claim cancels unsurveyed (shield ' + guard + ')');
+    /* Earl's line and dawn */
+    await p.goto(BASE + '/dream.html?night=3'); await p.waitForTimeout(800);
+    const earl = await p.evaluate(async () => {
+      SW.setBars({ e:0 }); SW.flag('recorded', 0);
+      const nd = NIGHT.map[NIGHT.map.length - 1][0];
+      G.depth = NIGHT.map.length - 1; G.node = nd; startFeed(nd);
+      const w = G.lanes[1].ward, first = w && w.by === '#0088' && w.value === 10;
+      for(let t = 0; t < 12 && G.lanes[1].ward && G.phase === 'battle'; t++){ G.lucidity.cur = 99; await endTurn(); }
+      const passed = [...document.querySelectorAll('#log div')].some(d => /yours now/.test(d.textContent)) || /yours now/.test(window.__log || '');
+      return { first, passed };
+    });
+    ok(earl.first, "Night 3 opens with Earl's line (#0088, 10) in CAM B");
+    ok(earl.passed, "Earl's line passes to you");
+    const dawn = await p.evaluate(async () => {
+      if(!G.lanes.some(l => l.enemy)) return 'already clear';
+      G.turn = G.node.dawn; G.lucidity.cur = 99; G.busy = false;
+      await endTurn();
+      return G.lanes.some(l => l.enemy) ? 'still there' : 'clear';
+    });
+    ok(dawn === 'clear' || dawn === 'already clear', 'dawn: it withdraws (' + dawn + ')');
+    await p.waitForTimeout(900);
+    ok(await p.evaluate(() => (SW.save.flags.recorded || 0) >= 1), 'holding the night puts a line on record');
+    await p.evaluate(() => { const v = document.getElementById('view-end'); v.classList.remove('win'); v.classList.add('loss'); NIGHT.next = '#'; wake(); });
+    await p.waitForTimeout(300);
+    ok(await p.evaluate(() => SW.save.flags.recorded === 0), 'losing a night clears the record');
     ok(!errs.length, 'no errors ' + errs.join(' | '));
   }
 

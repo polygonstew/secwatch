@@ -89,7 +89,8 @@ fixes, in case you want to pull more from them.
 Everything is in `js/dreamData.js`:
 
 - **A card**: add to `NS_CARDS` with an existing `effect`:
-  `damage damage_all drain heal recall ward ward_all swap draw energy expose silence purge`
+  `damage damage_all drain heal recall ward ward_all swap draw energy expose silence purge claim register`
+  (`claim`: stake a lane, or every lane with target `'all'`; `register`: LET IT KNOW, claimed lanes only)
 - **A reward**: add its id to `NS_REWARDS`.
 - **An evidence card**: add the card, then map the day's filename to it in
   `NS_EVIDENCE` (`'FOO.TXT':'foo'`). The day just needs to call
@@ -130,7 +131,7 @@ wall remembers your name.
 
 ## Claims: the Night Shift as the arrangement
 
-*Proposal, 2026-10. Not built yet.*
+*Built 2026-10. Tests: the "NIGHT SHIFT: claims" block in tools/smoke_test.js.*
 
 ### The idea
 The arrangement is two things: acknowledge that it exists, and let it know who holds the land so it understands where the human line is. So at night you don't beat it. You **acknowledge** it and **claim** the ground. When it reaches into a parcel you have claimed, the claim holds it, and whatever the claim holds counts as accounted for.

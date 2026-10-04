@@ -280,6 +280,7 @@ body{
   display:flex; align-items:center; justify-content:center; gap:.5rem;
   font-family: var(--f-label); font-size:.72rem; color: rgba(227,162,74,.5); letter-spacing:.08em;
 }
+.ward-slot.claim, .ward-slot.claim.filled{ border-color:#b8642a; color:#e09a5a; background:rgba(184,100,42,.08); }   /* Harold's orange: a claim */
 .ward-slot.drop-hover{ border-color: var(--witchfire); color: var(--witchfire); background: rgba(168,255,206,.05); }
 .ward-slot.filled{
   border-style: solid; border-color: var(--candle);
