@@ -83,7 +83,7 @@ const MineLevel = (function(){
 
   /* actions: one verb key per step. Example values for the editor. */
   const DO = {
-    say:      { example:{ say:'Text on screen.', who:'LUTHER' },          help:'Message line. who: LUTHER, EBWARD, HAROLD, a name, or blank for narration.' },
+    say:      { example:{ say:'Text on screen.', who:'LUTHER' },          help:'Message line. who: LUTHER, EB, HAROLD, a name, or blank for narration.' },
     card:     { example:{ card:['Full screen text.', '', 'Click to go on.'] }, help:'Full-screen typed card. Game pauses until closed.' },
     obj:      { example:{ obj:'FIND THE FOUR' },                          help:'Objective line, top right.' },
     set:      { example:{ set:'flagname', to:true },                      help:'Set a flag.' },

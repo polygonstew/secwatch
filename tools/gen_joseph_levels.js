@@ -7,7 +7,12 @@
    to tools/out/ and leaves levels/ alone.
 
      node tools/gen_joseph_levels.js            -> tools/out/e1m1.json, e1m2.json
-     node tools/gen_joseph_levels.js --write    -> OVERWRITES levels/e1m1.json, e1m2.json
+     node tools/gen_joseph_levels.js --write --force
+                                                -> OVERWRITES levels/e1m1.json, e1m2.json
+
+   WARNING: the text in here is the FIRST DRAFT. The levels have since had a
+   line-by-line pass (no stage dialect, Eb's eye, Uncle Joe's stories). Writing
+   over levels/ throws all of that away. Use it for the maze code, not the text.
 
    Useful as a pattern for generating new levels or a new root maze
    (change the seed in rng(1962)).
@@ -280,6 +285,7 @@ function e1m2(){
     next:null
   };
 }
+if(process.argv.includes('--write') && !process.argv.includes('--force')){ console.error('Refusing to overwrite levels/ (this file has first-draft text). Add --force if you really mean it.'); process.exit(1); }
 const OUTDIR = process.argv.includes('--write') ? path.join(__dirname, '..', 'levels') : path.join(__dirname, 'out');
 fs.mkdirSync(OUTDIR, { recursive:true });
 for(const [n, lv] of [['e1m1', e1m1()], ['e1m2', e1m2()]]){

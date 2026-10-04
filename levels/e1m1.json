@@ -35,8 +35,8 @@
   "things": [
     {"id":"charger","type":"charger","x":1.5,"y":10.5},
     {"id":"supply","type":"supply","x":1.5,"y":14.5},
-    {"id":"luther","type":"luther","x":4.5,"y":11.5,"talk":[["LUTHER","Run me three places. Sixty-three ton."],["LUTHER","Undercut it first. Nobody shoots off the solid in my mine."],["LUTHER","Harold's paint is up at thirty. Not one cut past it."],["LUTHER","Belt tail moves up when you hit it with E and there's open entry ahead of it."]]},
-    {"id":"ebward","type":"ebward","x":8.5,"y":13.5,"talk":[["EBWARD","Check your gas before every shot. Lamp's on 1."],["EBWARD","If the flame grows a blue cap, hang a curtain on the face and give it time."],["EBWARD","Dust as you go. Dust don't burn if it's white."],["EBWARD","Powder and dust bags are at the portal. Lamp rack too."]]},
+    {"id":"luther","type":"luther","x":4.5,"y":11.5,"talk":[["LUTHER","Run me three places. Sixty-three ton."],["LUTHER","Undercut it first. Nobody shoots off the solid in my mine."],["LUTHER","Harold's paint is up at thirty. Not one cut past it."],["LUTHER","Belt tail moves up when you hit it with E and there's open entry ahead of it."],["LUTHER","Uncle Joe put Daddy's cow in the barn loft one time. Daddy went out to milk and she was up there in the hay."],["LUTHER","There's no way into that loft but a ladder. We took boards off the end of the barn and built a ramp to get her down. Uncle Joe helped."]]},
+    {"id":"ebward","type":"ebward","x":8.5,"y":13.5,"talk":[["EB","Check your gas before every shot. Lamp's on 1."],["EB","If the flame grows a blue cap, hang a curtain on the face and give it time."],["EB","Dust roof, ribs and floor till no black shows."],["EB","Come up on my right side. I can't see you coming on the left."],["EB","Uncle Joe could show you things. Mommy wouldn't let him do it in the house."],["EB","Luther tells that cow story like he went up the ladder. I went up the ladder. She didn't have a mark on her."]]},
     {"id":"tail","type":"tail","x":13.5,"y":12.5}
   ],
   "triggers": [
@@ -44,13 +44,16 @@
         {"obj":"RUN 3 PLACES  /  63 TONS"},
         {"say":"Morning. Faces are at the end of all three entries. Belt tail's at thirteen.","who":"LUTHER"},
         {"wait":2.5},
-        {"say":"Powder and dust bags are by the portal. Lamp rack too.","who":"EBWARD"}
+        {"say":"Powder and dust bags are by the portal. Lamp rack too.","who":"EB"}
+      ] },
+    {"id":"eb_eye","when":{"on":"near","thing":"ebward","r":2}, "do": [
+        {"say":"Eb turns his whole head to look at you. He lost an eye in a lumber accident when he was twelve."}
       ] },
     {"id":"first_cut","when":{"on":"mine","step":"cut"}, "do": [
-        {"say":"Now drill it. Holes above the kerf. That's 3.","who":"EBWARD"}
+        {"say":"Now drill it. Holes above the kerf. That's 3.","who":"EB"}
       ] },
     {"id":"first_drill","when":{"on":"mine","step":"drill"}, "do": [
-        {"say":"Hold your lamp up to it before you load powder. 1, then SPACE.","who":"EBWARD"}
+        {"say":"Hold your lamp up to it before you load powder. 1, then SPACE.","who":"EB"}
       ] },
     {"id":"first_shot","when":{"on":"mine","step":"shot"}, "do": [
         {"say":"Load it out. Shovel's on 5. Three scoops to a place.","who":"LUTHER"}
@@ -61,17 +64,17 @@
     {"id":"one_place","when":{"on":"counter","name":"tons","gte":21}, "do": [
         {"say":"That's one place. Move the tail up when there's open entry ahead of it.","who":"LUTHER"},
         {"wait":3},
-        {"say":"And dust it. Watch that dust meter.","who":"EBWARD"}
+        {"say":"And dust it. Watch your float dust.","who":"EB"}
       ] },
     {"id":"warmer","when":{"on":"enter","x0":22,"y0":3,"x1":39,"y1":21}, "do": [
-        {"say":"The air's warmer up here. It ought to be colder this far under."}
+        {"say":"It's warm up here. The rest of the mine, you keep a jacket on."}
       ] },
     {"id":"east_lamp","when":{"on":"lamp","x0":27,"y0":3,"x1":39,"y1":21}, "do": [
         {"wait":1.5},
         {"say":"You hold the lamp closer. The flame leans toward the east rib."}
       ] },
     {"id":"east_cut","when":{"on":"mine","step":"cut","x0":27,"y0":3,"x1":39,"y1":21}, "do": [
-        {"say":"The cutter bar comes out of the kerf warm. Not hot from the work. Warm like a stone that's been in somebody's pocket."}
+        {"say":"You lay a bare hand on the coal over the kerf. It's warm, like a stone that's been in somebody's pocket."}
       ] },
     {"id":"east_load","when":{"on":"mine","step":"load","x0":27,"y0":3,"x1":39,"y1":21}, "do": [
         {"say":"A piece of the parting rolls off the shovel. It's warm. You set it on the rib instead of the belt."}
@@ -92,9 +95,9 @@
         {"say":"That's the shift. Bring it on out.","who":"LUTHER"}
       ] },
     {"id":"portal","when":{"on":"usetile","tile":"P"},"if":{"counter":"tons","gte":63}, "do": [
-        {"end":{"next":"levels/e1m2.json","card":["SATURDAY, APRIL 7, 1962","","Cleanup shift. Cecil Ison, Doyle Fields, Bobby Mullins and Junior Holbrook","go in at seven to pull the last pillar short of Harold's line.","","You're on the picking table at the tipple. The belt runs all morning.","Coal. Slate. Flint clay.","","Some of the flint clay is warm. The picking boys set those pieces","to one side without being told.","","2:17 P.M.","2:18 P.M.","2:19 P.M.","","The belt stops."]}}
+        {"end":{"next":"levels/e1m2.json","card":["SATURDAY, APRIL 7, 1962","","Cecil Ison, Doyle Fields, Bobby Mullins and Junior Holbrook","go in at seven to pull the last pillar short of Harold's line.","","You're on the picking table at the tipple. The belt runs all morning.","Coal. Slate. Flint clay.","","Some of the flint clay is warm. The picking boys set those pieces","to one side without being told.","","2:17 P.M.","2:18 P.M.","2:19 P.M.","","The belt stops."]}}
       ], "else": [
-        {"say":"Day ain't over. Run me sixty-three ton.","who":"LUTHER"}
+        {"say":"You're short. Run me sixty-three ton.","who":"LUTHER"}
       ] }
   ],
   "tiles": [

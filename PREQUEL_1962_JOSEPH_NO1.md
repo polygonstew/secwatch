@@ -93,9 +93,11 @@ Then **clean up, rock dust, and move to the next place.**
 ## SECWATCH: JOSEPH No. 1
 ### Letcher County, Kentucky. Spring 1962.
 
-**The setup.** Luther and Ebward Joseph have taken a mineral lease from Hargrove Properties on a parcel the county books call **LKCO-04**. They drive a drift into the **Fire Clay seam** on the north face of the ridge. It's a small outfit: eleven men including the brothers, one cutting machine, one Joy loader, one shuttle car, and a belt line they bought used from a mine that closed in Jenkins.
+**The setup.** Luther and Ebward ("Eb") Joseph have taken a mineral lease from Hargrove Properties on a parcel the county books call **LKCO-04**. They drive a drift into the **Fire Clay seam** on the north face of the ridge. It's a small outfit: eleven men including the brothers, one cutting machine, one Joy loader, one shuttle car, and a belt line they bought used from a mine that closed in Jenkins.
 
-The lease has one odd clause, which Luther reads twice: *Lessee shall not advance any heading east of the line marked by H. Combs.* A quiet man named **Harold Combs** comes by once a month, walks the outside of the property, and leaves.
+The lease has one odd clause, which Luther reads twice: *Lessee shall not advance any heading east of the line marked by H. Combs.* **Harold Combs**, who looks after the parcel for the Hargroves, comes by once a month, walks the property line, and leaves.
+
+Eb lost an eye in a lumber accident when he was twelve. On the section it shows the way it would on any man: he turns his whole head to look at you, and the crew knows to come up on his right side. That is all it does in the story.
 
 **You play the section foreman,** one of the brothers' crew, running the face.
 
@@ -107,57 +109,57 @@ Each shift is a puzzle: cut, drill, shoot, load, bolt, dust, in order, across se
 - **Drill and shoot.** Lay out the shot holes, measure the powder, tamp with dummies. **Check for gas first** with the flame safety lamp. Overshoot and you knock down roof, make slack and throw dust. Undershoot and you leave a "tight" face for the loader to fight.
 - **Load.** Drive the Joy loader into the pile. Fill the shuttle car. Run it to the belt tailpiece. Trailing cables tangle, and you can run over your own power.
 - **Timber and bolt.** Nobody walks under new top. Read the roof: tap it with a bar, listen for "drummy" spots, and watch for kettlebottoms.
-- **Rock dust.** Keep the entry white. A **dust meter** on the HUD drops as you work and recovers when you dust. This is the explosion-risk bar, and it matters more and more as the game goes on.
-- **The tipple.** Between shifts, run the picking table and screens. You're paid by the clean ton, and **slack** and refuse cost you. In the Fire Clay the picking table fills with flint clay.
+- **Rock dust.** Keep the entry white. A **FLOAT DUST** meter on the HUD climbs as you work and falls when you rock dust. This is the explosion-risk bar, and it matters more and more as the game goes on.
+- **The tipple.** Between shifts, run the picking table and screens. The outfit is paid by the clean ton, and **slack** and refuse cost you. In the Fire Clay the picking table fills with flint clay.
 
-The money is tight, the Roving Pickets are on the radio, and the brothers are good men trying to keep eleven families fed. Play this straight. Let the player love the work before anything is wrong.
+The money is tight, men laid off from the big mines come to the portal asking for work, and the brothers are good men trying to keep eleven families fed. Play this straight. Let the player love the work first.
 
 ### Act Two — The East Heading
 
-The seam is better to the east. Everybody can see it. The coal gets thicker and cleaner. Luther won't touch it: the paint is the paint.
+The seam is better to the east. Everybody can see it. The coal gets thicker and cleaner. Luther won't touch it. He signed the lease.
 
-Strange things start small. Every one of them comes out of the real work:
+The odd things are small, and each one turns up in the ordinary work:
 
-- **The parting changes.** In the eastern rooms the flint clay comes out **warm**. Not hot, just warm, like a stone that's been in somebody's pocket. The picking-table boys start setting those pieces aside without being told to.
-- **The lamp.** The flame safety lamp burns *taller* near the east rib. That isn't gas. Gas makes a blue cap. This is a clean, tall, steady yellow flame, as if the air were richer than air should be.
-- **The compass.** The mine surveyor's needle won't settle past the 33-foot mark, the same thing the 1887 surveyor wrote down ("instruments gave inconsistent readings").
-- **The rock dust.** Fresh dust on the east ribs settles in **lines** instead of an even coat. The next morning the lines have moved. A man named Arvel copies them into his tally book. *(This is the first appearance of the glyph the Threshold Society later draws, the coordinates. Players of the main game will recognize it.)*
-- **The belt.** It runs fine. But the belt man swears that on the night shift, with the power off at the portal, he heard it **turning slowly** in the dark. There's no damage and no coal on it. The tail roller is warm.
-- **Harold Combs** stops by more often. He never comes underground. He asks Ebward, carefully, how far east the face is. He asks the second time like he already knows.
+- **The parting changes.** In the eastern rooms the flint clay comes out **warm**, like a stone that's been in somebody's pocket. The picking-table boys start setting those pieces aside without being told to.
+- **The lamp.** The flame safety lamp burns *taller* near the east rib. That isn't gas. Gas makes a blue cap. This is a clean, tall, steady yellow flame, the way a lamp burns in extra oxygen, and no mine has extra oxygen.
+- **The compass.** The mine surveyor's needle won't settle at Harold's line, 33 feet inside the property boundary, the same thing the 1887 surveyor wrote down ("instruments gave inconsistent readings").
+- **The rock dust.** Fresh dust on the east ribs settles in **lines** instead of an even coat. The next morning the lines have moved. Arvel, who throws the rock dust, copies them into his tally book. *(This is the first appearance of the glyph the Threshold Society later draws, the coordinates. Players of the main game will recognize it.)*
+- **The belt.** It runs fine. But the belt man swears that one night, greasing idlers with the power pulled at the portal, he heard it **turning slowly**. There's no damage and no coal on it. The tail roller is warm.
+- **Harold Combs** stops by more often. He never comes into the drift. He asks Eb, carefully, how far east the face is. He asks the second time like he already knows.
 
 Nobody drives past the line. **[game]** On Saturday, the east heading has crossed it anyway, two crosscuts past Harold's paint, rock dusted fresh, and nobody on the section drove it. *"I been in this mine every day for two year. I never drove that heading."* (Luther)
 
 ### Act Three — Four Men
 
-A crew of four goes in on a Saturday cleanup shift to pull the last pillar short of Harold's line: Cecil Ison, Doyle Fields, Bobby Mullins (nineteen) and Junior Holbrook. The player is on the picking table at the tipple.
+A crew of four goes in on a Saturday shift to pull the last pillar short of Harold's line: Cecil Ison, Doyle Fields, Bobby Mullins (nineteen) and Junior Holbrook. The player is on the picking table at the tipple.
 
 The **belt stops** at 2:19 p.m. *(02:19 is the time Floor 3's camera died in 1994. Don't explain it.)*
 
-The rest of the game is the search. Luther and Ebward hold the fan at the portal ("somebody's got to stay on the fan"), and the player goes in with a lamp and a rock duster, nothing else.
+The rest of the game is the search. Luther and Ebward stay on the fan to keep air on the four men, and the player, who runs that section, goes in with a lamp and a rock duster.
 
-What they find is wrong only in quiet ways:
+What the player finds:
 
-- The section is **neat**. The shuttle car is parked. The cutter bar is cleaned. Lunch buckets are closed. The rock dust has been laid down fresh and even, better than anyone on this crew has ever done it.
+- The section is **neat**. The shuttle car is parked. The cutter bar is cleaned. Lunch buckets are closed. The rock dust has been laid down fresh, top to bottom, with no tracks in it.
 - The east face is **warm**. The parting band is gone in a clean line, as if it was never laid down.
 - There's a crack at the bottom of the face, six inches wide, and it's breathing warm, steady air *into* the mine. Against the fan.
 - **[game]** The player fits through the crack. Behind it are **the roots**: Stigmaria, the root systems of trees that died three hundred million years ago, which every miner has seen turned to stone in the fire clay. These aren't stone. They're a warm maze that lights itself, and it breathes.
-- The four men are in there, each standing facing the rock with the roots up over their boots, cap lamps off, warm. Doyle says *"Tell Luther it ain't his fault."* Junior, closest to the light, says *"I understand now."* You can't carry a man who's holding on.
+- The four men are in there, each standing facing the rock with the roots up over their boots, cap lamps off, warm. Doyle says *"Tell Luther we pulled that pillar right."* Junior, closest to the light, says *"I understand now."* You can't carry a man who's holding on.
 - There's a light at the far end. Touch it and the game says *Not yet.* and puts you back.
 - When you come back out, the crack closes behind you, *slow, like a hand*. On paper, the four men are never found: the county report says **MEN RECOVERED: none**.
 
-The final choice belongs to the brothers, not the player. Harold Combs comes to the portal. He tells them, in as few words as a man can use, that the four men aren't dead the way they mean dead, and that nobody else should go east. Then he tells them what has to be done.
+The brothers make the last call, not the player. Harold Combs comes to the portal. He tells them the four men aren't dead the way they mean dead, that nobody else goes east, and that it gets walled up with block, not powder. Ebward is already loading block.
 
-**The ending.** The player builds the **seal**: block stoppings across every east entry, mortared and plastered, with a date and initials scratched in the wet face. That's how real mines sealed off an area. You don't blow it shut. You wall it up and walk away. The county inspector signs off on a sealing order written by "an unnamed expert" (Harold). The incident report gets filed. The expert's name gets redacted. *(This is the 1962 incident report the player reads in Day 7.)*
+**The ending.** The player builds the **seal**: block stoppings across every east entry, mortared and plastered, with a date and initials scratched in the wet face. That's how real mines sealed off an area. The county inspector signs off on a sealing order written by "an unnamed expert" (Harold). The incident report gets filed. The expert's name gets redacted. *(This is the 1962 incident report the player reads in Day 7.)*
 
-The Joseph brothers move their operation to the next ridge and run coal for years after. They don't talk about No. 1. That's the legend: **they got their men out of the work, they shut it right, and they never went back east.**
+The Joseph brothers move their operation to the next ridge and run coal for years after. They don't talk about No. 1. That's the legend: **they sent nobody else in, they shut it right, and they never went back east.**
 
 ### Epilogue — Why There Is a SECWATCH
 
 The last scene skips forward through the paper trail:
 
-- **1962:** Hargrove Properties orders a camera and phone line at the sealed portal. It's the first "security watch" on LKCO-04: a guard shack and a logbook.
+- **1962:** Hargrove Properties puts a watchman and a phone line at the sealed portal. It's the first "security watch" on LKCO-04: a guard shack and a logbook.
 - **1971:** Harold Combs dies in his sleep. Earl takes the logbook.
-- **1982:** Earl's strip job cuts the hillside back and opens an **80-foot bench**. The **east wall** of that bench is the same rock the Joseph brothers sealed twenty years earlier, cut down from above. The anomaly sits **78 feet** into it. Earl wires the site into a terminal and calls the system **SECWATCH**.
+- **1982–83:** Earl's strip job cuts the hillside back and opens an **80-foot bench**. The **east wall** of that bench is cut into the same ground the Joseph brothers sealed twenty years earlier. The anomaly sits **78 feet** into it. Earl wires the site into a terminal and calls the system **SECWATCH**.
 - **1994:** You're the fill-in guard at the Hargrove Business Center, and Day 1 begins.
 
 The closing title card:
@@ -184,17 +186,26 @@ STATUS: ACTIVE
 | The entity is not evil, doesn't hunt, just perceives | No monsters and no stalking. The four men "understand now." The mine is *kept*, like Ricky's house. |
 | Floor 3 camera died at 02:19 | The belt stops at 2:19 p.m. |
 
-### Continuity bug to fix
+### Continuity bug (fixed)
 
-Day 7 says the 1962 sealing expert "is **Earl's grandfather**." But the lineage appendix says Earl's grandfather, **James Combs**, died in **1948**, and Earl's father **Harold** (1908–1971) "maintained the LKCO parcel." In 1962 the expert has to be **Harold, Earl's father**. Suggested fix in Day 7: change "Earl's grandfather" to "Earl's father." The line "the Combs family has been writing these reports … since 1923" still works.
+Day 7 said the 1962 sealing expert "is **Earl's grandfather**." But the lineage appendix says Earl's grandfather, **James Combs**, died in **1948**, and Earl's father **Harold** (1908–1971) "maintained the LKCO parcel." In 1962 the expert has to be **Harold, Earl's father**. Fixed: Day 7 now reads "This is Earl's father, Harold." The line "the Combs family has been writing these reports … since 1923" still works.
+
+### The Joseph family
+
+From the family, not from records. Keep it this size.
+
+- **Eb.** Ebward went by Eb. In the game his speaker tag is **EB** and the narration calls him Eb. The full name stays on the title card, the E1M1 intro, the ending card and his facing label.
+- **The eye.** Eb lost an eye in a lumber accident when he was twelve. Which eye is not known; the game makes it the *left*. To change it, edit Eb's "right side" talk line in `levels/e1m1.json`, the setup paragraph above, the Joseph entry in the story bible, `oneEye` in `js/mineArt.js` (it draws on the viewer's right) and the `ebward` brief in `js/mineSheets.js`.
+- **Uncle Joe.** The family has what it calls a witchcraft heritage. A great-great-uncle of the writer, maybe named Joe, "could show you" things, and once put a cow on the second floor of a barn. In the game he is **Uncle Joe**, the brothers' uncle. He is only talked about: two of Luther's and two of Eb's talk lines in E1M1 (keep pressing E after the work instructions). If the name turns out different, search `Uncle Joe` in `levels/`, this doc, the story bible and `docs/HANDOFF.md`.
+- **Rules.** No "witch" in game text. No spells, charms, herbs, signs or second sight. Eb's eye is an injury, never a gift. Nobody explains the cow, and nobody ties Joe to the wall, to Harold or to the arrangement.
 
 ### Night Shift card ideas (`js/dreamData.js`)
 
 If the prequel feeds the card game, a few candidates:
 
 - **Flint Clay Parting.** Defense card. Blocks a lane, but it's warm, so it raises the East Wall bar by 1.
-- **Permissible Shot.** Clears a lane. Fizzles if the dust meter is low.
-- **Rock Duster.** Resets the dust meter and reveals hidden Terrors in one lane (the dust shows the lines).
+- **Permissible Shot.** Clears a lane. Backfires if FLOAT DUST is high.
+- **Rock Duster.** Clears FLOAT DUST and reveals hidden Terrors in one lane (the dust shows the lines).
 - **Brass Check #4.** One of the four missing men's tags. Does nothing. Can't be discarded.
 - **The Seal (1962).** Ends the night early. Can only be played once per run.
 

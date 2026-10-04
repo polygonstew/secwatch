@@ -24,5 +24,6 @@ NODE_PATH=$(npm root -g) node tools/smoke_test.js   # expect ALL OK
 - Levels are written with `MineLevel.stringify` (one row, thing or action per line). Validate with `MineLevel.validate`.
 - Mine rules live in code (`js/mineEngine.js`); story and maps live in `levels/*.json`. Prefer adding a trigger verb or zone field over hard-coding a story beat.
 - Lore: the entity is not evil and doesn't hunt. No monsters. See "THE CORE TRUTH" in the story bible.
-- The Joseph brothers (Luther and **Ebward**, spelled as the user wrote it) are the user's family. Keep them decent men in the story.
-- `tools/gen_joseph_levels.js --write` overwrites `levels/`. The JSON is the source of truth now.
+- The Joseph brothers (Luther and **Ebward**, who went by **Eb**) are the user's family. Keep them decent, careful working men. Eb lost an eye in a lumber accident at twelve; it is an injury, never a gift. Uncle Joe and the cow in the barn loft are family stories: told, never explained, never tied to the wall. Rules: "The Joseph family" in `PREQUEL_1962_JOSEPH_NO1.md`.
+- No cliché: no stage-hillbilly spelling (ain't/fixin'/holler/"son"), no horror trailer lines, no witch/seer tropes. Plain, physical, period-correct.
+- `tools/gen_joseph_levels.js` holds first-draft text; it refuses to overwrite `levels/` without `--force`. The JSON is the source of truth.

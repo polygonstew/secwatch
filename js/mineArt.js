@@ -258,7 +258,9 @@ const MineArt = (function(){
       if(o.bib){ g.fillStyle = o.pants; g.fillRect(25, 26, 14, 16); g.fillRect(26, 22, 2, 4); g.fillRect(36, 22, 2, 4); }
       g.fillStyle = o.skin; g.fillRect(15, 40, 6, 4); g.fillRect(43, 40, 6, 4);
       g.fillRect(29, 18, 6, 4); g.fillRect(26, 9, 12, 11);
-      g.fillStyle = '#111'; g.fillRect(28, 13, 2, 1); g.fillRect(34, 13, 2, 1);
+      g.fillStyle = '#111'; g.fillRect(28, 13, 2, 1);
+      if(o.oneEye){ g.fillStyle = '#946448'; g.fillRect(34, 13, 2, 1); g.fillStyle = '#6a4632'; g.fillRect(34, 14, 2, 1); g.fillStyle = '#cc9c7a'; g.fillRect(35, 11, 1, 2); g.fillRect(36, 15, 1, 2); }
+      else g.fillRect(34, 13, 2, 1);
       g.fillStyle = '#5a3a2a'; g.fillRect(30, 17, 4, 1);
       if(o.stubble){ speck(g, r, 27, 15, 10, 5, 14, ['#8a8a86', '#6a6a66']); }
       if(o.fedora){
@@ -464,7 +466,7 @@ const MineArt = (function(){
     sprites: {
       belt_0:belt(0), belt_1:belt(1), belt_2:belt(2), belt_3:belt(3), tail, charger, supply,
       luther: person({hat:'#1e1e1e', jacket:'#3b4a5e', pants:'#2f4a6e', skin:'#c08a68', bib:true}),
-      ebward: person({hat:'#d8d4c4', jacket:'#5a4630', pants:'#3a3a3a', skin:'#b88462'}),
+      ebward: person({hat:'#d8d4c4', jacket:'#5a4630', pants:'#3a3a3a', skin:'#b88462', oneEye:true}),
       harold: person({hat:'#3a2a1c', jacket:'#2e2e34', pants:'#24242a', skin:'#b88a6a', fedora:true, coat:true, stubble:true}),
       cecil:  manBack({jacket:'#4a4436', pants:'#2e2a22', hat:'#222', roots:7, rootTop:50}),
       doyle:  manBack({jacket:'#3e4a3a', pants:'#26302a', hat:'#333', roots:9, rootTop:44}),

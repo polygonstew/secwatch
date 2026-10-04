@@ -26,7 +26,7 @@ const AMB = 0.035, FOV = 0.66;
 const SCOOP_T = 7, SLACK_T = 5, CAR_MAX = 3;
 const DUST_GAS = 60, DUST_SOLID = 80;
 const TOOL_NAMES = ['', 'LAMP', 'CUTTER', 'DRILL', 'POWDER', 'SHOVEL', 'DUSTER'];
-const WHO_COL = { LUTHER:'#e3c27a', EBWARD:'#9fc6e0', HAROLD:'#d58a5a', '':'#d8d4c8' };
+const WHO_COL = { LUTHER:'#e3c27a', EB:'#9fc6e0', EBWARD:'#9fc6e0', HAROLD:'#d58a5a', '':'#d8d4c8' };
 
 /* ── canvases ─────────────────────────────────────────── */
 const cv = document.getElementById('screen'), ctx = cv.getContext('2d');
@@ -389,10 +389,10 @@ function useTool(){
     if(f.t !== T.DRILL && f.t !== T.SOLID){ say(f.t === T.COAL ? 'Undercut it and drill it before you shoot it.' : 'Nothing drilled to shoot.'); return; }
     if(S.powder <= 0){ say('Out of powder. Restock at the supply by the portal.'); return; }
     if(S.fuses.some(z => z.c === f.c)) return;
-    if(S.gasCell !== f.c || S.t - S.gasT > 90) say('You didn\'t check your gas on that face, son.', 'EBWARD');
+    if(S.gasCell !== f.c || S.t - S.gasT > 90) say('You never checked your gas on that face.', 'EB');
     S.powder--; S.toolFire = 0.5;
     S.fuses.push({ c:f.c, x:f.x, y:f.y, t:3.2, solid: f.t === T.SOLID });
-    say('FIRE IN THE HOLE!'); Snd.play('fuse');
+    say('Fire! Get back.'); Snd.play('fuse');
     return;
   }
   if(n === 5){
@@ -421,7 +421,7 @@ function finishAction(){
   else if(a.kind === 'drill'){ map[f.c] = T.DRILL; S.dust = Math.min(100, S.dust + 5); S.minutes += 10; fire({ on:'mine', step:'drill', x:f.x, y:f.y }); }
   else if(a.kind === 'drill_solid'){
     map[f.c] = T.SOLID; S.dust = Math.min(100, S.dust + 5); S.minutes += 10;
-    say('You\'re fixin\' to shoot that off the solid. It\'ll make slack and throw dust.', 'EBWARD');
+    say('That face isn\'t undercut. Shoot it like that and it\'ll come down in slack and throw dust.', 'EB');
     fire({ on:'mine', step:'drill', x:f.x, y:f.y });
   }
   else if(a.kind === 'load'){
@@ -448,7 +448,7 @@ function detonate(z){
     S.flashCol = '#8ab0ff'; S.flash = 1;
   } else if(z.solid && dustBefore >= DUST_SOLID) return die('dust');
   if(d < 2.2){ S.hp -= 45; S.hurtT = 2; say('Too close. Coal comes off the face like buckshot.'); }
-  if(z.solid) say('Shot off the solid. It came down in slack.', 'EBWARD');
+  if(z.solid) say('Shot off the solid. It came down in slack.', 'EB');
   if(S.hp <= 0) return die('hurt');
   fire({ on:'mine', step:'shot', x:z.x, y:z.y });
 }
@@ -458,7 +458,7 @@ async function die(why){
   S.dead = true;
   const lines = {
     gas:  ['IGNITION', '', 'The shot lit gas at the face, and the float dust', 'carried it down the entries.', '', 'Check your gas. Hang a curtain. Keep it white.'],
-    dust: ['DUST EXPLOSION', '', 'You shot off the solid in a dusty place.', 'The flame got into the float dust.', '', 'Undercut before you shoot. Dust as you go.'],
+    dust: ['DUST EXPLOSION', '', 'You shot off the solid in coal dust.', 'The flame got into the float dust.', '', 'Undercut before you shoot. Dust as you go.'],
     hurt: ['HURT TOO BAD TO WORK', '', 'They carry you out on a board.', '', 'Get back around the corner before the shot.']
   }[why];
   Snd.play('boom');

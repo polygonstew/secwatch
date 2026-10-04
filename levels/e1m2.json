@@ -24,7 +24,7 @@
   ],
   "things": [
     {"id":"luther","type":"luther","x":1.5,"y":10.5,"talk":[["LUTHER","I been in this mine every day for two year. I never drove that heading."],["LUTHER","Go on. We're right here."]]},
-    {"id":"ebward","type":"ebward","x":1.5,"y":14.5,"talk":[["EBWARD","Somebody's got to stay on the fan."],["EBWARD","Holler if you need us. We'll hear you."]]},
+    {"id":"ebward","type":"ebward","x":1.5,"y":14.5,"talk":[["EB","Somebody's got to stay on the fan."],["EB","When your lamp flickers, start back."]]},
     {"id":"tail","type":"tail","x":33.5,"y":12.5},
     {"id":"car","type":"car","x":32.5,"y":11.5},
     {"id":"cutter","type":"cutter","x":36.5,"y":13.5},
@@ -75,33 +75,33 @@
         {"obj":"FIND CECIL, DOYLE, BOBBY AND JUNIOR"},
         {"say":"Belt quit at 2:19 and the power's still on. Nobody's come out.","who":"LUTHER"},
         {"wait":3},
-        {"say":"Somebody's got to stay on the fan. Take a light. We're right here.","who":"EBWARD"}
+        {"say":"Somebody's got to stay on the fan. If it quits, you come out.","who":"EB"}
       ] },
     {"id":"fresh_dust","when":{"on":"enter","x0":15,"y0":3,"x1":39,"y1":21}, "do": [
-        {"say":"The whole section's been rock dusted. Fresh. Even. Better than this crew ever dusted anything."}
+        {"say":"Fresh rock dust over the whole section, top to bottom. No tracks in it but yours."}
       ] },
     {"id":"paint","when":{"on":"enter","x0":30,"y0":9,"x1":30,"y1":15}, "do": [
-        {"say":"Harold's paint. The heading goes right through it like it was never there."}
+        {"say":"Harold's paint is on both ribs. The coal it ran across is gone."}
       ] },
     {"id":"new_heading","when":{"on":"enter","x0":31,"y0":3,"x1":39,"y1":21}, "do": [
         {"wait":1.5},
         {"say":"This heading wasn't here yesterday. Nobody on this section drove it. Nobody could have, not in one shift."}
       ] },
     {"id":"car","when":{"on":"near","thing":"car","r":2}, "do": [
-        {"say":"The shuttle car's parked square in the crosscut. Cable hung up on its hooks."}
+        {"say":"The shuttle car's parked square in the crosscut, cable reeled up tight."}
       ] },
     {"id":"cutter","when":{"on":"near","thing":"cutter","r":2}, "do": [
         {"say":"The cutter's been cleaned. Bits and all."}
       ] },
     {"id":"buckets","when":{"on":"near","thing":"bucket1","r":2.2}, "do": [
-        {"say":"Four dinner buckets lined up along the rib, neat as church shoes."}
+        {"say":"Four dinner buckets in a row along the rib, bails all laid down the same way."}
       ] },
     {"id":"crack_see","when":{"on":"enter","x0":37,"y0":11,"x1":39,"y1":13}, "do": [
         {"sound":"breath"},
         {"say":"A crack at the bottom of the face. Six inches. Warm air coming out of it, steady, pushing against the fan."}
       ] },
     {"id":"crack_go","when":{"on":"usetile","tile":"X"}, "do": [
-        {"say":"You get down on your hands and knees. You fit through. You shouldn't."},
+        {"say":"You get down flat and go in head first. Six inches, and you fit."},
         {"tile":".","x":40,"y":12},
         {"sound":"breath"}
       ] },
@@ -117,9 +117,9 @@
         {"add":"found","n":1}
       ] },
     {"id":"found_doyle","when":{"on":"near","thing":"doyle","r":1.5}, "do": [
-        {"say":"Doyle Fields, standing the same way. His lips are moving. No sound. Then, plain as day, in his own voice:"},
+        {"say":"Doyle Fields, standing the same way. His lips are moving with no sound. Then, in his own voice:"},
         {"wait":2.5},
-        {"say":"Tell Luther it ain't his fault.","who":"DOYLE"},
+        {"say":"Tell Luther we pulled that pillar right.","who":"DOYLE"},
         {"add":"found","n":1}
       ] },
     {"id":"found_bobby","when":{"on":"near","thing":"bobby","r":1.5}, "do": [
@@ -137,12 +137,12 @@
         {"obj":"TURN BACK"},
         {"say":"That's all four. You can't carry a man who's holding on."},
         {"wait":2.5},
-        {"say":"You should turn back."}
+        {"say":"Go back to the crack."}
       ] },
     {"id":"light_see","when":{"on":"near","thing":"light","r":3.2}, "do": [
-        {"say":"There is light ahead. Not electric. Not natural. Something that's been making its own light longer than this mountain's been here."},
+        {"say":"Light up ahead. No lamp, no cable run to it. It's coming out of the roots."},
         {"wait":3},
-        {"say":"You should turn back."}
+        {"say":"Go back to the crack."}
       ] },
     {"id":"light_touch","when":{"on":"near","thing":"light","r":0.9},"once":false,"cooldown":4, "do": [
         {"flash":"#fff4d0"},
@@ -158,9 +158,9 @@
         {"obj":"HAROLD COMBS IS AT THE DRIFT MOUTH"}
       ] },
     {"id":"harold","when":{"on":"use","thing":"harold"}, "do": [
-        {"card":["Harold Combs is standing in the drift mouth.","In nine years of walking this property he has never once come this close.","","\"How far east.\"","","You tell him.","","\"They ain't dead. Not the way you mean it."," I can't tell you the way I mean it.\"","","\"Nobody goes back in there. Not you, not Luther, not the county.\"","","\"You wall it up. Block, not powder. You don't shoot at it.\"","","\"I'll write it up for the county. My name won't be on it.\""]},
-        {"say":"Blocks are on the motor. We'll lay 'em at eighteen.","who":"EBWARD"},
-        {"spawn":{"id":"seal1","type":"blocks","x":18.5,"y":10.5,"say":"First stopping. Ebward mortars. Nobody talks."}},
+        {"card":["Harold Combs is standing in the drift mouth.","For two years he has walked the line once a month and never once come to the portal.","","\"How far east.\"","","You tell him.","","\"They're not dead the way you mean dead."," I can't tell you the way I mean it.\"","","\"Nobody goes back in there. Not you, not Luther, not the county.\"","","\"You wall it up. Block, not powder. You don't shoot at it.\"","","\"I'll write it up for the county. My name won't be on it.\""]},
+        {"say":"There's block on the supply pile. We'll lay it up at eighteen.","who":"EB"},
+        {"spawn":{"id":"seal1","type":"blocks","x":18.5,"y":10.5,"say":"First stopping. Eb mortars. Nobody talks."}},
         {"spawn":{"id":"seal2","type":"blocks","x":18.5,"y":12.5,"say":"Second. Luther scratches the date in the wet face: 4-7-62. Then four sets of initials."}},
         {"spawn":{"id":"seal3","type":"blocks","x":18.5,"y":14.5,"say":"Third. Plastered. The air goes quiet behind it."}},
         {"obj":"WALL IT UP: 3 STOPPINGS AT CROSSCUT 18"}
@@ -168,7 +168,7 @@
     {"id":"sealed","when":{"on":"counter","name":"sealed","gte":3}, "do": [
         {"wait":3},
         {"save":{"evidence":"JOSEPH_NO1","flag":"sealed_1962"}},
-        {"end":{"card":["The county got Harold's report Monday morning.","","CAUSE: unknown.","MEN RECOVERED: none.","RECOMMENDED BY: ████████","","Luther and Ebward Joseph moved the outfit to the next ridge that May.","They ran coal there a long time. They didn't talk about No. 1.","","They got their men out of the work.","They shut it right.","They never went back east.","","","LKCO-04   JOSEPH No. 1 DRIFT   SEALED 1962","EAST HEADING: 4 MEN.  NOT RECOVERED.","STATUS: [updating]","STATUS: ACTIVE"],"buttons":[{"label":"SECWATCH terminal","href":"index.html?dash"},{"label":"Day 1  (1994)","href":"day1.html"}]}}
+        {"end":{"card":["The county got Harold's report Monday morning.","","CAUSE: unknown.","MEN RECOVERED: none.","RECOMMENDED BY: ████████","","Luther and Ebward Joseph moved the outfit to the next ridge that May.","They ran coal there a long time. They didn't talk about No. 1.","","They sent nobody else in.","They shut it right.","They never went back east.","","","LKCO-04   JOSEPH No. 1 DRIFT   SEALED 1962","EAST HEADING: 4 MEN.  NOT RECOVERED.","STATUS: [updating]","STATUS: ACTIVE"],"buttons":[{"label":"SECWATCH terminal","href":"index.html?dash"},{"label":"Day 1  (1994)","href":"day1.html"}]}}
       ] }
   ],
   "tiles": [

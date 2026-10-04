@@ -91,7 +91,7 @@ const MineSheets = (function(){
       ['charger',    'Lamp rack / charger with cap lamps. [E] recharge.', 'none'],
       ['supply',     'Rock dust sacks + permissible powder box. [E] restock.', 'none'],
       ['luther',     'Luther Joseph, front view. Hard hat + cap lamp. Feet on bottom row.', 'none'],
-      ['ebward',     'Ebward Joseph, front view. Hard hat + cap lamp.', 'none'],
+      ['ebward',     'Eb (Ebward) Joseph, front view. Hard hat + cap lamp. Lost his left eye at twelve (lumber accident): lid shut and a little sunk, thin pale scar through brow and cheekbone. No patch.', 'none'],
       ['harold',     'Harold Combs, front view. Fedora, long coat. No lamp. Never goes under.', 'none'],
       ['cecil',      'Cecil Ison, BACK view, facing the rock. Roots up over his boots.', 'none'],
       ['doyle',      'Doyle Fields, back view, roots to the knees.', 'none'],

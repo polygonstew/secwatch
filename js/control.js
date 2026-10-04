@@ -906,7 +906,7 @@ addEventListener('keydown', e => {
 addEventListener('keyup', e => { if(e.code === 'Space') spaceDown = false; });
 addEventListener('beforeunload', e => { if(dirty){ e.preventDefault(); e.returnValue = ''; } });
 new ResizeObserver(resize).observe($('#center'));
-document.body.append(h('datalist', { id:'whoList' }, ...['LUTHER','EBWARD','HAROLD','DOYLE','JUNIOR','ARVEL'].map(w => h('option', { value:w }))));
+document.body.append(h('datalist', { id:'whoList' }, ...['LUTHER','EB','HAROLD','DOYLE','JUNIOR','ARVEL'].map(w => h('option', { value:w }))));
 
 /* ── boot ────────────────────────────────────────────── */
 (async function(){

@@ -117,7 +117,7 @@ A `use` trigger on a thing replaces its talk lines.
   "when": {"on":"usetile", "tile":"P"},
   "if":   {"counter":"tons", "gte":63},
   "do":   [ {"end":{"next":"levels/e1m2.json", "card":["SATURDAY..."]}} ],
-  "else": [ {"say":"Day ain't over.", "who":"LUTHER"} ] }
+  "else": [ {"say":"You're short.", "who":"LUTHER"} ] }
 ```
 
 - A trigger fires **once**. Add `"once": false` to let it repeat, with `"cooldown"` in seconds (default 3).
