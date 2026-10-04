@@ -21,6 +21,14 @@ sprite sheets and the adaptive music (`JAMengine`) need a server.
 
 Live (older build): https://underthewaterfire.com/sec/
 
+**Test link (GitHub Pages):** the repo is public, so Pages is free. On GitHub:
+Settings → Pages → Build and deployment → Source **Deploy from a branch** → pick the
+branch you want to test (e.g. `claude/inspiring-edison-nfu1uy`) and `/ (root)` → Save.
+A minute later it's live at **https://polygonstew.github.io/secwatch/** (dashboard),
+`/mine.html` (the 1962 mine) and `/control.html` (the editor; on Pages it edits and
+playtests, and Save downloads the level file). `.nojekyll` is in the root so Pages
+serves every file as-is.
+
 ## The flow
 
 | Page | What it is |

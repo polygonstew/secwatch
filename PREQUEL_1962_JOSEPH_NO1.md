@@ -195,8 +195,8 @@ Day 7 said the 1962 sealing expert "is **Earl's grandfather**." But the lineage 
 From the family, not from records. Keep it this size.
 
 - **Eb.** Ebward went by Eb. In the game his speaker tag is **EB** and the narration calls him Eb. The full name stays on the title card, the E1M1 intro, the ending card and his facing label.
-- **The eye.** Eb lost an eye in a lumber accident when he was twelve. Which eye is not known; the game makes it the *left*. To change it, edit Eb's "right side" talk line in `levels/e1m1.json`, the setup paragraph above, the Joseph entry in the story bible, `oneEye` in `js/mineArt.js` (it draws on the viewer's right) and the `ebward` brief in `js/mineSheets.js`.
-- **Uncle Joe.** The family has what it calls a witchcraft heritage. A great-great-uncle of the writer, maybe named Joe, "could show you" things, and once put a cow on the second floor of a barn. In the game he is **Uncle Joe**, the brothers' uncle. He is only talked about: two of Luther's and two of Eb's talk lines in E1M1 (keep pressing E after the work instructions). If the name turns out different, search `Uncle Joe` in `levels/`, this doc, the story bible and `docs/HANDOFF.md`.
+- **The eye.** Eb lost his **left** eye in a lumber accident when he was twelve (confirmed by the family). It shows in Eb's "right side" talk line in `levels/e1m1.json`, his sprite (`oneEye` in `js/mineArt.js`, drawn on the viewer's right) and the `ebward` brief in `js/mineSheets.js`.
+- **Uncle Joe.** The family has what it calls a witchcraft heritage. The writer's great-great-uncle Joe "could show you" things, and once put a cow on the second floor of a barn. In the game he is **Uncle Joe**, the brothers' uncle. He is only talked about: two of Luther's and two of Eb's talk lines in E1M1 (keep pressing E after the work instructions).
 - **Rules.** No "witch" in game text. No spells, charms, herbs, signs or second sight. Eb's eye is an injury, never a gift. Nobody explains the cow, and nobody ties Joe to the wall, to Harold or to the arrangement.
 
 ### Night Shift card ideas (`js/dreamData.js`)

@@ -36,14 +36,13 @@ Everything is static HTML/JS: no build step and no dependencies. It runs from an
 - **The east heading drove itself.** Nobody on the crew cut past the line. This protects the Joseph brothers in the story: the user's grandfather and great-uncle are the "legend".
 - Harold Combs writes the sealing report with his name redacted, which is Day 7's "unnamed expert". The seal: three block stoppings at crosscut 18, scratched *4-7-62* plus four sets of initials.
 - **Arvel** (crew member who copied the dust lines into his tally book) is suggested as the Threshold Society member's uncle. He's in the prequel doc but not in the game yet.
-- **From the family:** Eb lost an eye in a lumber accident at twelve (the game makes it the left eye: unconfirmed). **Uncle Joe** (name uncertain), the brothers' uncle, "could show you" things and put a cow on the second floor of a barn. He exists only in the brothers' E1M1 talk lines. Rules are in the prequel doc's "The Joseph family" note.
+- **From the family:** Eb lost his left eye in a lumber accident at twelve. **Uncle Joe**, the brothers' uncle, "could show you" things and put a cow on the second floor of a barn. He exists only in the brothers' E1M1 talk lines. Rules are in the prequel doc's "The Joseph family" note.
 
 ## Open questions for the user
 1. **"Ebward" or "Edward" Joseph?** Answered: Ebward, and he went by **Eb**. Full name on the title, intro and ending cards and his facing label; EB / Eb in speaker tags and narration.
 2. **Lore bug (fixed):** Day 7 now says the 1962 expert is Harold, Earl's *father* (James Combs died in 1948).
 3. Real Joseph family details (mine names, places, dates) would replace the invented ones. None were found in public records.
-5. **Which eye did Eb lose?** The game guesses the left. To flip it, see "The Joseph family" in the prequel doc, which lists every place that names the side.
-6. **Was the uncle really Joe?** The user said "Joe maybe". Search `Uncle Joe` to rename him.
+5. **Answered:** it was Eb's left eye, and the uncle was Joe.
 7. **Continuity fixed in this pass:** Day 6's letter (and the bible) now name Thomas Combs, not a Hargrove ancestor, as the man who found the wall. Day 8's 1962 entries are the four named men plus the section foreman, so the count stays 41.
 4. Should Day 3 / Day 7 show the new `img/day3_1962_report.png` (the sealing report)? There's a slot for it in the manifest.
 

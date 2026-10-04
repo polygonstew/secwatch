@@ -1321,11 +1321,10 @@ Careful working men. They kept to Harold's paint, sealed the east
 heading the right way, and went on running coal on the next ridge.
 They are not part of the arrangement and never learned what it was.
 
-Eb lost an eye in a lumber accident when he was twelve.
-(The game makes it his left eye. That part is a guess.)
+Eb lost his left eye in a lumber accident when he was twelve.
 It is an old injury and nothing else. It never shows him anything.
 
-**Uncle Joe** (name uncertain)
+**Uncle Joe**
 The brothers' uncle (the writer's great-great-uncle). The family
 says he could show you things, and that he once put their daddy's
 cow on the second floor of a barn. The family calls that side of
