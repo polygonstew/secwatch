@@ -91,8 +91,8 @@ const ART_MANIFEST = [
     { file:'img/terror_phantom.png', w:512, h:512, kind:'card', title:'TERROR: EXT. 311', draw:'A desk phone, receiver off the hook.', status:'new', hook:'TERRORS.phantom' },
     { file:'img/terror_cable.png', w:512, h:512, kind:'card', title:'TERROR: THE CABLE REEL', draw:'The reel, half in shadow.', status:'new', hook:'TERRORS.cable' },
     { file:'img/terror_witness.png', w:512, h:512, kind:'card', title:'TERROR: WITNESS.TXT', draw:'Green text on black.', status:'new', hook:'TERRORS.witness_t' },
-    { file:'img/terror_threshold.png', w:512, h:512, kind:'card', title:'TERROR: THRESHOLD SOCIETY', draw:'Twelve robed figures in a basement, candles.', status:'new', hook:'TERRORS.threshold' },
-    { file:'img/terror_earl.png', w:512, h:512, kind:'card', title:'TERROR: EARL, THE ELEVENTH', draw:'A man facing a wall, from behind.', status:'new', hook:'TERRORS.earl' }
+    { file:'img/terror_threshold.png', w:512, h:512, kind:'card', title:'TERROR: PRIVATE MEETINGS', draw:'A dark office building at night, a dozen cars in the lot, torchlight in the lower windows.', status:'new', hook:'TERRORS.threshold' },
+    { file:'img/terror_earl.png', w:512, h:512, kind:'card', title:'TERROR: THE EAST WALL', draw:'Bare rock face at the bench, warm light with no source, nobody in frame.', status:'new', hook:'TERRORS.earl' }
   ]},
   { day:'M', title:'1962 — JOSEPH No. 1 (the mine)', when:'04/06/62 – 04/07/62', page:'mine.html', slots:[
     { file:'img/mine_title.png', w:1344, h:768, kind:'still', title:'TITLE CARD: THE DRIFT MOUTH', draw:'Drift mouth in the hillside, timber set, belt coming out to a wooden tipple. Spring 1962.', status:'new', hook:'mine.html title card' },

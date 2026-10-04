@@ -105,6 +105,17 @@ const adv = async p => { for(let i = 0; i < 2; i++){ await p.keyboard.press('Spa
     ok(!errs.filter(e => !/day4|mine/.test(e)).length, 'no dashboard errors ' + errs.join(' | '));
   }
 
+  console.log('NIGHT SHIFT (card game)');
+  { const errs = []; const { p } = await page(b, errs);
+    for(const n of [1, 2, 3]){
+      await p.goto(BASE + '/dream.html?night=' + n); await p.waitForTimeout(1200);
+    }
+    ok(await p.evaluate(() => NS_CARDS.deny.name === 'ACKNOWLEDGE' && NS_ENEMIES.earl.name === 'THE EAST WALL'), 'card text: ACKNOWLEDGE, THE EAST WALL');
+    ok(await p.evaluate(() => { SW.find('JOSEPH_NO1'); SW.flag('sealed_1962', true); SW.newRun(); return SW.has('JOSEPH_NO1') && SW.save.flags.sealed_1962 === true; }), 'new run keeps the 1962 mine records');
+    await p.screenshot({ path: path.join(OUT, 'night3.png') });
+    ok(!errs.length, 'no errors ' + errs.join(' | '));
+  }
+
   console.log('ART pages');
   { const errs = []; const { p } = await page(b, errs);
     await p.goto(BASE + '/art/mine_sheets.html'); await p.waitForTimeout(800);

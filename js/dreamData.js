@@ -37,16 +37,16 @@ const NS_CONFIG = {
 ─────────────────────────────────────────────────────────── */
 const NS_CARDS = {
   /* starter deck ------------------------------------------ */
-  deny:      { name:'DENY',         cost:1, effect:'damage',  value:5, target:'enemy', kind:'basic', icon:'x',
-               desc:'Refuse it. 5 to one feed.', flavor:'It is not there. Say it again.' },
+  deny:      { name:'ACKNOWLEDGE',  cost:1, effect:'damage',  value:5, target:'enemy', kind:'basic', icon:'doc',
+               desc:'Say it is there. 5 to one feed.', flavor:'Time, camera, what you saw. Initial the log.' },
   document:  { name:'DOCUMENT',     cost:1, effect:'ward',    value:5, target:'lane',  kind:'basic', icon:'doc',
                desc:'Anchor 5 on a lane.', flavor:'Write down what you saw. Paper holds.' },
   breathe:   { name:'BREATHE',      cost:1, effect:'heal',    value:3, target:'self',  kind:'basic', icon:'o',
-               desc:'Regain 3 Lucidity.', flavor:'In for four. Hold for four.' },
+               desc:'Regain 3 Lucidity.', flavor:'Say the date out loud. Say where you are.' },
   flashlight:{ name:'FLASHLIGHT',   cost:1, effect:'expose',  value:3, target:'enemy', kind:'basic', icon:'beam',
                desc:'Expose a feed: it takes +3 from every hit this turn.', flavor:'Batteries are low. Point it anyway.' },
-  lookaway:  { name:'LOOK AWAY',    cost:0, effect:'swap',    value:0, target:'enemy', kind:'basic', icon:'arrow',
-               desc:'Push a Terror to an empty feed.', flavor:'If you are not looking it has to move.' },
+  lookaway:  { name:'SWITCH CAMS',  cost:0, effect:'swap',    value:0, target:'enemy', kind:'basic', icon:'arrow',
+               desc:'Move a Terror to the empty camera beside it.', flavor:'Flip the switcher. Write down the time.' },
 
   /* curse -- WHISPER intents shuffle these into your discard */
   static:    { name:'STATIC',       cost:1, effect:'purge',   value:0, target:'self',  kind:'curse', icon:'noise', exhaust:true,
@@ -76,7 +76,7 @@ const NS_CARDS = {
   ext_107:   { name:'MAINTENANCE',  cost:1, effect:'ward_all',value:3, target:'all',   kind:'evidence', icon:'phone', file:'EXT 107',
                desc:'Anchor 3 on every lane.', flavor:'"...site\'s been closed since \'83."' },
   deed:      { name:'THE DEED',     cost:2, effect:'ward_all',value:7, target:'all',   kind:'evidence', icon:'doc', file:'LKCO-04 DEED', exhaust:true,
-               desc:'Anchor 7 on every lane. Exhaust.', flavor:'GRANTEE: you. Recorded 11/03/1987.' },
+               desc:'Anchor 7 on every lane. Exhaust.', flavor:'GRANTOR: Hargrove Properties LLC. GRANTEE: you. Recorded 11/03/1987.' },
   death_cert:{ name:'DEATH CERT.',  cost:1, effect:'damage',  value:6, target:'enemy', kind:'evidence', icon:'doc', file:'CERT 03/16/91',
                desc:'6 to one feed.', flavor:'Witness: illegible. Might say E. Combs.' },
   chat_earl: { name:"RICKY'S CHAT", cost:1, effect:'silence', value:0, target:'enemy', kind:'evidence', icon:'phone', file:'CHAT_EARL.LOG',
@@ -88,13 +88,13 @@ const NS_CARDS = {
   floor3:    { name:'FLOOR3.DAT',   cost:1, effect:'ward',    value:6, target:'lane',  kind:'evidence', icon:'screen', file:'FLOOR3.DAT',
                desc:'Anchor 6 on a lane.', flavor:'Suite 3-C. Door: CLOSED.' },
   missing:   { name:'MISSING INDEX',cost:0, effect:'damage_all', value:2, target:'all', kind:'evidence', icon:'doc', file:'1923-1991',
-               desc:'2 to every feed.', flavor:'Twelve names. None of the sellers appear again.' },
+               desc:'2 to every feed.', flavor:'Twelve names. None of them were found.' },
   sealed:    { name:'SEALED FILE',  cost:0, effect:'expose',  value:4, target:'enemy', kind:'evidence', icon:'doc', file:'LC-1991-CV-0447',
                desc:'Expose a feed: +4 from every hit this turn.', flavor:'Organized ritual activity. Twelve persons of interest.' },
   notes_83:  { name:'NOTES_1983',   cost:1, effect:'silence', value:0, target:'enemy', kind:'evidence', icon:'doc', file:'NOTES_1983.TXT',
                desc:'That Terror skips its next action.', flavor:'I am leaving this here for whoever logs in next.' },
   arrangement:{name:'THE ARRANGEMENT',cost:3,effect:'ward_all',value:12,target:'all',  kind:'evidence', icon:'ward', file:'1887', exhaust:true,
-               desc:'Anchor 12 on every lane. Exhaust.', flavor:'Two families. Leave it alone. Let it know.' },
+               desc:'Anchor 12 on every lane. Exhaust.', flavor:'Two families. Leave it alone. Let it know whose ground this is.' },
 
   /* rewards -- offered 3-at-random after each cleared feed */
   sec2_exe:  { name:'SEC2.EXE',     cost:0, effect:'draw',    value:2, target:'self',  kind:'reward', icon:'screen',
@@ -102,7 +102,7 @@ const NS_CARDS = {
   scandisk:  { name:'SCANDISK',     cost:1, effect:'damage_all', value:4, target:'all', kind:'reward', icon:'noise',
                desc:'4 to every feed.', flavor:'Checking for lost clusters...' },
   coffee:    { name:'COFFEE',       cost:0, effect:'energy',  value:1, target:'self',  kind:'reward', icon:'o',
-               desc:'+1 Focus this turn.', flavor:'The mug is back on the desk. You put it there. Right?' },
+               desc:'+1 Focus this turn.', flavor:'You set the lobby mug back on the desk. It had been on the floor, upright.' },
   fire_door: { name:'FIRE DOOR',    cost:2, effect:'ward',    value:14, target:'lane', kind:'reward', icon:'ward',
                desc:'Anchor 14 on a lane.', flavor:'Push bar. Alarm will sound.' },
   rewind:    { name:'REWIND',       cost:1, effect:'recall',  value:4, target:'self',  kind:'reward', icon:'tape',
@@ -172,15 +172,15 @@ const NS_ENEMIES = {
   witness_t: { name:'WITNESS.TXT',   hp:12, bar:'s', glyph:'⟨⟩',
                pattern:[['whisper',2],['attack',3]],
                flavor:'Author: unknown. 04:47.' },
-  threshold: { name:'THRESHOLD SOCIETY', hp:18, bar:'h', glyph:'Ψ',
+  threshold: { name:'PRIVATE MEETINGS', hp:18, bar:'h', glyph:'Ψ',
                pattern:[['guard',6],['guard',6],['attack',6]],
-               flavor:'Twelve people with the wrong frameworks.' },
-  ricky:     { name:"RICKY'S KNOWING", hp:12, bar:'l', glyph:'◌',
+               flavor:'"A dozen cars some nights." Torchlight in the lower windows.' },
+  ricky:     { name:'UTILITIES CURRENT', hp:12, bar:'l', glyph:'◌',
                pattern:[['watch'],['whisper',1],['attack',4]],
-               flavor:'I know what it has been waiting for.' },
-  earl:      { name:'EARL -- THE ELEVENTH', hp:34, bar:'e', glyph:'▣', boss:true,
+               flavor:'1407 Cornett Branch Road. No death certificate filed.' },
+  earl:      { name:'THE EAST WALL', hp:34, bar:'e', glyph:'▣', boss:true,
                pattern:[['watch'],['attack',6],['extend',1],['whisper',2],['attack',8]],
-               flavor:'Or something that knows the shape of Earl.' }
+               flavor:'Where the rock stops and something else begins.' }
 };
 
 /* ── NIGHTS ───────────────────────────────────────────────
@@ -208,8 +208,8 @@ const NS_NIGHTS = [
       [ {type:'feed', enemies:['shape']} ]
     ],
     next:'day3.html',
-    win :'The intrusion passes. Not repelled -- withdrawn, the way a very large thing withdraws a limb.\n\nGray Kentucky dawn. You kept your head. That is the arrangement.',
-    lose:'Lucidity: 0. The wall has your full attention now.\n\nYou wake up. You always wake up. The question is what comes back with you.'
+    win :'The intrusion passes. Not repelled -- withdrawn, the way a very large thing withdraws a limb.\n\nGray Kentucky dawn. You saw it and you logged it. That is part of the arrangement.',
+    lose:'Lucidity: 0. The wall has your full attention now.\n\nYou wake up. You always wake up. Boots still on, on top of the covers, the motel heater ticking.'
   },
   {
     id:'night_2', title:'THE CORRIDOR', clock:'01/17/94  03:41', video:'night_2',
@@ -221,12 +221,12 @@ const NS_NIGHTS = [
       [ {type:'feed', enemies:['intrusion','shape','warmth']} ]
     ],
     next:'day5.html',
-    win :"The corridor is empty again. Open doors, dead cameras, and whatever uses David Hargrove's badge.\n\nYou held the boundary. Earl would recognize what you did here.",
-    lose:"The shape at the end of the corridor turns around.\n\nYou don't see its face. You won't remember its face. That's the mercy of it."
+    win :"The corridor is empty again. Open doors, dead cameras, and whatever uses David Hargrove's badge.\n\nYou walked it like a guard tour: every door checked, every time written down. Suite 3-C last.",
+    lose:"The shape at the end of the corridor does not turn around. You stand behind it a long time.\n\nYou wake up knowing how many steps it is from the stairwell door to Suite 3-C. You never counted them."
   },
   {
     id:'night_3', title:'THE BOUNDARY', clock:'01/18/94  04:52', video:'night_3',
-    where:'You went down. You chose. Now it is choosing.',
+    where:'You came back up today. Tonight you are back at the crack in the east wall.',
     map:[
       [ {type:'feed', enemies:['threshold','ricky']}, {type:'elite', enemies:['shape','badge47','phantom']} ],
       [ {type:'rest'}, {type:'archive'} ],
@@ -235,7 +235,7 @@ const NS_NIGHTS = [
       [ {type:'feed', enemies:['earl']} ]
     ],
     next:'day6.html',
-    win :'It does not understand defeat. It simply withdraws its awareness to whatever it was attending to before it noticed you.\n\nCold air. January. The crack is gone.\n\nYou understand something now.',
+    win :'Nothing was beaten. It simply withdraws its awareness to whatever it was attending to before it noticed you.\n\nCold air. January. The crack is gone.\n\nYou understand something now.',
     lose:'You have been perceived completely. Every memory, every fear, every thought you have had or will have.\n\nYou understand now.\n\nSame thing they all say.'
   }
 ];

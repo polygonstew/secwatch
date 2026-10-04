@@ -378,14 +378,14 @@ $('#cmdIn').addEventListener('keydown', async e => {
     case 'CONTROL': location.href = 'control.html'; break;
     case 'OUTLINES': location.href = 'art/day_outlines.html'; break;
     case 'SHEETS': location.href = 'art/mine_sheets.html'; break;
-    case 'NEWRUN': SW.newRun(); renderBars(); say('NEW RUN. NAME KEPT. EVERYTHING ELSE CLEARED.'); break;
+    case 'NEWRUN': SW.newRun(); renderBars(); say('NEW RUN. NAME AND 1962 RECORDS KEPT. EVERYTHING ELSE CLEARED.'); break;
     case 'LOGOUT': location.reload(); break;
     case 'CLS': say(''); break;
     case 'EARL': say('BADGE #0088 STATUS: ACTIVE'); break;
     default: say('BAD COMMAND OR FILE NAME. TYPE HELP.');
   }
 });
-$('#bNew').onclick = () => { if(confirm('Start a new run? Your name stays; bars, evidence and flags clear.')){ SW.newRun(); renderBars(); } };
+$('#bNew').onclick = () => { if(confirm('Start a new run? Your name and the 1962 mine records stay; bars, evidence and flags clear.')){ SW.newRun(); renderBars(); } };
 $('#bWipe').onclick = () => { if(confirm('Wipe the whole save, name included?')) SW.reset(); };
 $('#bOut').onclick = () => location.reload();
 

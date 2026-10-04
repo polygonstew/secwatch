@@ -25,6 +25,7 @@
      SW.setBars({h,l,s,e})       overwrite threat bars
      SW.flag(key, value)         set a story flag
      SW.commit()                 write save + legacy keys now
+     SW.newRun()                 fresh shift: keeps name + 1962 mine records
      SW.reset()                  wipe everything (new game)
 ════════════════════════════════════════════════════════ */
 (function(){
@@ -136,6 +137,10 @@
 
   function commit(){ pull(); push(); }
 
+  /* kept by newRun(): earned in the 1962 mine (mine.html), not on a shift */
+  const KEEP_EVIDENCE = ['JOSEPH_NO1', 'HC_LINE', 'SURVEY_SPAD'];
+  const KEEP_FLAGS = ['sealed_1962'];
+
   pull(); push();
   window.addEventListener('pagehide', commit);
   window.addEventListener('beforeunload', commit);
@@ -156,8 +161,12 @@
     /* Day 1 calls this: a fresh shift. Keeps the name (the wall
        remembers it), clears everything the last run earned. */
     newRun(){
+      /* 1962 happened before the shift: the mine's records survive a new run */
       const name = save.name;
-      Object.assign(save, BLANK(), { name });
+      const keepEv = save.evidence.filter(id => KEEP_EVIDENCE.includes(id));
+      const keepFlags = {};
+      KEEP_FLAGS.forEach(k => { if(k in save.flags) keepFlags[k] = save.flags[k]; });
+      Object.assign(save, BLANK(), { name, evidence: keepEv, flags: keepFlags });
       LEGACY.forEach(L => { if(L.key !== 'sw_name' && L.key !== 'sw_player') L.store.del(L.key); });
       push();
     },

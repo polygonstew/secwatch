@@ -6,7 +6,7 @@
        feed (fight) -> reward pick -> back to map
        rest (tape deck) / archive (shop)
      -> last depth cleared -> waking video -> end -> next day
-   Lucidity 0 -> end: FIGHT IT (retry night) or WAKE UP
+   Lucidity 0 -> end: CLOSE YOUR EYES AGAIN (retry night) or WAKE UP
    (stay up all night: tired, East Wall rises, story goes on).
 
    Where the pieces came from:
@@ -636,7 +636,6 @@ function nightLost(){
 function showEnd(result){
   const v = $('view-end');
   v.classList.remove('win', 'loss'); v.classList.add(result);
-  const name = save.name ? save.name : 'you';
   if(result === 'win'){
     $('end-eyebrow').textContent = 'the night lets you go';
     $('end-title').textContent = 'YOU WOKE UP';
@@ -645,7 +644,7 @@ function showEnd(result){
     $('end-wake').textContent = 'Get up  →';
     $('end-hint').textContent = 'East Wall eased by ' + (-NS_CONFIG.winEastWall) + '.';
   }else{
-    $('end-eyebrow').textContent = 'the night keeps ' + name.toLowerCase();
+    $('end-eyebrow').textContent = 'lucidity 0';
     $('end-title').textContent = 'PERCEIVED';
     $('end-summary').textContent = NIGHT.lose;
     $('end-retry').classList.remove('hidden');

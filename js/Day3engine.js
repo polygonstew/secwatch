@@ -178,7 +178,7 @@ const docs = [
 <p><strong>1923:</strong> Evan Griffiths, 44. Coal prospector. Welsh national. Last recorded at eastern survey point. No further records.</p>
 <p><strong>1931:</strong> Martin Blevins, 38. Independent miner. Last seen near eastern county access road.</p>
 <p><strong>1951:</strong> Robert Sizemore, 29. Geological survey assistant. Survey notes end mid-entry. No body recovered.</p>
-<p><strong>1962:</strong> Three workers — names redacted per family request — during LKCO's only active drilling operation at Shaft 4. Incident report sealed. Mining operations resumed briefly, then suspended permanently in 1963.</p>
+<p><strong>1962:</strong> Four workers — names redacted per family request — in the east heading of the Joseph No. 1 drift, a lessee operation on the parcel. Incident report sealed. The heading was walled off with block stoppings and never reopened.</p>
 <p><strong>1983 (February):</strong> Richard "Ricky" Meade, 23. LKCO laborer. <em>Note: Meade's residence at 1407 Cornett Branch Road remains on record. Utility payments current as of this date. No death certificate filed. No further contact.</em></p>
 <p><strong>1983 (September):</strong> Earl Combs, 41. LKCO foreman. <em>Note: SECWATCH terminal at Hargrove Business Center lists Combs as STATUS: ACTIVE as of this review.</em></p>
 <p style="margin-top:12px;color:#8a2020;font-size:10.5px"><strong>NOTE:</strong> None of the twelve individuals were found. None have filed taxes, registered a vehicle, or appeared in any record after the date of their disappearance.</p>`
