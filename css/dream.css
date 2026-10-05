@@ -280,7 +280,8 @@ body{
   display:flex; align-items:center; justify-content:center; gap:.5rem;
   font-family: var(--f-label); font-size:.72rem; color: rgba(227,162,74,.5); letter-spacing:.08em;
 }
-.ward-slot.drop-hover{ border-color: var(--witchfire); color: var(--witchfire); background: rgba(168,255,206,.05); }
+.ward-slot.claim, .ward-slot.claim.filled{ border-color:#b8642a; color:#e09a5a; background:rgba(184,100,42,.08); }   /* Harold's orange: a claim */
+.ward-slot.drop-hover, .ward-slot.filled.drop-hover, .ward-slot.claim.filled.drop-hover{ border-color: var(--witchfire); color: var(--witchfire); background: rgba(168,255,206,.05); }
 .ward-slot.filled{
   border-style: solid; border-color: var(--candle);
   background: rgba(227,162,74,.08); color: var(--candle);
@@ -584,7 +585,8 @@ body{
 
 .feed-tag{
   position:absolute; top:.35rem; left:.45rem; font-family:var(--f-mono); font-size:.6rem;
-  color:var(--crt); text-shadow:0 0 4px var(--crt); letter-spacing:.08em;
+  color:var(--crt); text-shadow:0 0 4px var(--crt); letter-spacing:.02em;
+  right:.45rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .feed-tag::before{ content:'\25CF '; color:var(--wound-bright); animation:observer 1s steps(2) infinite; }
 .enemy-card{ overflow:visible; }
@@ -660,6 +662,7 @@ body.shake{ animation:enemy-hit .35s ease; }
   .depth::before{ display:none; }
   #log{ display:none; }
   .enemy-flavor{ display:none; }
+  .hp-text{ font-size:.58rem; white-space:nowrap; }
   .card .card-glyph{ margin-top:1rem; font-size:1.6rem; height:30px; }
   .card .card-flavor{ display:none; }
 }

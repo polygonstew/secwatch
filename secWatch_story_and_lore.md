@@ -805,8 +805,8 @@ I was afraid you'd react exactly the way you have.
 The land in Letcher County has a — situation.
 I'm going to use that word because I've never found
 a better one. Your grandfather didn't have one either.
-His father is the one who figured out it existed.
-His name was Thomas and he died in 1924 at 91 years old
+The man who figured out it existed was Thomas Combs, the surveyor.
+He died in 1924 at 91 years old
 in a chair on his front porch and he was the most
 normal man I ever heard described by people who
 knew him, so whatever it is down there it doesn't
@@ -913,7 +913,7 @@ The expert's name is redacted. The expert's credentials
 are listed as: *extensive field experience with geological
 anomalies of the Appalachian formation, Letcher County.*
 
-This is Earl's grandfather. The player can find this
+This is Earl's father, Harold. The player can find this
 if they cross-reference with Day 3 records.
 The Combs family has been writing these reports
 and having their own names redacted out of them
@@ -1309,6 +1309,30 @@ about the east wall when he was twenty and spent
 thirty years circling it before he finally went down.
 He is why the building is sealed.
 His badge still works.
+
+---
+
+## THE JOSEPH FAMILY
+
+**Luther Joseph and Ebward "Eb" Joseph**
+Ran Joseph No. 1, the 1962 drift on the Hargrove lease
+(see PREQUEL_1962_JOSEPH_NO1.md). Real people: the writer's family.
+Careful working men. They kept to Harold's paint, sealed the east
+heading the right way, and went on running coal on the next ridge.
+They are not part of the arrangement and never learned what it was.
+
+Eb lost his left eye in a lumber accident when he was twelve.
+It is an old injury and nothing else. It never shows him anything.
+
+**Uncle Joe**
+The brothers' uncle (the writer's great-great-uncle). The family
+says he could show you things, and that he once put their daddy's
+cow on the second floor of a barn. The family calls that side of
+itself witchcraft. The game never uses the word.
+He is only talked about, in the brothers' talk lines in E1M1.
+Nobody in the game explains the cow, and nobody ties Joe to the
+wall, to Harold, or to the arrangement. The cow is the family's
+story, not the entity's.
 
 ---
 

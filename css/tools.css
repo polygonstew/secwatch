@@ -1,0 +1,44 @@
+/* ════════════════════════════════════════════════════════
+   SECWATCH tools look  (css/tools.css)
+   Shared by control.html (level + story editor) and the art
+   pages in art/. Dark gray panels, amber accents: the old
+   DOS level editor feel.
+════════════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+:root{
+  --bg:#141414; --panel:#1e1e1e; --panel2:#262626; --line:#3a3a3a; --line2:#4a4a4a;
+  --ink:#d8d4c8; --dim:#8a8478; --amber:#e3a24a; --amber2:#ffcf80; --green:#9be59b; --red:#ff6a5a; --blue:#8ab4ff;
+  --f:'Share Tech Mono', ui-monospace, Consolas, monospace;
+}
+*{ box-sizing:border-box; }
+html,body{ margin:0; background:var(--bg); color:var(--ink); font-family:var(--f); font-size:14px; }
+a{ color:var(--amber); }
+h1,h2,h3{ font-weight:normal; margin:0; letter-spacing:.04em; }
+h1{ font-size:20px; color:var(--amber); }
+h2{ font-size:16px; color:var(--amber2); margin:18px 0 8px; }
+h3{ font-size:14px; color:var(--amber2); margin:12px 0 6px; }
+button,.btn,select,input,textarea{ font:inherit; color:var(--ink); background:var(--panel2); border:1px solid var(--line2); border-radius:3px; }
+button,.btn{ padding:5px 10px; cursor:pointer; text-decoration:none; display:inline-block; }
+button:hover,.btn:hover{ border-color:var(--amber); color:var(--amber2); }
+button.primary,.btn.primary{ background:var(--amber); color:#141414; border-color:var(--amber); }
+button.primary:hover{ background:var(--amber2); color:#141414; }
+button.danger:hover{ border-color:var(--red); color:var(--red); }
+button.on{ border-color:var(--amber); color:var(--amber); background:#2e2618; }
+input,select,textarea{ padding:4px 6px; }
+input[type=number]{ width:70px; }
+textarea{ width:100%; resize:vertical; }
+label{ color:var(--dim); }
+.muted{ color:var(--dim); }
+.ok{ color:var(--green); } .bad{ color:var(--red); }
+.bar{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:8px 12px; background:var(--panel); border-bottom:1px solid var(--line); }
+.bar .sp{ flex:1; }
+.panel{ background:var(--panel); border:1px solid var(--line); border-radius:4px; padding:10px; }
+.wrap{ max-width:1200px; margin:0 auto; padding:16px; }
+.grid2{ display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:14px; }
+.pix{ image-rendering:pixelated; image-rendering:crisp-edges; }
+.note{ background:#1a1a14; border-left:3px solid var(--amber); padding:8px 12px; margin:10px 0; color:#cfc8b4; }
+code,kbd{ background:#0e0e0e; border:1px solid var(--line); padding:0 4px; border-radius:3px; }
+table{ border-collapse:collapse; width:100%; }
+td,th{ border-bottom:1px solid var(--line); padding:4px 6px; text-align:left; vertical-align:top; }
+th{ color:var(--dim); font-weight:normal; }
+@media (max-width:700px){ .wrap{ padding:10px; } }

@@ -1,0 +1,228 @@
+{
+  "format": "joseph-wad/1",
+  "id": "e1m2",
+  "title": "THE EAST HEADING",
+  "when": "SATURDAY, APRIL 7, 1962",
+  "w": 64,
+  "h": 25,
+  "player": {"x":2.6,"y":12.5,"a":0},
+  "start": {"tools":[1,6],"toolsOffSay":"Not today. Today you're looking for four men.","powder":0,"bags":4,"battery":100,"drain":0.07,"clock":871,"quota":0,"belt":{"on":false,"y":12,"fromX":1},"counters":{}},
+  "hud": {"label":"FOUND","counter":"found","of":4},
+  "rules": {"gasBase":0.2},
+  "next": null,
+  "intro": [
+    "THE EAST HEADING",
+    "SATURDAY, APRIL 7, 1962   2:31 P.M.",
+    "",
+    "Four men in the east heading. The belt stopped twelve minutes ago.",
+    "",
+    "Your lamp. Your rock duster. Nothing else today."
+  ],
+  "zones": [
+    {"name":"the east: warm, lamp burns tall","x0":27,"y0":3,"x1":40,"y1":21,"warm":true,"anomaly":true,"drone":0.45},
+    {"name":"the roots","x0":41,"y0":1,"x1":63,"y1":23,"anomaly":true,"floor":"root_floor","ceil":"root_ceil","ambient":0.1,"drain":3,"drone":1}
+  ],
+  "things": [
+    {"id":"luther","type":"luther","x":1.5,"y":10.5,"talk":[["LUTHER","I been in this mine every day for two year. I never drove that heading."],["LUTHER","Go on. We're right here."]]},
+    {"id":"ebward","type":"ebward","x":1.5,"y":14.5,"talk":[["EB","Somebody's got to stay on the fan."],["EB","When your lamp flickers, start back."]]},
+    {"id":"tail","type":"tail","x":33.5,"y":12.5},
+    {"id":"car","type":"car","x":32.5,"y":11.5},
+    {"id":"cutter","type":"cutter","x":36.5,"y":13.5},
+    {"id":"bucket1","type":"bucket","x":33.3,"y":14.3,"label":"Cecil's bucket","say":"Cecil's dinner bucket. His dinner's still in it.","counter":"buckets"},
+    {"id":"bucket2","type":"bucket","x":33.8,"y":14.3,"label":"Doyle's bucket","say":"Doyle's bucket. The coffee in the thermos is still warm.","counter":"buckets"},
+    {"id":"bucket3","type":"bucket","x":34.3,"y":14.3,"label":"Bobby's bucket","say":"Bobby's bucket. His mother packed it. There's a note in the lid.","counter":"buckets"},
+    {"id":"bucket4","type":"bucket","x":34.8,"y":14.3,"label":"Junior's bucket","say":"Junior's bucket. Empty, and washed out.","counter":"buckets"},
+    {"id":"light","type":"light","glow":6,"x":60.5,"y":11.5},
+    {"id":"cecil","type":"cecil","x":54.5,"y":19.5},
+    {"id":"doyle","type":"doyle","x":56.5,"y":3.5},
+    {"id":"bobby","type":"bobby","x":50.5,"y":7.5},
+    {"id":"junior","type":"junior","x":60.5,"y":10.5},
+    {"id":"hang0","type":"roots_hang","x":42.32,"y":14.32},
+    {"id":"hang1","type":"roots_hang","x":46.5,"y":12.32},
+    {"id":"hang2","type":"roots_hang","x":59.68,"y":10.5},
+    {"id":"hang3","type":"roots_hang","x":54.32,"y":15.5},
+    {"id":"hang4","type":"roots_hang","x":52.5,"y":18.68},
+    {"id":"hang5","type":"roots_hang","x":45.68,"y":3.68},
+    {"id":"hang6","type":"roots_hang","x":59.32,"y":9.32},
+    {"id":"hang7","type":"roots_hang","x":44.5,"y":20.32},
+    {"id":"hang8","type":"roots_hang","x":61.68,"y":8.5},
+    {"id":"hang9","type":"roots_hang","x":53.32,"y":13.5},
+    {"id":"hang10","type":"roots_hang","x":44.5,"y":21.68},
+    {"id":"hang11","type":"roots_hang","x":47.68,"y":16.68},
+    {"id":"hang12","type":"roots_hang","x":56.32,"y":20.32},
+    {"id":"hang13","type":"roots_hang","x":51.5,"y":17.32},
+    {"id":"hang14","type":"roots_hang","x":45.68,"y":19.5},
+    {"id":"hang15","type":"roots_hang","x":56.32,"y":7.5},
+    {"id":"hang16","type":"roots_hang","x":53.5,"y":7.68},
+    {"id":"hang17","type":"roots_hang","x":52.68,"y":19.68},
+    {"id":"hang18","type":"roots_hang","x":42.32,"y":8.32},
+    {"id":"hang19","type":"roots_hang","x":61.5,"y":10.32},
+    {"id":"hang20","type":"roots_hang","x":52.68,"y":8.5},
+    {"id":"hang21","type":"roots_hang","x":60.32,"y":21.5},
+    {"id":"hang22","type":"roots_hang","x":48.5,"y":18.68},
+    {"id":"hang23","type":"roots_hang","x":51.68,"y":11.68},
+    {"id":"hang24","type":"roots_hang","x":47.32,"y":9.32},
+    {"id":"hang25","type":"roots_hang","x":46.5,"y":21.32},
+    {"id":"hang26","type":"roots_hang","x":60.68,"y":3.5},
+    {"id":"hang27","type":"roots_hang","x":55.32,"y":17.5},
+    {"id":"hang28","type":"roots_hang","x":44.5,"y":17.68},
+    {"id":"hang29","type":"roots_hang","x":60.68,"y":17.68},
+    {"id":"hang30","type":"roots_hang","x":52.32,"y":3.32},
+    {"id":"hang31","type":"roots_hang","x":54.5,"y":11.32}
+  ],
+  "triggers": [
+    {"id":"begin","when":{"on":"start"}, "do": [
+        {"obj":"FIND CECIL, DOYLE, BOBBY AND JUNIOR"},
+        {"say":"Belt quit at 2:19 and the power's still on. Nobody's come out.","who":"LUTHER"},
+        {"wait":3},
+        {"say":"Somebody's got to stay on the fan. If it quits, you come out.","who":"EB"}
+      ] },
+    {"id":"fresh_dust","when":{"on":"enter","x0":15,"y0":3,"x1":39,"y1":21}, "do": [
+        {"say":"Fresh rock dust over the whole section, top to bottom. No tracks in it but yours."}
+      ] },
+    {"id":"paint","when":{"on":"enter","x0":30,"y0":9,"x1":30,"y1":15}, "do": [
+        {"say":"Harold's paint is on both ribs. The coal it ran across is gone."}
+      ] },
+    {"id":"new_heading","when":{"on":"enter","x0":31,"y0":3,"x1":39,"y1":21}, "do": [
+        {"wait":1.5},
+        {"say":"This heading wasn't here yesterday. Nobody on this section drove it. Nobody could have, not in one shift."}
+      ] },
+    {"id":"car","when":{"on":"near","thing":"car","r":2}, "do": [
+        {"say":"The shuttle car's parked square in the crosscut, cable reeled up tight."}
+      ] },
+    {"id":"cutter","when":{"on":"near","thing":"cutter","r":2}, "do": [
+        {"say":"The cutter's been cleaned. Bits and all."}
+      ] },
+    {"id":"buckets","when":{"on":"near","thing":"bucket1","r":2.2}, "do": [
+        {"say":"Four dinner buckets in a row along the rib, bails all laid down the same way."}
+      ] },
+    {"id":"crack_see","when":{"on":"enter","x0":37,"y0":11,"x1":39,"y1":13}, "do": [
+        {"sound":"breath"},
+        {"say":"A crack at the bottom of the face. Six inches. Warm air coming out of it, steady, pushing against the fan."}
+      ] },
+    {"id":"crack_go","when":{"on":"usetile","tile":"X"}, "do": [
+        {"say":"You get down flat and go in head first. Six inches, and you fit."},
+        {"tile":".","x":40,"y":12},
+        {"sound":"breath"}
+      ] },
+    {"id":"roots","when":{"on":"enter","x0":42,"y0":2,"x1":62,"y1":22}, "do": [
+        {"say":"Roots. In the floor, in the ribs, in the top. Stigmaria: the roots of trees that died three hundred million years ago, before the coal was coal."},
+        {"wait":4},
+        {"say":"Every miner has seen them turned to stone in the fire clay."},
+        {"wait":3},
+        {"say":"These aren't stone."}
+      ] },
+    {"id":"found_cecil","when":{"on":"near","thing":"cecil","r":1.5}, "do": [
+        {"say":"Cecil Ison. Facing the rock. The roots come up over his boots like ivy on a fence post. His cap lamp is off. You put your hand on his shoulder. He's warm. He doesn't turn around."},
+        {"add":"found","n":1}
+      ] },
+    {"id":"found_doyle","when":{"on":"near","thing":"doyle","r":1.5}, "do": [
+        {"say":"Doyle Fields, standing the same way. His lips are moving with no sound. Then, in his own voice:"},
+        {"wait":2.5},
+        {"say":"Tell Luther we pulled that pillar right.","who":"DOYLE"},
+        {"add":"found","n":1}
+      ] },
+    {"id":"found_bobby","when":{"on":"near","thing":"bobby","r":1.5}, "do": [
+        {"say":"Bobby Mullins is nineteen. You can see from the side of his face that he's smiling. The roots have his hands. He isn't fighting them. He's holding on."},
+        {"add":"found","n":1}
+      ] },
+    {"id":"found_junior","when":{"on":"near","thing":"junior","r":1.5}, "do": [
+        {"say":"Junior Holbrook, closest to the light. He doesn't turn around."},
+        {"wait":2.5},
+        {"say":"I understand now.","who":"JUNIOR"},
+        {"add":"found","n":1}
+      ] },
+    {"id":"all_four","when":{"on":"counter","name":"found","gte":4}, "do": [
+        {"wait":3},
+        {"obj":"TURN BACK"},
+        {"say":"That's all four. You can't carry a man who's holding on."},
+        {"wait":2.5},
+        {"say":"Go back to the crack."}
+      ] },
+    {"id":"light_see","when":{"on":"near","thing":"light","r":3.2}, "do": [
+        {"say":"Light up ahead. No lamp, no cable run to it. It's coming out of the roots."},
+        {"wait":3},
+        {"say":"Go back to the crack."}
+      ] },
+    {"id":"light_touch","when":{"on":"near","thing":"light","r":0.9},"once":false,"cooldown":4, "do": [
+        {"flash":"#fff4d0"},
+        {"card":["","","          Not yet.","",""]},
+        {"teleport":{"x":42.5,"y":12.5,"a":3.14159}}
+      ] },
+    {"id":"closing","when":{"on":"enter","x0":1,"y0":3,"x1":39,"y1":21},"if":{"counter":"found","gte":4}, "do": [
+        {"tile":"c","x":40,"y":12},
+        {"dust":true,"x0":40,"y0":12,"x1":40,"y1":12},
+        {"sound":"breath"},
+        {"say":"Behind you the crack is closing. Slow, like a hand. The four of them are on the other side of it."},
+        {"spawn":{"id":"harold","type":"harold","x":2.5,"y":12.5,"talk":[["HAROLD","Block, not powder."],["HAROLD","Go on. I'll be here."]]}},
+        {"obj":"HAROLD COMBS IS AT THE DRIFT MOUTH"}
+      ] },
+    {"id":"harold","when":{"on":"use","thing":"harold"}, "do": [
+        {"card":["Harold Combs is standing in the drift mouth.","For two years he has walked the line once a month and never once come to the portal.","","\"How far east.\"","","You tell him.","","\"They're not dead the way you mean dead."," I can't tell you the way I mean it.\"","","\"Nobody goes back in there. Not you, not Luther, not the county.\"","","\"You wall it up. Block, not powder. You don't shoot at it.\"","","\"I'll write it up for the county. My name won't be on it.\""]},
+        {"say":"There's block on the supply pile. We'll lay it up at eighteen.","who":"EB"},
+        {"spawn":{"id":"seal1","type":"blocks","x":18.5,"y":10.5,"say":"First stopping. Eb mortars. Nobody talks."}},
+        {"spawn":{"id":"seal2","type":"blocks","x":18.5,"y":12.5,"say":"Second. Luther scratches the date in the wet face: 4-7-62. Then four sets of initials."}},
+        {"spawn":{"id":"seal3","type":"blocks","x":18.5,"y":14.5,"say":"Third. Plastered. The air goes quiet behind it."}},
+        {"obj":"WALL IT UP: 3 STOPPINGS AT CROSSCUT 18"}
+      ] },
+    {"id":"sealed","when":{"on":"counter","name":"sealed","gte":3}, "do": [
+        {"wait":3},
+        {"save":{"evidence":"JOSEPH_NO1","flag":"sealed_1962"}},
+        {"end":{"card":["The county got Harold's report Monday morning.","","CAUSE: unknown.","MEN RECOVERED: none.","RECOMMENDED BY: ████████","","Luther and Ebward Joseph moved the outfit to the next ridge that May.","They ran coal there a long time. They didn't talk about No. 1.","","They sent nobody else in.","They shut it right.","They never went back east.","","","LKCO-04   JOSEPH No. 1 DRIFT   SEALED 1962","EAST HEADING: 4 MEN.  NOT RECOVERED.","STATUS: [updating]","STATUS: ACTIVE"],"buttons":[{"label":"SECWATCH terminal","href":"index.html?dash"},{"label":"Day 1  (1994)","href":"day1.html"}]}}
+      ] }
+  ],
+  "tiles": [
+    "################################################################",
+    "################################################################",
+    "#########################################RRRRRRRRRRRRRRRRRRRRRR#",
+    "#cccccccccccccccccccccccccccccHccccccccc#R.............R.R.....#",
+    "#cccccccccccccccccccccccccccccHccccccccc#R.R.R.RRRRRR..R.R.RRR.#",
+    "#ccccc.ccc.ccc.cccccccccccccccHccccccccc#R.....R.........R...R.#",
+    "#ccccc.ccc.ccc.cccccccccccccccHccccccccc#R.R.RRR.RRRRRRRRR.RRR.#",
+    "#ccccc.ccc.ccc.cccccccccccccccHccccccccc#R.R...R...R.......R...#",
+    "#ccccc.ccc.ccc.cccccccccccccccHccccccccc#R.RRR.RRRRR...RRR.R...#",
+    "#ccccc.ccc.ccc.cccccccccccccccHccccccccc#R.......R.....R.....R.#",
+    "#......................................c#RRRRRRR.R.RRRRR.RR....#",
+    "#ccc.ccc.ccc.ccc.ccc.ccc.ccc.cHc.ccc.ccc#R...........R...R.....#",
+    "P.......................................X..RRR...RRRRR.RRR.....#",
+    "#ccc.ccc.ccc.ccc.ccc.ccc.ccc.cHc.ccc.ccc#R.R...R.R.....R...R...#",
+    "#......................................c#R.R.RRR.R.RRRRR..RR.RR#",
+    "#ccccc.ccc.cccccccccccccccccccHccccccccc#R...R...R.....R...R...#",
+    "#ccccc.ccc.cccccccccccccccccccHccccccccc#R.RRRR.RR.RRR.RRR.RRR.#",
+    "#ccccc.ccc.cccccccccccccccccccHccccccccc#R.......R...R...R...R.#",
+    "#ccccc.ccc.cccccccccccccccccccHccccccccc#RRRRR.R.R...R.R.RRR.R.#",
+    "#ccccc.ccc.cccccccccccccccccccHccccccccc#R.R.....R.R.R.R.R...R.#",
+    "#cccccccccccccccccccccccccccccHccccccccc#R.R.RRRRR.R.RRR.R.RRR.#",
+    "#cccccccccccccccccccccccccccccHccccccccc#R.........R.....R.....#",
+    "#########################################RRRRRRRRRRRRRRRRRRRRRR#",
+    "################################################################",
+    "################################################################"
+  ],
+  "dust": [
+    "................................................................",
+    "................................................................",
+    "................................................................",
+    "................................................................",
+    ".....***.***.***................................................",
+    ".....***.***.***................................................",
+    ".....***.***.***................................................",
+    ".....***.***.***................................................",
+    ".....***.***.***................................................",
+    "****************************************........................",
+    "****************************************........................",
+    "*****************************************.......................",
+    ".****************************************.......................",
+    "*****************************************.......................",
+    "****************************************........................",
+    "****************************************........................",
+    ".....***.***....................................................",
+    ".....***.***....................................................",
+    ".....***.***....................................................",
+    ".....***.***....................................................",
+    ".....***.***....................................................",
+    "................................................................",
+    "................................................................",
+    "................................................................",
+    "................................................................"
+  ]
+}
