@@ -50,7 +50,7 @@ Everything is static HTML/JS: no build step and no dependencies. It runs from an
 - **Art:** paint the sprite sheets (`art/mine/templates`), and the `missing` day images first. Those are broken today: `cam1_d2`, `cam6_d2`, `cam9_d2`, `hargrove_photograph`, `cam9_1983`, `cam9_earl_walking`, `camX.gif`, and the gif variants of some cams.
 - **Hook new art:** each `new` slot in `js/artManifest.js` names the page/engine where it would be shown (`hook`).
 - **Night Shift: claims.** A full proposal (cards, rules, Earl's night as a line that passes to you, how claims carry between nights, no guns) is at the end of `DESIGN_NIGHTSHIFT.md`. **Built** (2026-10): claim/register effects, land-record cards, Earl's line in Night 3, dawn, claims on record carried between nights, the 1962 seal in CAM B.
-- **Night Shift card for the mine:** add a card in `js/dreamData.js` unlocked by evidence `JOSEPH_NO1`. `SW.find` already records it.
+- **Night Shift cards for the mine:** done. `JOSEPH_NO1` unlocks BLOCK, NOT POWDER (and the seal claim in CAM B); E1M1's `HC_LINE` / `SURVEY_SPAD` unlock HAROLD'S PAINT and SURVEY SPAD.
 - **More mine levels:** E1M3 could be Harold's 1971 last walk, or Earl's 1982 strip cut opening the old drift from above. Use the editor.
 - **Day pages → dashboard:** day pages don't link back to `index.html`. A small "SECWATCH" corner link (like `mine.html` has) would help.
 

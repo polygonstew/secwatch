@@ -129,7 +129,7 @@ const adv = async p => { for(let i = 0; i < 2; i++){ await p.keyboard.press('Spa
     await p.goto(BASE + '/dream.html?night=1'); await p.waitForTimeout(800);
     await p.click('#brief-go'); await p.waitForTimeout(300);
     await p.click('.node.avail >> nth=0'); await p.waitForTimeout(500);
-    ok(await p.evaluate(() => { const w = G.lanes[1].ward; return !!w && w.claim && w.value >= 3 && w.by === 'H.C. 1962'; }), 'the 1962 seal holds CAM B');
+    ok(await p.evaluate(() => { const w = G.lanes[1].ward; return !!w && w.claim && w.value >= 3 && w.by === 'SEAL 4-7-62'; }), 'the 1962 seal holds CAM B');
     /* a claim accounts for what it holds */
     const reg = await p.evaluate(async () => {
       const i = G.lanes.findIndex(l => l.enemy && intentOf(l.enemy).kind === 'attack');

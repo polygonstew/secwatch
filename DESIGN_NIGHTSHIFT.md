@@ -19,7 +19,7 @@ nights are a lane deckbuilder. Everything you `type`, `play` or `dial`
 during the day is logged by `SW.find()`. When you fall asleep, each
 logged file that maps to a card comes with you: BADGE.LOG becomes
 **DEAD BADGE**, TAPE_03 becomes **TAPE 03** (silences a Terror),
-the deed with your name on it becomes **THE DEED** (anchor every lane).
+the deed with your name on it becomes **THE DEED** (claim every lane).
 
 The same reading raises the threat bars (HARGROVE, LKCO, SYSTEM,
 EAST WALL). The bars feed the nightmare:
@@ -192,7 +192,7 @@ Other card changes:
 
 ### Terrors
 Rule: a Terror is something the entity does, a record, or a place. It is never a person from the lore, and never Earl's own equipment (Day 4: "Leave the system running").
-- **earl → eastwall, THE EAST WALL.** HP 34, boss styling, same pattern (aware, reaches 6, nearer +1, static 2, reaches 8). Flavor: "Where the rock stops and something else begins." (the bible's View One, Day 5).
+- **earl → eastwall, THE EAST WALL.** HP 60 (raised from 34 after bot playtests: at 34 it was accounted for before Earl's line ran out or dawn came), boss styling, same pattern (aware, reaches 6, nearer +1, static 2, reaches 8). Flavor: "Where the rock stops and something else begins." (the bible's View One, Day 5).
 - **threshold → PRIVATE MEETINGS** (id kept).
   - The pattern becomes guard 6, guard 6, **watch**. It never touches you, because their rituals did nothing. It soaks up your turns, and a claim in its lane cancels its guard ("the readings settle").
   - The flavor is Ruth Bingham's Day 3 quote, "A dozen cars some nights." plus the torchlight in the lower windows. Night 2 no longer gives away the Day 5-6 reveal.
@@ -205,7 +205,7 @@ Rule: a Terror is something the entity does, a record, or a place. It is never a
   - The wall's first reach (6) meets his line, and 6 is accounted for.
   - On its fifth action (8 + 1 nearer) the line runs out: 4 accounted for, 5 reaches you.
   - The log says **"The line #0088 was holding is yours now."**
-  - With a higher bar the timing is the same but more reaches you. After Day 5 the bar is 1 if you turned back and 10 if you didn't. At 10 the wall has HP 39 and +2 on every reach, and it pulses.
+  - With a higher bar the timing is the same but more reaches you. After Day 5 the bar is 1 if you turned back and 10 if you didn't. At 10 the wall has HP 65 and +2 on every reach, and it pulses.
 - **Earl is not fought.** He is not hit, beaten or saved. He holds the line until it passes to you. That plays out the bible's "The arrangement has technically lapsed... he is not the custodian in the functional sense" and Day 7's "The land needs a new custodian". It spoils nothing: Day 3 already shows Earl as STATUS: ACTIVE.
 - **Dawn.** The node also carries `dawn:8`. If you are still standing at the end of turn 8, it withdraws. That gives two ways through: account for it, or hold until dawn. This is the "you can't win, only choose how long to hold" idea already in this doc.
 - **Win text:** "Nothing was beaten. It came to a line it could read, and it withdrew its awareness to whatever it was attending to before it noticed you. / Cold air. January. The crack is gone. / The line held where someone had been standing."
@@ -213,7 +213,7 @@ Rule: a Terror is something the entity does, a record, or a place. It is never a
 ### How claims carry
 **Within a night.** Lanes reset every feed, as now. Two things open a feed with a claim already in place:
 1. **Lines on file** (`save.flags.recorded`, 0-3). Every feed opens with a claim of that size on every lane.
-2. **The 1962 seal.** If `SW.has('JOSEPH_NO1')`, CAM B opens every feed with a claim of 3 labelled `H.C. 1962`.
+2. **The 1962 seal.** If `SW.has('JOSEPH_NO1')`, CAM B opens every feed with a claim of 3 labelled `SEAL 4-7-62`.
 
 When more than one applies to a lane, the larger value wins and its label goes with it.
 
@@ -326,7 +326,7 @@ STEP 2: js/dreamEngine.js. Every function named here already exists unless it is
 - hurt() (line 379): `SIGNAL LOST` → `ACCOUNTED FOR. It withdraws.`
 - startFeed(node) (line 159), after the enemies are placed and before renderAll:
   1. `const rec = Math.min(3, save.flags.recorded || 0);` If rec > 0, call stake(i, rec) on every lane.
-  2. If SW.has('JOSEPH_NO1'), call stake(1, 3, 'H.C. 1962').
+  2. If SW.has('JOSEPH_NO1'), call stake(1, 3, 'SEAL 4-7-62').
   3. If node.claims, call stake(i, node.claims[i], node.keeper) for every value > 0.
 - nightWon() (line 584): `SW.flag('recorded', Math.min(3, (save.flags.recorded || 0) + 1));`
 - wake() loss branch (line 626): `SW.flag('recorded', 0);`. The retry path (end-retry → beginNight) does not touch it.
@@ -373,7 +373,7 @@ b) Mine carry-over:
    - Go to index.html. Evaluate SW.find('JOSEPH_NO1') and then SW.newRun().
    - ok SW.has('JOSEPH_NO1').
    - Go to dream.html?night=1, click #brief-go, then click the first '.node.avail'.
-   - ok G.lanes[1].ward.claim && G.lanes[1].ward.value >= 3 && G.lanes[1].ward.by === 'H.C. 1962'.
+   - ok G.lanes[1].ward.claim && G.lanes[1].ward.value >= 3 && G.lanes[1].ward.by === 'SEAL 4-7-62'.
 c) Registration:
    - Put a {value:6, claim:true} ward in the lane of an enemy whose intentOf() is 'attack'.
    - Record its hp, then await endTurn().

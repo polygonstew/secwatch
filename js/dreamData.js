@@ -112,7 +112,7 @@ const NS_CARDS = {
   spad:      { name:'SURVEY SPAD',  cost:0, effect:'claim',   value:3, target:'lane',  kind:'evidence', icon:'claim', file:'SPAD',
                desc:'Claim 3 on a lane.', flavor:"You check your compass against the survey spad. The needle won't settle." },
   seal_1962: { name:'BLOCK, NOT POWDER', cost:2, effect:'claim', value:10, target:'lane', kind:'evidence', icon:'claim', file:'SEALED 4-7-62', exhaust:true,
-               desc:'Claim 10 on a lane. Exhaust.', flavor:"You wall it up. Block, not powder. You don't shoot at it." },
+               desc:'Claim 10 on a lane. Exhaust.', flavor:'"You wall it up. Block, not powder. You don\'t shoot at it."' },
 
   /* rewards -- offered 3-at-random after each cleared feed */
   sec2_exe:  { name:'SEC2.EXE',     cost:0, effect:'draw',    value:2, target:'self',  kind:'reward', icon:'screen',
@@ -138,7 +138,7 @@ const NS_CARDS = {
   white_oak: { name:'WHITE OAK CORNER', cost:2, effect:'claim', value:8, target:'lane', kind:'reward', icon:'claim',
                desc:'Claim 8 on a lane.', flavor:'Beginning at a white oak marked with three hacks, corner of the 1887 Hargrove grant.' },
   let_it_know:{ name:'LET IT KNOW', cost:1, effect:'register', value:0, target:'enemy', kind:'reward', icon:'o',
-               desc:'Only on a claimed lane: that Terror skips its next action and loses its nearer bonus.', flavor:'Not magic. Just letting it know. The way you register that a door is closed.' },
+               desc:'On a claim: skips its next action, loses nearer.', flavor:'Not magic. Just letting it know. The way you register that a door is closed.' },
   redact:    { name:'[REDACTED]',   cost:1, effect:'expose',  value:6, target:'enemy', kind:'reward', icon:'beam',
                desc:'Expose a feed: +6 from every hit this turn.', flavor:'Credentials: extensive field experience.' }
 };
@@ -204,7 +204,7 @@ const NS_ENEMIES = {
   ricky:     { name:'UTILITIES CURRENT', hp:12, bar:'l', glyph:'◌',
                pattern:[['watch'],['whisper',1],['attack',4]],
                flavor:'1407 Cornett Branch Road. No death certificate filed.' },
-  eastwall:  { name:'THE EAST WALL', hp:34, bar:'e', glyph:'▣', boss:true,
+  eastwall:  { name:'THE EAST WALL', hp:60, bar:'e', glyph:'▣', boss:true,
                pattern:[['watch'],['attack',6],['extend',1],['whisper',2],['attack',8]],
                flavor:'Where the rock stops and something else begins.' }
 };

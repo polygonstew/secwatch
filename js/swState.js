@@ -39,6 +39,8 @@
     flags: {},            // custodian, tired, tl9, night_1 ...
     evidence: [],         // ids passed to SW.find()
     deck: [],             // Night Shift cards earned (card ids)
+    shred: [],            // Night Shift cards erased at a TAPE DECK
+    clarity: 0,           // Night Shift currency
     _pushed: {}           // last value we wrote to each legacy key
   });
 

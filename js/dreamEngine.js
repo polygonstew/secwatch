@@ -85,7 +85,7 @@ function deckList(){
 }
 const inst = id => ({ ...NS_CARDS[id], id, uid:'c' + (G.uid++) });
 function shuffle(a){ for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-const owned = () => G.draw.length + G.hand.length + G.discard.length;
+const owned = () => deckList().length;          // the permanent deck: STATIC doesn't count, exhausted cards do
 
 function drawCards(n){
   for(let i = 0; i < n; i++){
@@ -137,13 +137,13 @@ function renderBrief(){
   const ew = save.bars.e || 0;
   if(ew >= 2) t.push(`East Wall ${ew}: every feed takes +${Math.floor(ew / 2)} more to account for, your Lucidity -${Math.floor(ew / 2)}.`);
   ['h','l','s','e'].forEach(k => { const b = Math.floor((save.bars[k] || 0) / 4);
-    if(b) t.push(`${BAR_NAMES[k]} ${save.bars[k]}: its Terrors hit +${b}.`); });
+    if(b) t.push(`${BAR_NAMES[k]} ${save.bars[k]}: its Terrors reach +${b}.`); });
   if(ew >= NS_CONFIG.wallPulseAt) t.push(`The wall pulses every ${NS_CONFIG.wallPulseEvery} turns. OBSERVER LOGGED.`);
   if(save.flags.tired) t.push(`You stayed up last night. ${NS_CONFIG.tiredFocus} Focus.`);
-  if(!t.length) t.push('Nothing yet. You have not dug deep enough to be noticed.');
   const rec = Math.min(RECORD_MAX, save.flags.recorded || 0);
   if(rec) t.push(`On record: every feed opens with a claim of ${rec} on each lane.`);
   if(SW.has('JOSEPH_NO1')) t.push('The 1962 seal holds CAM B.');
+  if(!t.length) t.push('Nothing yet. You have not dug deep enough to be noticed.');
   $('brief-threats').innerHTML = t.map(x => `<li>${esc(x)}</li>`).join('');
   setPhase('brief');
 }
@@ -210,12 +210,13 @@ function makeEnemy(id){
 
 function startFeed(node){
   G.lanes = Array.from({ length:LANES }, () => ({ enemy:null, ward:null }));
+  $('lane-ward-row').innerHTML = '';             // last feed's slots are hidden: no float text at 0,0
   const slots = laneSlots(node.enemies.length);
   node.enemies.forEach((id, i) => { if(NS_ENEMIES[id]) G.lanes[slots[i]].enemy = makeEnemy(id); });
   /* claims already standing when the feed opens (larger value wins, its label with it) */
   const rec = Math.min(RECORD_MAX, save.flags.recorded || 0);
   if(rec) for(let i = 0; i < LANES; i++) stake(i, rec);
-  if(SW.has('JOSEPH_NO1')) stake(1, 3, 'H.C. 1962');
+  if(SW.has('JOSEPH_NO1')) stake(1, 3, 'SEAL 4-7-62');
   if(node.claims) node.claims.forEach((n, i) => { if(n > 0) stake(i, n, node.keeper); });
   G.feedMaxHp = G.lanes.reduce((s, l) => s + (l.enemy ? l.enemy.maxHp : 0), 0) || 1;
   G.turn = 1;
@@ -413,7 +414,10 @@ function anchor(i, n){
   const lane = G.lanes[i];
   const prev = lane.ward || {};
   const w = { ...prev, value: Math.max(n, prev.value || 0) };   // paper on a claim keeps it a claim
-  if(n > (prev.value || 0)) delete w.by;                         // the larger value wins, with its label
+  if(n > (prev.value || 0) && w.by){                             // the larger value wins, with its label
+    if(G.node && w.by === G.node.keeper) log(`The line ${w.by} was holding is yours now.`, 'hot');
+    delete w.by;
+  }
   lane.ward = w;
   const s = document.querySelector(`.ward-slot[data-lane="${i}"]`);
   if(s) floatText(s, '+' + n, 'info');
@@ -553,12 +557,12 @@ function act(e, i, it){
     }
     if(wasClaim && absorbed > 0){
       G.stats.registered += absorbed;
-      log(`${e.name} meets the line. ${absorbed} accounted for.${dmg ? ` ${dmg} reaches you.` : ''}`, dmg ? 'hot' : 'good');
+      log(`${e.name} meets the line. ${Math.min(absorbed, e.hp)} accounted for.${dmg ? ` ${dmg} reaches you.` : ''}`, dmg ? 'hot' : 'good');
       hurt(i, absorbed);
     }else{
       log(`${e.name} reaches ${it.n}.${absorbed ? ` ${absorbed} held.` : ''}`, dmg ? 'hot' : '');
     }
-    if(by && !lane.ward) log(`The line ${by} was holding is yours now.`, 'hot');
+    if(by && by === G.node.keeper && !lane.ward) log(`The line ${by} was holding is yours now.`, 'hot');
   }else if(it.kind === 'guard'){
     if(G.lanes[i].ward && G.lanes[i].ward.claim){
       log(`${e.name}: the readings settle on your claim.`);
