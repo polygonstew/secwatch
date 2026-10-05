@@ -52,6 +52,7 @@ Everything is static HTML/JS: no build step and no dependencies. It runs from an
 - **Night Shift: claims.** A full proposal (cards, rules, Earl's night as a line that passes to you, how claims carry between nights, no guns) is at the end of `DESIGN_NIGHTSHIFT.md`. **Built** (2026-10): claim/register effects, land-record cards, Earl's line in Night 3, dawn, claims on record carried between nights, the 1962 seal in CAM B.
 - **Night Shift cards for the mine:** done. `JOSEPH_NO1` unlocks BLOCK, NOT POWDER (and the seal claim in CAM B); E1M1's `HC_LINE` / `SURVEY_SPAD` unlock HAROLD'S PAINT and SURVEY SPAD.
 - **More mine levels:** E1M3 could be Harold's 1971 last walk, or Earl's 1982 strip cut opening the old drift from above. Use the editor.
+- **Music:** the Night Shift background is now the user's `jam_bg4x.mp3`, fitted to the game tempo; the old drone stays in `audio/jam/`. Details and the loop math are in `MUSIC.md`.
 - **Day pages → dashboard:** day pages don't link back to `index.html`. A small "SECWATCH" corner link (like `mine.html` has) would help.
 
 ## Testing

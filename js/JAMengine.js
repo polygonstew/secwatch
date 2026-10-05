@@ -28,7 +28,7 @@ const JAMengine = {
     await Promise.all([
       // Loops
       load('tempo', 'audio/jam/jam_tempo.mp3'),
-      load('drone_base', 'audio/jam/jam_drone1-d4x.mp3'),
+      load('bg', 'audio/jam/jam_bg4x.mp3'),
       load('bass_action', 'audio/jam/jam_bassline2x.mp3'),
       load('drone_fx', 'audio/jam/jam_drone1-fx4x.mp3'),
       load('wot_action', 'audio/jam/jam_wot_4x.mp3'),
@@ -51,10 +51,14 @@ const JAMengine = {
     this.actionGain.connect(this.ctx.destination);
 
     // 2. START THE LOOPS
-    // playLoop(bufferName, targetGainNode): each loop's length in bars is read
-    // from the file itself (see barsOf), so any whole number of bars works.
+    // playLoop(bufferName, targetGainNode, volume): each loop's length in bars
+    // is read from the file itself (see barsOf), so any whole number of bars works.
     this.playLoop('tempo', this.baseGain);
-    this.playLoop('drone_base', this.baseGain);
+    // The background (jam_bg4x.mp3) is mastered loud, about -14 LUFS, so it
+    // plays at half volume to sit where the old drone did. The old drone is
+    // still in audio/jam/ (jam_drone1-d4x.mp3); load it as 'drone_base' and
+    // play it here to bring it back.
+    this.playLoop('bg', this.baseGain, 0.5);
     
     this.playLoop('bass_action', this.actionGain);
     this.playLoop('drone_fx', this.actionGain);
@@ -71,13 +75,16 @@ const JAMengine = {
   },
 
   // Helper to start perfectly cut loops (every loop restarts on a bar line)
-  playLoop(name, destination) {
+  playLoop(name, destination, volume = 1.0) {
     if(!this.buffers[name]) return;
     const node = this.ctx.createBufferSource();
     node.buffer = this.buffers[name];
     node.loop = true;
     node.loopEnd = this.barLength * this.barsOf(name); // Mathematically crops the file!
-    node.connect(destination);
+    const level = this.ctx.createGain();
+    level.gain.value = volume;
+    node.connect(level);
+    level.connect(destination);
     node.start(0);
   },
 
