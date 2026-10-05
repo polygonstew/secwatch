@@ -8,6 +8,7 @@
 | [LEVEL_FORMAT.md](LEVEL_FORMAT.md) | The level "WAD" JSON: tiles, zones, things, triggers (the story), recipes. |
 | [EDITOR.md](EDITOR.md) | SECWATCH Control, the level and story editor, and the Windows launcher. |
 | [ART_PIPELINE.md](ART_PIPELINE.md) | Sprite sheet grids and templates; per-day image outlines. |
+| [MUSIC.md](MUSIC.md) | Music and sound: where it plays, the Night Shift loop math (one bar = 6.7105 s), replacing tracks. |
 
 Elsewhere:
 - `../secWatch_story_and_lore.md`: the story bible, Days 1–10 (spoilers).

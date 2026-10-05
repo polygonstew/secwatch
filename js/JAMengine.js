@@ -51,23 +51,32 @@ const JAMengine = {
     this.actionGain.connect(this.ctx.destination);
 
     // 2. START THE LOOPS
-    // playLoop(bufferName, multiplier, targetGainNode)
-    this.playLoop('tempo', 4, this.baseGain); // Assuming tempo is 4 bars long
-    this.playLoop('drone_base', 4, this.baseGain);
+    // playLoop(bufferName, targetGainNode): each loop's length in bars is read
+    // from the file itself (see barsOf), so any whole number of bars works.
+    this.playLoop('tempo', this.baseGain);
+    this.playLoop('drone_base', this.baseGain);
     
-    this.playLoop('bass_action', 2, this.actionGain);
-    this.playLoop('drone_fx', 4, this.actionGain);
-    this.playLoop('wot_action', 4, this.actionGain);
-    this.playLoop('zelda_action', 2, this.actionGain);
+    this.playLoop('bass_action', this.actionGain);
+    this.playLoop('drone_fx', this.actionGain);
+    this.playLoop('wot_action', this.actionGain);
+    this.playLoop('zelda_action', this.actionGain);
   },
 
-  // Helper to start perfectly cut loops based on your 2x/4x names
-  playLoop(name, bars, destination) {
+  // How many whole bars a loop file holds. MP3s run a hair long (encoder
+  // padding), so round to the nearest bar and crop there. jam_tempo.mp3 is
+  // 1 bar (6.74 s); the 2x files are 2 bars, the 4x files 4.
+  barsOf(name) {
+    const buf = this.buffers[name];
+    return buf ? Math.max(1, Math.round(buf.duration / this.barLength)) : 0;
+  },
+
+  // Helper to start perfectly cut loops (every loop restarts on a bar line)
+  playLoop(name, destination) {
     if(!this.buffers[name]) return;
     const node = this.ctx.createBufferSource();
     node.buffer = this.buffers[name];
     node.loop = true;
-    node.loopEnd = this.barLength * bars; // Mathematically crops the file!
+    node.loopEnd = this.barLength * this.barsOf(name); // Mathematically crops the file!
     node.connect(destination);
     node.start(0);
   },
